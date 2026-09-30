@@ -1,0 +1,29 @@
+# Minimal local-dev config. Run `supabase init` to regenerate a full one if needed.
+project_id = "safespace"
+
+[api]
+port = 54321
+
+[db]
+port = 54322
+major_version = 15
+
+[auth]
+site_url = "http://localhost:5173"
+enable_signup = true
+
+[auth.email]
+# Turn OFF while developing so sign-up returns a session immediately.
+# Turn back ON for production.
+enable_confirmations = false
+
+[functions.verify-child-pin]
+verify_jwt = false   # children have no Supabase JWT; the PIN + family code are the credential
+[functions.get-child-profile]
+verify_jwt = false   # authenticated by the signed child-session token instead
+[functions.ai-orchestrator]
+verify_jwt = false
+[functions.emergency-escalation]
+verify_jwt = false
+[functions.create-child]
+verify_jwt = true    # caregiver-only

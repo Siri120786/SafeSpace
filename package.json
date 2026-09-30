@@ -1,0 +1,23 @@
+{
+  "name": "safespace",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "web:dev": "pnpm --filter @safespace/web dev",
+    "web:build": "pnpm --filter @safespace/web build",
+    "mobile:get": "cd apps/mobile && flutter pub get",
+    "mobile:analyze": "cd apps/mobile && flutter analyze",
+    "typecheck": "pnpm -r exec tsc --noEmit",
+    "lint": "pnpm --filter @safespace/web build",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "functions:serve": "supabase functions serve --env-file supabase/.env.local",
+    "test": "tsx supabase/tests/crypto.test.mts && tsx supabase/tests/rls.test.mts"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.2.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

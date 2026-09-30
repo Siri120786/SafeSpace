@@ -1,0 +1,3 @@
+-- Intentionally empty. Caregivers are created through the app's sign-up flow
+-- (a trigger creates their caregivers row), and children via create-child so
+-- PINs are always hashed server-side. Do NOT seed children with plaintext PINs.

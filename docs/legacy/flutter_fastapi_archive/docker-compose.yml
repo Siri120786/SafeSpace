@@ -1,0 +1,18 @@
+# Local Postgres for development. Run: docker compose up -d
+# Matches the default POSTGRES_URL in backend/.env.example.
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: safespace
+      POSTGRES_PASSWORD: safespace
+      POSTGRES_DB: safespace
+    ports:
+      - "5432:5432"
+    volumes:
+      - safespace_pg_data:/var/lib/postgresql/data
+
+volumes:
+  safespace_pg_data:

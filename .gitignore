@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.expo/
+.env
+.env.local
+supabase/.env.local
+supabase/.branches/
+supabase/.temp/
+*.log
+.DS_Store
+# TypeScript build info
+*.tsbuildinfo

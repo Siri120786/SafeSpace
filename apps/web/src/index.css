@@ -1,0 +1,109 @@
+/* apps/web/src/index.css
+   Same "nightlight" design tokens established in the earlier interactive
+   prototype — kept consistent so the real app matches what was validated. */
+:root {
+  --bg-deep: #1b1b2f;
+  --bg-surface: #262640;
+  --bg-surface-2: #2f2f52;
+  --accent-warm: #f0a868;
+  --accent-warm-soft: #4a3a2e;
+  --accent-teal: #6fc9c0;
+  --accent-teal-soft: #253b3c;
+  --text-primary: #f5f3f7;
+  --text-muted: #a8a6c0;
+  --danger: #e88b8b;
+  --danger-soft: #3a2530;
+  --border: rgba(245, 243, 247, 0.1);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #23233e 0%, var(--bg-deep) 55%);
+  color: var(--text-primary);
+  font-family: "Atkinson Hyperlegible", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+h1, h2 { font-family: "Quicksand", sans-serif; font-weight: 600; margin: 0; }
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent-warm);
+  color: #241a10;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  font-family: "Atkinson Hyperlegible", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 18px;
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-ghost {
+  width: 100%;
+  background: none;
+  border: 0.5px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+input {
+  width: 100%;
+  background: var(--bg-deep);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  color: var(--text-primary);
+  font-size: 15px;
+  margin-top: 6px;
+}
+
+label { display: block; font-size: 13px; color: var(--text-muted); margin-top: 16px; }
+
+.error-box {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  margin-top: 14px;
+}
+
+.role-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  background: var(--bg-surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  margin-top: 12px;
+}
