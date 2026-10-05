@@ -30,3 +30,16 @@ export {
   listRoutineSteps,
   markRoutineStepComplete,
 } from "./children";
+
+export {
+  getSupportPreferences,
+  saveSupportPreferences,
+  getAccessibilityPreferences,
+  saveAccessibilityPreferences,
+  completeOnboarding,
+} from "./profile";
+
+export type {
+  SaveSupportPreferencesInput,
+  SaveAccessibilityPreferencesInput,
+} from "./profile";

@@ -22,9 +22,13 @@ const dir = fileURLToPath(new URL("../migrations/", import.meta.url));
 await db.exec(readFileSync(dir + "0001_init_schema.sql", "utf8"));
 await db.exec(readFileSync(dir + "0002_pin_attempts.sql", "utf8"));
 await db.exec(readFileSync(dir + "0003_profiles_and_roles.sql", "utf8"));
+await db.exec(
+  readFileSync(dir + "20261005152905_profile_onboarding.sql", "utf8"),
+);
 await db.exec(`grant select, insert, update, delete on all tables in schema public to authenticated;`);
-ok("migrations 0001 + 0002 + 0003 apply cleanly", true);
-
+ok(
+  "migrations 0001 + 0002 + 0003 + profile onboarding apply cleanly",
+  true,);
 // Sign up a caregiver and a standalone user -> trigger creates profiles + caregivers (only for caregiver).
 const a = (await db.query<{id:string}>(`insert into auth.users (raw_user_meta_data) values ('{"role":"caregiver","display_name":"Caregiver A"}') returning id`)).rows[0].id;
 const b = (await db.query<{id:string}>(`insert into auth.users (raw_user_meta_data) values ('{"role":"caregiver","display_name":"Caregiver B"}') returning id`)).rows[0].id;
@@ -90,3 +94,138 @@ let blocked = false;
 try { await db.query(`insert into children (caregiver_id, name, age, pin_hash) values ('${b}','x',6,'h')`); }
 catch { blocked = true; } finally { await db.exec(`reset role;`); }
 ok("caregiver cannot create a child under another caregiver", blocked);
+// -----------------------------------------------------------------------------
+// Sprint 1: Profile onboarding preference isolation
+// -----------------------------------------------------------------------------
+
+// Seed preferences as a privileged database user, bypassing RLS.
+await db.query(
+  `insert into profile_support_preferences (profile_id, support_areas)
+   values ($1, ARRAY['autism', 'anxiety'])`,
+  [a],
+);
+
+await db.query(
+  `insert into profile_support_preferences (profile_id, support_areas)
+   values ($1, ARRAY['adhd'])`,
+  [b],
+);
+
+await db.query(
+  `insert into profile_accessibility_preferences
+    (profile_id, reduced_sensory_stimulation, larger_text, read_aloud, simplified_presentation)
+   values ($1, true, false, true, false)`,
+  [a],
+);
+
+await db.query(
+  `insert into profile_accessibility_preferences
+    (profile_id, reduced_sensory_stimulation, larger_text, read_aloud, simplified_presentation)
+   values ($1, false, true, false, true)`,
+  [b],
+);
+
+// User A can read their own support preferences.
+const ownSupport = await asUser<{
+  profile_id: string;
+  support_areas: string[];
+}>(a, `select profile_id, support_areas from profile_support_preferences`);
+
+ok(
+  "user can read their own support preferences",
+  ownSupport.length === 1 &&
+    ownSupport[0].profile_id === a &&
+    ownSupport[0].support_areas.includes("autism") &&
+    ownSupport[0].support_areas.includes("anxiety"),
+);
+
+// User A cannot read User B's support preferences.
+const otherSupport = await asUser<{
+  profile_id: string;
+}>(
+  a,
+  `select profile_id
+   from profile_support_preferences
+   where profile_id = '${b}'`,
+);
+
+ok(
+  "user cannot read another user's support preferences",
+  otherSupport.length === 0,
+);
+
+// User A cannot read User B's accessibility preferences.
+const otherAccessibility = await asUser<{
+  profile_id: string;
+}>(
+  a,
+  `select profile_id
+   from profile_accessibility_preferences
+   where profile_id = '${b}'`,
+);
+
+ok(
+  "user cannot read another user's accessibility preferences",
+  otherAccessibility.length === 0,
+);
+
+// User A can update their own support preferences.
+const ownUpdate = await asUser<{ support_areas: string[] }>(
+  a,
+  `update profile_support_preferences
+   set support_areas = ARRAY['autism', 'adhd']
+   where profile_id = '${a}'
+   returning support_areas`,
+);
+
+ok(
+  "user can update their own support preferences",
+  ownUpdate.length === 1 &&
+    ownUpdate[0].support_areas.includes("autism") &&
+    ownUpdate[0].support_areas.includes("adhd"),
+);
+
+// User A cannot update User B's support preferences.
+const crossUserUpdate = await asUser<{ profile_id: string }>(
+  a,
+  `update profile_support_preferences
+   set support_areas = ARRAY['ptsd']
+   where profile_id = '${b}'
+   returning profile_id`,
+);
+
+ok(
+  "user cannot update another user's support preferences",
+  crossUserUpdate.length === 0,
+);
+
+// User A can update their own accessibility preferences.
+const ownAccessibilityUpdate = await asUser<{
+  larger_text: boolean;
+}>(
+  a,
+  `update profile_accessibility_preferences
+   set larger_text = true
+   where profile_id = '${a}'
+   returning larger_text`,
+);
+
+ok(
+  "user can update their own accessibility preferences",
+  ownAccessibilityUpdate.length === 1 &&
+    ownAccessibilityUpdate[0].larger_text === true,
+);
+
+// User A cannot modify User B's profile.
+const crossProfileUpdate = await asUser<{ id: string }>(
+  a,
+  `update profiles
+   set onboarding_state = 'completed'
+   where id = '${b}'
+   returning id`,
+);
+
+ok(
+  "user cannot update another user's profile",
+  crossProfileUpdate.length === 0,
+);
