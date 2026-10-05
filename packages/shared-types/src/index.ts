@@ -25,6 +25,22 @@ export interface UserProfile {
   updatedAt: string;
 }
 
+export interface ProfileSupportPreferences {
+  profileId: string;
+  supportAreas: ModuleKey[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProfileAccessibilityPreferences {
+  profileId: string;
+  reducedSensoryStimulation: boolean;
+  largerText: boolean;
+  readAloud: boolean;
+  simplifiedPresentation: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 export interface Child {
   id: string;
   caregiverId: string;
