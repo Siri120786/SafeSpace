@@ -2,17 +2,16 @@ import { useState } from "react";
 import { verifyChildPin } from "@safespace/api-client";
 import type { ChildSession } from "@safespace/shared-types";
 import { storeChildSession, getStoredFamilyCode, storeFamilyCode } from "../lib/childSessionStorage";
+import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
+import { SafeSpaceInput } from "../components/ui/SafeSpaceInput";
+import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
+import { SafeSpaceBrandHeader } from "../components/ui/SafeSpaceBrandHeader";
 
 interface Props {
   onBack: () => void;
   onVerified: (session: ChildSession) => void;
 }
 
-// Deliberately a PIN, not a password — see the reasoning captured in
-// docs/Architecture_Specification.md §6 ("PIN/pattern over password").
-// The PIN itself is never checked in this component: verifyChildPin() calls
-// a server-side Edge Function, which is the only thing that ever sees
-// children.pin_hash (see supabase/migrations/0001_init_schema.sql).
 export default function ChildPinPage({ onBack, onVerified }: Props) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
@@ -55,65 +54,108 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
   // First time on this device: ask for the family code once.
   if (!familyCode) {
     return (
-      <div className="card">
-        <button className="btn-ghost" style={{ marginTop: 0, width: "auto" }} onClick={onBack}>
-          ← Back
-        </button>
-        <h1 style={{ marginTop: 16 }}>Family code</h1>
-        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
-          Ask a grown-up for your family code. You only need to enter it once on this device.
-        </p>
-        <input value={codeInput} onChange={(e) => setCodeInput(e.target.value)} maxLength={6} placeholder="e.g. A1B2C3" style={{ textTransform: "uppercase" }} />
-        <button
-          className="btn-primary"
-          disabled={codeInput.trim().length < 6}
-          onClick={() => { storeFamilyCode(codeInput); setFamilyCode(codeInput.trim().toUpperCase()); }}
-        >
-          Continue
-        </button>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+        <SafeSpaceCard maxW="md">
+          <div className="flex justify-start mb-2">
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-xs font-bold text-botanical-700 hover:text-botanical-900 transition-colors"
+            >
+              &larr; Back
+            </button>
+          </div>
+
+          <SafeSpaceBrandHeader
+            title="Family Code Required"
+            subtitle="Ask a grown-up for your family code. You only need to enter it once on this device."
+          />
+
+          <div className="space-y-4 mt-6">
+            <SafeSpaceInput
+              value={codeInput}
+              onChange={(e) => setCodeInput(e.target.value)}
+              maxLength={6}
+              placeholder="e.g. A1B2C3"
+              style={{ textTransform: "uppercase" }}
+            />
+
+            <SafeSpaceButton
+              disabled={codeInput.trim().length < 6}
+              onClick={() => {
+                storeFamilyCode(codeInput.trim());
+                setFamilyCode(codeInput.trim().toUpperCase());
+              }}
+              className="w-full py-3.5"
+            >
+              Continue &rarr;
+            </SafeSpaceButton>
+          </div>
+        </SafeSpaceCard>
       </div>
     );
   }
 
   return (
-    <div className="card" style={{ textAlign: "center" }}>
-      <button className="btn-ghost" style={{ marginTop: 0, width: "auto" }} onClick={onBack}>
-        ← Back
-      </button>
-      <h1 style={{ marginTop: 16 }}>Hi! Enter your code</h1>
-      <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Ask a grown-up if you forget it</p>
-
-      <div style={{ display: "flex", justifyContent: "center", gap: 14, margin: "22px 0" }}>
-        {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            style={{
-              width: 16, height: 16, borderRadius: "50%",
-              border: `2px solid ${error ? "var(--danger)" : "var(--text-muted)"}`,
-              background: i < pin.length ? (error ? "var(--danger)" : "var(--accent-teal)") : "transparent",
-            }}
-          />
-        ))}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-          <button key={n} onClick={() => handleDigit(String(n))} className="keypad-key">
-            {n}
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+      <SafeSpaceCard maxW="md" className="text-center">
+        <div className="flex justify-start mb-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-xs font-bold text-botanical-700 hover:text-botanical-900 transition-colors"
+          >
+            &larr; Back
           </button>
-        ))}
-        <div />
-        <button onClick={() => handleDigit("0")} className="keypad-key">0</button>
-        <button onClick={() => handleDigit("back")} className="keypad-key">⌫</button>
-      </div>
+        </div>
 
-      <style>{`
-        .keypad-key {
-          aspect-ratio: 1; border-radius: 18px; background: var(--bg-surface-2);
-          border: 0.5px solid var(--border); color: var(--text-primary);
-          font-size: 22px; font-family: 'Quicksand', sans-serif; font-weight: 600; cursor: pointer;
-        }
-      `}</style>
+        <SafeSpaceBrandHeader
+          title="Hi! Enter your PIN"
+          subtitle="Ask a grown-up if you forget your code"
+        />
+
+        {/* PIN Dots */}
+        <div className="flex justify-center items-center gap-3.5 my-6">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`w-4 h-4 rounded-full border-2 transition-all ${
+                error
+                  ? "border-coral-500 bg-coral-500"
+                  : i < pin.length
+                  ? "border-botanical-600 bg-botanical-600 shadow-sm"
+                  : "border-botanical-900/20 bg-transparent"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Keypad */}
+        <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+            <button
+              key={n}
+              onClick={() => handleDigit(String(n))}
+              className="aspect-square rounded-2xl bg-ivory-100 hover:bg-ivory-200 border border-botanical-900/10 text-charcoal font-display font-bold text-2xl cursor-pointer active:scale-95 transition-all shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-botanical-700"
+            >
+              {n}
+            </button>
+          ))}
+          <div />
+          <button
+            onClick={() => handleDigit("0")}
+            className="aspect-square rounded-2xl bg-ivory-100 hover:bg-ivory-200 border border-botanical-900/10 text-charcoal font-display font-bold text-2xl cursor-pointer active:scale-95 transition-all shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-botanical-700"
+          >
+            0
+          </button>
+          <button
+            onClick={() => handleDigit("back")}
+            className="aspect-square rounded-2xl bg-ivory-100 hover:bg-ivory-200 border border-botanical-900/10 text-charcoal font-bold text-xl cursor-pointer active:scale-95 transition-all shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-botanical-700"
+          >
+            ⌫
+          </button>
+        </div>
+      </SafeSpaceCard>
     </div>
   );
 }

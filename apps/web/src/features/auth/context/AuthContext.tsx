@@ -9,14 +9,23 @@ import {
   updatePassword,
   onAuthStateChange,
 } from "@safespace/api-client";
-import { getStoredChildSession, clearStoredChildSession } from "../../../lib/childSessionStorage";
+import {
+  getStoredChildSession,
+  clearStoredChildSession,
+} from "../../../lib/childSessionStorage";
 
 export interface AuthContextType {
   session: AppSession;
   loading: boolean;
+  refreshSession: () => Promise<void>;
   error: string | null;
   login: (email: string, pass: string) => Promise<void>;
-  signup: (email: string, pass: string, role: UserRole, displayName?: string) => Promise<void>;
+  signup: (
+    email: string,
+    pass: string,
+    role: UserRole,
+    displayName?: string
+  ) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   changePassword: (newPass: string) => Promise<void>;
@@ -26,7 +35,9 @@ export interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [session, setSession] = useState<AppSession>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async function initAuth() {
       try {
         const existingSession = await getExistingSession();
+
         if (existingSession && mounted) {
           setSession(existingSession);
           setLoading(false);
@@ -44,13 +56,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const childSession = getStoredChildSession();
+
         if (childSession && mounted) {
           setSession(childSession);
           setLoading(false);
           return;
         }
 
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       } catch (err: unknown) {
         if (mounted) {
           setError((err as Error).message);
@@ -62,12 +77,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
 
     let subscription: { unsubscribe: () => void } | undefined;
+
     try {
-      const listenerResult = onAuthStateChange((_event: string, newSession: AppSession) => {
-        if (mounted && newSession) {
-          setSession(newSession);
+      const listenerResult = onAuthStateChange(
+        (_event: string, newSession: AppSession) => {
+          if (mounted && newSession) {
+            setSession(newSession);
+          }
         }
-      });
+      );
+
       subscription = listenerResult.data.subscription;
     } catch {
       // Ignored if client is uninitialized due to missing env config
@@ -79,15 +98,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  const refreshSession = async () => {
+    setError(null);
+
+    try {
+      const activeSession = await getExistingSession();
+      setSession(activeSession);
+    } catch (err: unknown) {
+      setError((err as Error).message);
+      throw err;
+    }
+  };
+
   const login = async (email: string, pass: string) => {
     setLoading(true);
     setError(null);
+
     try {
       await logInUser(email, pass);
       const activeSession = await getExistingSession();
       setSession(activeSession);
     } catch (err: unknown) {
-      const msg = (err as Error).message || "Login failed. Please check your credentials.";
+      const msg =
+        (err as Error).message ||
+        "Login failed. Please check your credentials.";
+
       setError(msg);
       throw err;
     } finally {
@@ -103,12 +138,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     setLoading(true);
     setError(null);
+
     try {
       await signUpUser(email, pass, role, displayName);
       const activeSession = await getExistingSession();
       setSession(activeSession);
     } catch (err: unknown) {
-      const msg = (err as Error).message || "Signup failed. Please try again.";
+      const msg =
+        (err as Error).message || "Signup failed. Please try again.";
+
       setError(msg);
       throw err;
     } finally {
@@ -118,6 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     setLoading(true);
+
     try {
       await logOut();
       clearStoredChildSession();
@@ -131,8 +170,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     setError(null);
+
     try {
-      await resetPasswordForEmail(email, `${window.location.origin}/reset-password`);
+      await resetPasswordForEmail(
+        email,
+        `${window.location.origin}/reset-password`
+      );
     } catch (err: unknown) {
       setError((err as Error).message);
       throw err;
@@ -141,6 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const changePassword = async (newPass: string) => {
     setError(null);
+
     try {
       await updatePassword(newPass);
     } catch (err: unknown) {
@@ -160,6 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         session,
         loading,
+        refreshSession,
         error,
         login,
         signup,
@@ -170,11 +215,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearError,
       }}
     >
-      {error && error.includes("Missing required environment configuration") && (
-        <div className="bg-amber-50 border-b border-amber-200 p-4 text-amber-900 text-sm text-center">
-          <strong>SafeSpace Configuration Notice:</strong> {error}
-        </div>
-      )}
+      {error &&
+        error.includes("Missing required environment configuration") && (
+          <div className="bg-amber-50 border-b border-amber-200 p-4 text-amber-900 text-sm text-center">
+            <strong>SafeSpace Configuration Notice:</strong> {error}
+          </div>
+        )}
+
       {children}
     </AuthContext.Provider>
   );

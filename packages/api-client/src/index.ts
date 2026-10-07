@@ -37,6 +37,7 @@ export {
   getAccessibilityPreferences,
   saveAccessibilityPreferences,
   completeOnboarding,
+  updateUserProfile,
 } from "./profile";
 
 export type {

@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../features/auth";
+import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
+import { SafeSpaceInput } from "../components/ui/SafeSpaceInput";
+import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
+import { SafeSpaceBrandHeader } from "../components/ui/SafeSpaceBrandHeader";
 
 export const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -19,56 +23,53 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Reset Password</h2>
-        <p className="text-slate-600 text-sm mb-6">
-          Enter your registered email address to receive password reset instructions.
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+      <SafeSpaceCard maxW="md">
+        <SafeSpaceBrandHeader
+          title="Reset Password"
+          subtitle="Enter your registered email address to receive reset instructions"
+        />
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="mb-6 p-4 rounded-2xl bg-coral-50 border border-coral-200 text-coral-800 text-sm">
             {error}
           </div>
         )}
 
         {submitted ? (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm mb-6">
-            If an account exists for {email}, a password reset link has been sent to your inbox.
+          <div className="p-5 bg-botanical-50 border border-botanical-200 rounded-2xl text-botanical-800 text-sm mb-6 text-center leading-relaxed">
+            If an account exists for <strong className="font-semibold">{email}</strong>, a password reset link has been sent to your inbox.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="you@example.com"
-              />
-            </div>
+            <SafeSpaceInput
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+            />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
-            >
-              {loading ? "Sending..." : "Send Reset Link"}
-            </button>
+            <div className="pt-2">
+              <SafeSpaceButton
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5"
+              >
+                {loading ? "Sending..." : "Send Reset Link"}
+              </SafeSpaceButton>
+            </div>
           </form>
         )}
 
-        <div className="mt-6 text-center text-sm text-slate-600">
+        <div className="mt-8 pt-6 border-t border-botanical-900/5 text-center text-sm text-charcoal/70">
           Remember your password?{" "}
-          <Link to="/login" className="text-indigo-600 font-semibold hover:underline">
+          <Link to="/login" className="text-botanical-700 font-bold hover:underline">
             Back to Sign In
           </Link>
         </div>
-      </div>
+      </SafeSpaceCard>
     </div>
   );
 };

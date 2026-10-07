@@ -189,3 +189,58 @@ export async function completeOnboarding(
     updatedAt: data.updated_at,
   };
 }
+
+/**
+ * Update user profile fields (e.g. displayName).
+ */
+export async function updateUserProfile(
+  profileId: string,
+  updates: { displayName?: string },
+): Promise<UserProfile> {
+  const supabase = getSafeSpaceClient();
+  const payload: Record<string, unknown> = {};
+  if (updates.displayName !== undefined) {
+    payload.display_name = updates.displayName;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(
+        "id, role, display_name, onboarding_state, created_at, updated_at",
+      )
+      .eq("id", profileId)
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      role: data.role,
+      displayName: data.display_name,
+      onboardingState: data.onboarding_state,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(payload)
+    .eq("id", profileId)
+    .select(
+      "id, role, display_name, onboarding_state, created_at, updated_at",
+    )
+    .single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    role: data.role,
+    displayName: data.display_name,
+    onboardingState: data.onboarding_state,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}

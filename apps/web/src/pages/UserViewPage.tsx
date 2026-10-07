@@ -2,25 +2,23 @@ import { useEffect, useState } from "react";
 import { getMyChildProfile, logOut } from "@safespace/api-client";
 import type { Child, ModuleKey } from "@safespace/shared-types";
 import { getStoredChildSession, clearChildSession } from "../lib/childSessionStorage";
+import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
+import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
+import { SafeSpaceBrandHeader } from "../components/ui/SafeSpaceBrandHeader";
 
 interface Props {
   onLogOut: () => void;
 }
 
-const MODULE_META: Record<ModuleKey, { name: string }> = {
-  autism: { name: "My Space" },
-  adhd: { name: "Focus Zone" },
-  anxiety: { name: "Calm Space" },
-  depression: { name: "Bright Days" },
-  ptsd: { name: "Safe Harbor" },
-  pcos_pcod: { name: "Cycle Care" },
+const MODULE_META: Record<ModuleKey, { name: string; emoji: string }> = {
+  autism: { name: "My Space", emoji: "🌿" },
+  adhd: { name: "Focus Zone", emoji: "⚡" },
+  anxiety: { name: "Calm Space", emoji: "🌊" },
+  depression: { name: "Bright Days", emoji: "☀️" },
+  ptsd: { name: "Safe Harbor", emoji: "⚓" },
+  pcos_pcod: { name: "Cycle Care", emoji: "🌸" },
 };
 
-// Implements the exact branching logic from docs/Architecture_Specification.md
-// §4 / the "home_picker_branching_logic" diagram:
-//   0 modules -> empty state (previously an unresolved gap — now handled)
-//   1 module  -> opens that module's home directly, skipping the picker
-//   2+ modules -> picker screen, one card per module
 export default function UserViewPage({ onLogOut }: Props) {
   const [child, setChild] = useState<Child | null>(null);
   const [openModule, setOpenModule] = useState<ModuleKey | null>(null);
@@ -39,82 +37,110 @@ export default function UserViewPage({ onLogOut }: Props) {
         }
       })
       .catch(() => onLogOut());
-  }, []);
+  }, [onLogOut]);
 
   async function handleLogOut() {
     clearChildSession();
-    await logOut().catch(() => {}); // no-op for a child session, kept for symmetry
+    await logOut().catch(() => {});
     onLogOut();
   }
 
   if (!child) {
     return (
-      <div className="card" style={{ textAlign: "center" }}>
-        <p style={{ color: "var(--text-muted)" }}>Loading your space…</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+        <SafeSpaceCard maxW="md" className="text-center">
+          <p className="text-sm font-semibold text-botanical-800">Loading your space…</p>
+        </SafeSpaceCard>
       </div>
     );
   }
 
-  // Gap #1 from docs/Architecture_Specification.md §8, now resolved here:
   if (child.assignedModules.length === 0) {
     return (
-      <div className="card" style={{ textAlign: "center" }}>
-        <h1>Hi {child.name}!</h1>
-        <p style={{ color: "var(--text-muted)", marginTop: 10 }}>
-          No spaces have been set up for you yet.
-          <br />
-          Ask your caregiver to add one in Settings.
-        </p>
-        <button className="btn-ghost" onClick={handleLogOut}>
-          Log out
-        </button>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+        <SafeSpaceCard maxW="md" className="text-center space-y-4">
+          <SafeSpaceBrandHeader
+            title={`Hi ${child.name}!`}
+            subtitle="No spaces have been set up for you yet. Ask your caregiver to add one in Settings."
+          />
+          <div className="pt-2">
+            <SafeSpaceButton variant="secondary" onClick={handleLogOut} className="w-full">
+              Log out
+            </SafeSpaceButton>
+          </div>
+        </SafeSpaceCard>
       </div>
     );
   }
 
   if (openModule) {
     return (
-      <div className="card" style={{ textAlign: "center" }}>
-        <h1>{MODULE_META[openModule].name}</h1>
-        <p style={{ color: "var(--text-muted)", marginTop: 10 }}>
-          This is a placeholder screen — the real tools for this space aren't built yet.
-        </p>
-        {child.assignedModules.length > 1 && (
-          <button className="btn-ghost" onClick={() => setOpenModule(null)}>
-            ← Choose a different space
-          </button>
-        )}
-        <button className="btn-ghost" onClick={handleLogOut}>
-          Log out
-        </button>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+        <SafeSpaceCard maxW="md" className="text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-botanical-100 text-botanical-700 mx-auto flex items-center justify-center text-2xl">
+            {MODULE_META[openModule].emoji}
+          </div>
+          <h1 className="font-display text-3xl font-bold text-charcoal">
+            {MODULE_META[openModule].name}
+          </h1>
+          <p className="text-sm text-charcoal/70 leading-relaxed">
+            Welcome to your space! Reflection and routine tools will appear here.
+          </p>
+          <div className="pt-4 space-y-2">
+            {child.assignedModules.length > 1 && (
+              <SafeSpaceButton
+                variant="secondary"
+                onClick={() => setOpenModule(null)}
+                className="w-full"
+              >
+                &larr; Choose a different space
+              </SafeSpaceButton>
+            )}
+            <SafeSpaceButton variant="ghost" onClick={handleLogOut} className="w-full">
+              Log out
+            </SafeSpaceButton>
+          </div>
+        </SafeSpaceCard>
       </div>
     );
   }
 
   return (
-    <div className="card">
-      <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>Hi {child.name}!</p>
-      <h1 style={{ textAlign: "center" }}>Where do you want to go?</h1>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 22 }}>
-        {child.assignedModules.map((key) => (
-          <button
-            key={key}
-            onClick={() => setOpenModule(key)}
-            style={{
-              display: "flex", alignItems: "center", gap: 14, padding: 18, borderRadius: 16,
-              border: "none", cursor: "pointer", textAlign: "left",
-              background: "var(--accent-teal-soft)", color: "var(--accent-teal)",
-            }}
-          >
-            <span style={{ fontFamily: "Quicksand, sans-serif", fontWeight: 700, fontSize: 16 }}>
-              {MODULE_META[key].name}
-            </span>
-          </button>
-        ))}
-      </div>
-      <p style={{ textAlign: "center", fontSize: 12.5, color: "var(--text-muted)", marginTop: 20 }}>
-        You can switch anytime
-      </p>
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+      <SafeSpaceCard maxW="md">
+        <div className="text-center space-y-2 mb-6">
+          <span className="text-xs font-semibold text-botanical-700 uppercase tracking-wider">
+            Hi {child.name}!
+          </span>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-charcoal">
+            Where do you want to go?
+          </h1>
+        </div>
+
+        <div className="space-y-3">
+          {child.assignedModules.map((key) => (
+            <button
+              key={key}
+              onClick={() => setOpenModule(key)}
+              className="w-full p-4 rounded-2xl bg-ivory-100 hover:bg-ivory-200 border border-botanical-900/10 transition-all flex items-center justify-between text-left group focus:outline-none focus:ring-2 focus:ring-botanical-700"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-xl">{MODULE_META[key].emoji}</span>
+                <span className="font-display font-bold text-base text-charcoal group-hover:text-botanical-800">
+                  {MODULE_META[key].name}
+                </span>
+              </div>
+              <span className="text-sm font-bold text-botanical-700 group-hover:translate-x-1 transition-transform">
+                &rarr;
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <p className="text-center text-xs text-charcoal/60 mt-6">
+          You can switch spaces anytime
+        </p>
+      </SafeSpaceCard>
     </div>
   );
 }

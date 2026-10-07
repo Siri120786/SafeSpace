@@ -6,7 +6,77 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>SafeSpace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Quicksand:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cream: '#F9F3DB',
+              paleLime: '#E6EEC4',
+              olive: {
+                DEFAULT: '#8DA568',
+                50: '#F4F7EE',
+                100: '#E8EFE0',
+                200: '#D2DFC3',
+                500: '#8DA568',
+                600: '#758D52',
+                700: '#5C713F',
+              },
+              deepGreen: {
+                DEFAULT: '#678638',
+                50: '#F2F6EC',
+                100: '#E2EBD6',
+                600: '#678638',
+                700: '#526D2B',
+                800: '#3F5420',
+              },
+              mascotPink: {
+                DEFAULT: '#FD7289',
+                soft: '#FFEAF0',
+                dark: '#E0536C',
+              },
+              darkBtn: '#0D0D0D',
+              textHeading: '#231F20',
+              textBody: '#404040',
+              textMuted: '#808080',
+              ivory: {
+                50: '#FDFDFB',
+                100: '#FAF7F2',
+                200: '#F3EFE6',
+                300: '#EBE5D8',
+              },
+              botanical: {
+                50: '#F2F7F4',
+                100: '#E2EEE7',
+                200: '#C5DDD0',
+                600: '#3A6351',
+                700: '#2D5A46',
+                800: '#214434',
+                900: '#173024',
+              },
+              charcoal: '#1C2826',
+            },
+            fontFamily: {
+              sans: ['"Lexend Deca"', '"Plus Jakarta Sans"', 'sans-serif'],
+              display: ['"Lexend Deca"', '"Quicksand"', 'sans-serif'],
+            },
+            borderRadius: {
+              '2xl': '20px',
+              '3xl': '24px',
+              '4xl': '32px',
+            },
+            boxShadow: {
+              'soft': '0 8px 30px rgba(0, 0, 0, 0.04)',
+              'card': '0 10px 40px rgba(103, 134, 56, 0.06)',
+              'pill': '0 4px 20px rgba(0, 0, 0, 0.08)',
+            }
+          }
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -7,6 +7,7 @@ import SignupPage from "./pages/SignupPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
+import OnboardingPage from "./pages/OnboardingPage";
 import ChildPinPage from "./pages/ChildPinPage";
 import UserViewPage from "./pages/UserViewPage";
 
@@ -64,6 +65,16 @@ export default function App() {
               <UserViewPage
                 onLogOut={() => window.location.assign("/")}
               />
+            }
+          />
+
+          {/* Protected Onboarding Flow */}
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <OnboardingPage />
+              </ProtectedRoute>
             }
           />
 

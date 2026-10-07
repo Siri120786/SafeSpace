@@ -18,6 +18,9 @@ export const GuestRoute: React.FC<GuestRouteProps> = ({ children }) => {
   }
 
   if (session) {
+    if (session.kind === "auth_user" && session.profile.onboardingState === "pending") {
+      return <Navigate to="/onboarding" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
