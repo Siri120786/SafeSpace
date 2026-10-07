@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import type { UserRole } from "@safespace/shared-types";
 
@@ -13,6 +13,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles,
 }) => {
   const { session, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -23,11 +24,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!session) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && session.kind === "auth_user") {
-    if (!allowedRoles.includes(session.profile.role)) {
+  // Adult user onboarding status gating
+  if (session.kind === "auth_user") {
+    const isOnboardingRoute = location.pathname === "/onboarding";
+
+    if (session.profile.onboardingState === "pending" && !isOnboardingRoute) {
+      return <Navigate to="/onboarding" replace />;
+    }
+
+    if (session.profile.onboardingState === "completed" && isOnboardingRoute) {
+      return <Navigate to="/dashboard" replace />;
+    }
+
+    if (allowedRoles && !allowedRoles.includes(session.profile.role)) {
       return <Navigate to="/dashboard" replace />;
     }
   }

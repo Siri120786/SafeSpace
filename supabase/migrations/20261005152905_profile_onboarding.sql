@@ -41,6 +41,7 @@ create table if not exists public.profile_support_preferences (
 );
 
 alter table public.profile_support_preferences enable row level security;
+grant select, insert, update, delete on public.profile_support_preferences to authenticated;
 
 
 -- Users can read their own support preferences.
@@ -96,6 +97,7 @@ create table if not exists public.profile_accessibility_preferences (
 );
 
 alter table public.profile_accessibility_preferences enable row level security;
+grant select, insert, update, delete on public.profile_accessibility_preferences to authenticated;
 
 
 -- Users can read their own accessibility preferences.

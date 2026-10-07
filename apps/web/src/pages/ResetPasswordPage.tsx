@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth";
+import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
+import { SafeSpaceInput } from "../components/ui/SafeSpaceInput";
+import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
+import { SafeSpaceBrandHeader } from "../components/ui/SafeSpaceBrandHeader";
 
 export const ResetPasswordPage: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -21,49 +25,46 @@ export const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Set New Password</h2>
-        <p className="text-slate-600 text-sm mb-6">
-          Enter your new password below.
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+      <SafeSpaceCard maxW="md">
+        <SafeSpaceBrandHeader
+          title="Set New Password"
+          subtitle="Enter your new secure password below"
+        />
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="mb-6 p-4 rounded-2xl bg-coral-50 border border-coral-200 text-coral-800 text-sm">
             {error}
           </div>
         )}
 
         {updated ? (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm">
+          <div className="p-5 bg-botanical-50 border border-botanical-200 rounded-2xl text-botanical-800 text-sm text-center leading-relaxed">
             Password updated successfully! Redirecting to sign in...
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-                New Password
-              </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Minimum 6 characters"
-              />
-            </div>
+            <SafeSpaceInput
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              placeholder="Minimum 6 characters"
+            />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
-            >
-              {loading ? "Updating..." : "Update Password"}
-            </button>
+            <div className="pt-2">
+              <SafeSpaceButton
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5"
+              >
+                {loading ? "Updating..." : "Update Password"}
+              </SafeSpaceButton>
+            </div>
           </form>
         )}
-      </div>
+      </SafeSpaceCard>
     </div>
   );
 };

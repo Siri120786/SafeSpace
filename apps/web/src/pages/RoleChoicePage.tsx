@@ -1,5 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { LandingNavbar } from "../features/landing/components/LandingNavbar";
+import { LandingHero } from "../features/landing/components/LandingHero";
+import { FeatureCardsSection } from "../features/landing/components/FeatureCardsSection";
+import { ShowcaseSection } from "../features/landing/components/ShowcaseSection";
+import { LandingFooter } from "../features/landing/components/LandingFooter";
+import EntryChoiceCard from "../features/landing/components/EntryChoiceCard";
+import TrustStatement from "../features/landing/components/TrustStatement";
 
 interface Props {
   onChooseCaregiver?: () => void;
@@ -9,12 +16,16 @@ interface Props {
 export default function RoleChoicePage({ onChooseCaregiver, onChooseChild }: Props) {
   const navigate = useNavigate();
 
-  const handleCaregiver = () => {
+  const handleLogin = () => {
     if (onChooseCaregiver) {
       onChooseCaregiver();
     } else {
       navigate("/login");
     }
+  };
+
+  const handleSignup = () => {
+    navigate("/signup");
   };
 
   const handleChild = () => {
@@ -26,39 +37,46 @@ export default function RoleChoicePage({ onChooseCaregiver, onChooseChild }: Pro
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-        <h1 className="text-2xl font-bold text-center text-slate-800">Welcome to SafeSpace</h1>
-        <p className="text-center text-slate-600 text-sm mt-2 mb-6">
-          Who is opening the app today?
-        </p>
-        
-        <div className="space-y-4">
-          <button
-            className="w-full p-4 text-left border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-xl transition group"
-            onClick={handleCaregiver}
-          >
-            <div className="font-bold text-slate-800 group-hover:text-indigo-600">
-              I am a Caregiver / Parent
-            </div>
-            <div className="text-xs text-slate-500 mt-1">
-              Sign up or sign in to manage family profiles and settings
-            </div>
-          </button>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-cream via-[#FAF7F2] to-paleLime/30 text-textHeading font-sans selection:bg-olive-200 selection:text-deepGreen">
+      {/* 1. Sticky Navbar */}
+      <LandingNavbar
+        onLogin={handleLogin}
+        onGetStarted={handleSignup}
+        onChildPin={handleChild}
+      />
 
-          <button
-            className="w-full p-4 text-left border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 rounded-xl transition group"
-            onClick={handleChild}
-          >
-            <div className="font-bold text-slate-800 group-hover:text-teal-600">
-              I am a Child
-            </div>
-            <div className="text-xs text-slate-500 mt-1">
-              Enter your family code and PIN to open your space
-            </div>
-          </button>
+      {/* Main Content Area */}
+      <main className="flex-1">
+        {/* 2. Hero Section */}
+        <LandingHero
+          onBeginJourney={handleSignup}
+          onLogin={handleLogin}
+        />
+
+        {/* 3. Feature Cards Section (Understand feelings, build habits, find calm) */}
+        <div id="features">
+          <FeatureCardsSection />
         </div>
-      </div>
+
+        {/* 4. Showcase Phone Frame Section */}
+        <div id="showcase">
+          <ShowcaseSection />
+        </div>
+
+        {/* 5. Entry Choice Cards (Preserving Adult vs Child PIN entry) */}
+        <div id="about">
+          <EntryChoiceCard
+            onChooseCaregiver={handleLogin}
+            onChooseChild={handleChild}
+          />
+        </div>
+
+        {/* 6. Product Principles & Trust */}
+        <TrustStatement />
+      </main>
+
+      {/* 7. Footer */}
+      <LandingFooter />
     </div>
   );
 }
