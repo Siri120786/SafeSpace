@@ -44,3 +44,4 @@ export type {
   SaveSupportPreferencesInput,
   SaveAccessibilityPreferencesInput,
 } from "./profile";
+export { listLinkedUsers, getLinkedUserProfile } from "./caregiver";

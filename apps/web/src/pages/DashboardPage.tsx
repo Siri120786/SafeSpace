@@ -9,6 +9,7 @@ import { BottomNav, type NavTab } from "../components/ui/BottomNav";
 import { BrainMascot } from "../components/vectors/BrainMascot";
 import { LeafCluster } from "../components/vectors/LeafFrame";
 import { SessionPlayerModal } from "../components/ui/SessionPlayerModal";
+import { LinkedUsersPanel } from "../features/caregiver";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -47,6 +48,7 @@ export const DashboardPage: React.FC = () => {
   });
 
   const profileId = session?.kind === "auth_user" ? session.profile.id : null;
+  const isCaregiver = session?.kind === "auth_user" && session.profile.role === "caregiver";
   const displayName =
     session?.kind === "auth_user"
       ? session.profile.displayName || "friend"
@@ -240,6 +242,8 @@ export const DashboardPage: React.FC = () => {
                     )}
                   </div>
                 </Card>
+
+                {isCaregiver && profileId && (<LinkedUsersPanel caregiverId={profileId} />)}
 
                 {/* Insight Card: Meditating Mascot */}
                 <Card className="p-6 md:p-8 bg-gradient-to-r from-olive-50/80 via-white to-paleLime/40 border border-olive-200/60 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
