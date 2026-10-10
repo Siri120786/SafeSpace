@@ -15,6 +15,13 @@ class UserDashboardScreen extends ConsumerWidget {
         title: const Text('User Dashboard'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: 'Profile & Preferences',
+            onPressed: () {
+              context.push('/profile');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await ref.read(authProvider.notifier).signOut();

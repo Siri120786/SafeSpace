@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, ProtectedRoute, GuestRoute } from "./features/auth";
+import { AccessibilityProvider } from "./features/profile";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
 import LoginPage from "./pages/LoginPage";
@@ -8,6 +9,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import ProfilePage from "./pages/ProfilePage";
 import ChildPinPage from "./pages/ChildPinPage";
 import UserViewPage from "./pages/UserViewPage";
 
@@ -15,7 +17,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <AccessibilityProvider>
+          <Routes>
           {/* Public / Landing Route */}
           <Route path="/" element={<RoleChoicePage />} />
 
@@ -88,9 +91,20 @@ export default function App() {
             }
           />
 
+          {/* Protected Profile Page */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Fallback redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+      </AccessibilityProvider>
       </AuthProvider>
     </BrowserRouter>
   );

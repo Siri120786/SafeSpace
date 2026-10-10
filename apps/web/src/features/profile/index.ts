@@ -1,4 +1,4 @@
-/** SafeSpace Feature: Profile Foundation */
+/** SafeSpace Feature: Profile & Onboarding Foundation */
 export const PROFILE_FEATURE_NAME = "profile";
 
 export { OnboardingBasicInfoStep } from "./components/OnboardingBasicInfoStep";
@@ -7,3 +7,5 @@ export { OnboardingAccessibilityStep } from "./components/OnboardingAccessibilit
 export type { AccessibilityOptionsState } from "./components/OnboardingAccessibilityStep";
 export { OnboardingReviewStep } from "./components/OnboardingReviewStep";
 
+export { ProfileScreen } from "./components/ProfileScreen";
+export { AccessibilityProvider, useAccessibility } from "./context/AccessibilityContext";

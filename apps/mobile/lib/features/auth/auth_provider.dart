@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import '../../services/supabase_service.dart';
 import 'auth_state.dart';
 
@@ -27,7 +27,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final client = SupabaseService.client;
       final response = await client
           .from('profiles')
-          .select('id, role, display_name')
+          .select('id, role, display_name, onboarding_state')
           .eq('id', userId)
           .maybeSingle();
 
@@ -35,18 +35,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
           ? response['role'] as String
           : 'caregiver';
       final displayName = response?['display_name'] as String?;
+      final onboardingState = (response != null && response['onboarding_state'] != null)
+          ? response['onboarding_state'] as String
+          : 'pending';
 
       state = AuthState.authenticated(
         userId: userId,
         email: email,
         role: role,
         displayName: displayName,
+        onboardingState: onboardingState,
       );
     } catch (e) {
       state = AuthState.authenticated(
         userId: userId,
         email: email,
         role: 'caregiver',
+        onboardingState: 'pending',
       );
     }
   }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth";
 import { getSupportPreferences, getAccessibilityPreferences } from "@safespace/api-client";
 import type { ModuleKey, ProfileAccessibilityPreferences } from "@safespace/shared-types";
@@ -26,6 +27,7 @@ const SESSIONS_RECOMMENDED = [
 ];
 
 export const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { session, logout, loading } = useAuth();
   const [supportAreas, setSupportAreas] = useState<ModuleKey[]>([]);
   const [accessibility, setAccessibility] = useState<ProfileAccessibilityPreferences | null>(null);
@@ -156,7 +158,13 @@ export const DashboardPage: React.FC = () => {
                 ].map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id as NavTab)}
+                    onClick={() => {
+                      if (item.id === "profile") {
+                        navigate("/profile");
+                      } else {
+                        setActiveTab(item.id as NavTab);
+                      }
+                    }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
                       activeTab === item.id
                         ? "bg-darkBtn text-white shadow-pill font-semibold"
