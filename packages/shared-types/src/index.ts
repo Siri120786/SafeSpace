@@ -112,3 +112,19 @@ export interface ChildSession {
 }
 
 export type AppSession = UserAuthSession | CaregiverSession | ChildSession | null;
+// ----------------------------------------------------------------------------
+// Caregiver view of a linked user (Sprint 1). Read-only.
+// ----------------------------------------------------------------------------
+export interface LinkedUser {
+  linkId: string;
+  userId: string;
+  displayName: string | null;
+  onboardingState: OnboardingState;
+  linkedAt: string;
+}
+
+export interface LinkedUserProfileView {
+  profile: UserProfile;
+  supportPreferences: ProfileSupportPreferences | null;
+  accessibilityPreferences: ProfileAccessibilityPreferences | null;
+}
