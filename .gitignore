@@ -10,3 +10,10 @@ supabase/.temp/
 .DS_Store
 # TypeScript build info
 *.tsbuildinfo
+
+# Flutter
+.dart_tool/
+apps/mobile/.dart_tool/
+apps/mobile/build/
+.idea/
+.vscode/

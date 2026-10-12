@@ -74,6 +74,15 @@ export const OnboardingPage: React.FC = () => {
         setDisplayName(session.profile.displayName);
       }
 
+      // Restore saved onboarding step from storage if present
+      const savedStep = localStorage.getItem(`safespace_onboarding_step_${targetProfileId}`);
+      if (savedStep) {
+        const stepNum = parseInt(savedStep, 10);
+        if (stepNum >= 1 && stepNum <= 4) {
+          setCurrentStep(stepNum);
+        }
+      }
+
       if (!isCaregiver) {
         const [supportRes, accessRes] = await Promise.all([
           getSupportPreferences(targetProfileId).catch((err) => {
@@ -115,6 +124,13 @@ export const OnboardingPage: React.FC = () => {
     return null;
   }
 
+  const updateStep = (nextStep: number) => {
+    setCurrentStep(nextStep);
+    if (profileId) {
+      localStorage.setItem(`safespace_onboarding_step_${profileId}`, nextStep.toString());
+    }
+  };
+
   const handleToggleUserSupportArea = (key: ModuleKey) => {
     setUserSupportAreas((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
@@ -127,9 +143,30 @@ export const OnboardingPage: React.FC = () => {
     );
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    setErrorMsg(null);
+
+    // Validation for Step 1
+    if (currentStep === 1 && !displayName.trim()) {
+      setErrorMsg("Please enter your name to continue.");
+      return;
+    }
+
+    // Save intermediate progress on steps
+    try {
+      if (currentStep === 1 && displayName.trim() && displayName.trim() !== session.profile.displayName) {
+        await updateUserProfile(profileId, { displayName: displayName.trim() });
+      } else if (currentStep === 2 && !isCaregiver) {
+        await saveSupportPreferences({ profileId, supportAreas: userSupportAreas }).catch(() => null);
+      } else if (currentStep === 3 && !isCaregiver) {
+        await saveAccessibilityPreferences({ profileId, ...accessibility }).catch(() => null);
+      }
+    } catch (e) {
+      console.warn("Intermediate save warning:", e);
+    }
+
     if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
+      updateStep(currentStep + 1);
     } else {
       handleCompleteOnboarding();
     }
@@ -137,7 +174,7 @@ export const OnboardingPage: React.FC = () => {
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      updateStep(currentStep - 1);
     }
   };
 
@@ -180,6 +217,9 @@ export const OnboardingPage: React.FC = () => {
 
       // Mark onboarding completed for authenticated adult profile
       await completeOnboarding(profileId);
+      if (profileId) {
+        localStorage.removeItem(`safespace_onboarding_step_${profileId}`);
+      }
       await refreshSession();
       navigate("/dashboard", { replace: true });
     } catch (err: unknown) {

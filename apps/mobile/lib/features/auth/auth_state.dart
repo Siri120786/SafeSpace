@@ -1,5 +1,3 @@
-import '../../models/caregiver.dart';
-
 enum AuthStatus { loading, authenticated, unauthenticated, error }
 
 class AuthState {
@@ -8,6 +6,7 @@ class AuthState {
   final String? email;
   final String? role; // 'caregiver' | 'user'
   final String? displayName;
+  final String onboardingState; // 'pending' | 'completed'
   final String? errorMessage;
 
   const AuthState({
@@ -16,6 +15,7 @@ class AuthState {
     this.email,
     this.role,
     this.displayName,
+    this.onboardingState = 'pending',
     this.errorMessage,
   });
 
@@ -31,6 +31,7 @@ class AuthState {
     required String email,
     required String role,
     String? displayName,
+    String onboardingState = 'pending',
   }) =>
       AuthState(
         status: AuthStatus.authenticated,
@@ -38,6 +39,7 @@ class AuthState {
         email: email,
         role: role,
         displayName: displayName,
+        onboardingState: onboardingState,
       );
 
   factory AuthState.error(String message) => AuthState(

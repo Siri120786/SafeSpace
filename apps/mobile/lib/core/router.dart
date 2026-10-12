@@ -9,6 +9,8 @@ import '../screens/dashboard_screen.dart';
 import '../screens/caregiver_dashboard_screen.dart';
 import '../screens/user_dashboard_screen.dart';
 import '../screens/child_home_screen.dart';
+import '../screens/onboarding_screen.dart';
+import '../screens/profile_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -47,6 +49,18 @@ final GoRouter appRouter = GoRouter(
       path: '/child-pin',
       builder: (BuildContext context, GoRouterState state) {
         return const ChildPinScreen();
+      },
+    ),
+    GoRoute(
+      path: '/onboarding',
+      builder: (BuildContext context, GoRouterState state) {
+        return const OnboardingScreen();
+      },
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (BuildContext context, GoRouterState state) {
+        return const ProfileScreen();
       },
     ),
     GoRoute(
