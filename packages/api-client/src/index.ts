@@ -45,3 +45,9 @@ export type {
   SaveAccessibilityPreferencesInput,
 } from "./profile";
 export { listLinkedUsers, getLinkedUserProfile } from "./caregiver";
+
+export {
+  createMoodCheckin,
+  listMyMoodCheckins,
+  listChildMoodCheckins,
+} from "./mood";
