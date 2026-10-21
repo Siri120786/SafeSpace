@@ -11,6 +11,7 @@ import '../screens/user_dashboard_screen.dart';
 import '../screens/child_home_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/profile_screen.dart';
+import '../features/mood/screens/mood_check_in_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -85,6 +86,12 @@ final GoRouter appRouter = GoRouter(
       path: '/child-home',
       builder: (BuildContext context, GoRouterState state) {
         return const ChildHomeScreen();
+      },
+    ),
+    GoRoute(
+      path: '/mood-check-in',
+      builder: (BuildContext context, GoRouterState state) {
+        return const MoodCheckInScreen();
       },
     ),
   ],
