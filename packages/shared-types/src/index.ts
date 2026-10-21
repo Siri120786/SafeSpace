@@ -128,3 +128,45 @@ export interface LinkedUserProfileView {
   supportPreferences: ProfileSupportPreferences | null;
   accessibilityPreferences: ProfileAccessibilityPreferences | null;
 }
+
+// ----------------------------------------------------------------------------
+// Mood check-in (Sprint 2 shared wellbeing). User-selected feelings, not a
+// clinical assessment. Values match the existing MoodAvatars icons and the
+// mood_checkins.mood check constraint (20261019120000_mood_checkins.sql).
+// ----------------------------------------------------------------------------
+export const MOOD_VALUES = [
+  "ecstatic",
+  "happy",
+  "neutral",
+  "sad",
+  "stressed",
+  "overwhelmed",
+] as const;
+
+export type MoodValue = (typeof MOOD_VALUES)[number];
+
+export const MOOD_INTENSITY_MIN = 1;
+export const MOOD_INTENSITY_MAX = 5;
+export const MOOD_NOTE_MAX_LENGTH = 500;
+
+export interface MoodCheckin {
+  id: string;
+  profileId: string | null;   // set for adult auth users
+  childId: string | null;     // set for child sessions
+  mood: MoodValue;
+  intensity: number | null;   // 1-5, optional
+  note: string | null;        // optional, max 500 chars
+  isPrivateNote: boolean;     // child 'partial' privacy tier only
+  createdAt: string;
+}
+
+export interface CreateMoodCheckinInput {
+  mood: MoodValue;
+  intensity?: number | null;
+  note?: string | null;
+  isPrivateNote?: boolean;    // ignored for adults; rejected unless child tier is 'partial'
+}
+
+export interface ListMoodCheckinsOptions {
+  limit?: number;             // default 30, max 100
+}
