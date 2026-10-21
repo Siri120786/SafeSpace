@@ -287,6 +287,9 @@ export const DashboardPage: React.FC = () => {
                       Guided Calming Resets
                     </h3>
                     <span className="text-xs text-textMuted font-light">3 exercises</span>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/calm-tools")}>
+                      Open calm tools
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

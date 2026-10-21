@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, ProtectedRoute, GuestRoute } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
+import { CalmToolsRoutes } from "./features/calm-tools";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
 import LoginPage from "./pages/LoginPage";
@@ -87,6 +88,16 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Calm Tools (breathing, grounding) */}
+          <Route
+            path="/calm-tools/*"
+            element={
+              <ProtectedRoute>
+                <CalmToolsRoutes />
               </ProtectedRoute>
             }
           />
