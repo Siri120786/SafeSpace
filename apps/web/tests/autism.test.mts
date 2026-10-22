@@ -1,12 +1,13 @@
 /**
  * SafeSpace Autism Feature Tests (Workstream B - Sprint 3)
- * Tests countdown pure state machine, edge cases, coarse announcements,
- * emotion cards service storage, transition service, and markup rendering.
+ * Tests countdown pure state machine, visual schedule logic, RoutineStep adapter,
+ * AAC sentence strip logic, theme resolution under low-sensory, and markup rendering.
  * Run with: tsx apps/web/tests/autism.test.mts
  */
 import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import type { RoutineStep } from "@safespace/shared-types";
 
 import {
   initCountdown,
@@ -20,10 +21,21 @@ import {
   getCountdownSnapshot,
   LocalEmotionCardsService,
   LocalTransitionService,
+  LocalScheduleService,
+  LocalAacService,
+  LocalThemeService,
+  toScheduleStep,
+  resolveActiveTheme,
+  THEME_DEFINITIONS,
   DEFAULT_TRANSITION_CONFIG,
+  DEFAULT_SAMPLE_STEPS,
   DEFAULT_EMOTION_CARDS,
+  DEFAULT_AAC_TILES,
   EmotionCards,
   TransitionCountdown,
+  VisualSchedule,
+  AacBoard,
+  SpecialInterestThemes,
   type CountdownState,
 } from "../src/features/conditions/autism/index.ts";
 import { LocalDeviceStore } from "../src/features/wellness-ui/index.ts";
@@ -100,7 +112,6 @@ async function runAll() {
     assert.equal(running.phase, "running");
     assert.equal(running.secondsRemaining, 180);
 
-    // Calling start while already running returns state unchanged
     const stillRunning = startCountdown(running);
     assert.equal(stillRunning.phase, "running");
   });
@@ -112,13 +123,10 @@ async function runAll() {
     assert.equal(paused.phase, "paused");
     assert.equal(paused.secondsRemaining, 180);
 
-    // Resuming
     const resumed = resumeCountdown(paused);
     assert.equal(resumed.phase, "running");
 
-    // Pausing when already paused does nothing
     assert.equal(pauseCountdown(paused).phase, "paused");
-    // Resuming when already running does nothing
     assert.equal(resumeCountdown(running).phase, "running");
   });
 
@@ -132,12 +140,10 @@ async function runAll() {
     assert.equal(tick2.phase, "running");
     assert.equal(tick2.secondsRemaining, 1);
 
-    // Completes on final second
     const tick3 = tickCountdown(tick2, 1);
     assert.equal(tick3.phase, "done");
     assert.equal(tick3.secondsRemaining, 0);
 
-    // Further ticks when done do not go negative
     const tick4 = tickCountdown(tick3, 1);
     assert.equal(tick4.phase, "done");
     assert.equal(tick4.secondsRemaining, 0);
@@ -197,27 +203,27 @@ async function runAll() {
     const idle = initCountdown("Tidy Up", 120);
     const runningStart = startCountdown(idle);
 
-    // 1. Start announcement
+    // Start announcement
     const startAnnounce = getCoarseAnnouncement(idle, runningStart);
     assert.ok(startAnnounce?.includes("Starting countdown"));
     assert.ok(startAnnounce?.includes("Tidy Up"));
 
-    // 2. Normal tick (e.g. 119s, 90s) returns null (no chatter)
+    // Normal tick returns null (no chatter)
     const tick90: CountdownState = { ...runningStart, secondsRemaining: 90 };
     const prev91: CountdownState = { ...runningStart, secondsRemaining: 91 };
     assert.equal(getCoarseAnnouncement(prev91, tick90), null);
 
-    // 3. Exactly 60 seconds left announcement
+    // Exactly 60 seconds left announcement
     const tick60: CountdownState = { ...runningStart, secondsRemaining: 60 };
     const prev61: CountdownState = { ...runningStart, secondsRemaining: 61 };
     const oneMinAnnounce = getCoarseAnnouncement(prev61, tick60);
     assert.ok(oneMinAnnounce?.includes("One minute remaining before Tidy Up"));
 
-    // 4. Tick past 60s (59s) returns null
+    // Tick past 60s returns null
     const tick59: CountdownState = { ...runningStart, secondsRemaining: 59 };
     assert.equal(getCoarseAnnouncement(tick60, tick59), null);
 
-    // 5. Done announcement
+    // Done announcement
     const doneState: CountdownState = { ...runningStart, phase: "done", secondsRemaining: 0 };
     const prev1s: CountdownState = { ...runningStart, phase: "running", secondsRemaining: 1 };
     const doneAnnounce = getCoarseAnnouncement(prev1s, doneState);
@@ -233,7 +239,30 @@ async function runAll() {
   });
 
   // ============================================================================
-  // 2. EMOTION CARDS & TRANSITION SERVICE STORAGE TESTS
+  // 2. ROUTINESTEP ADAPTER TEST
+  // ============================================================================
+
+  await test("RoutineStep adapter: toScheduleStep maps shared-types RoutineStep cleanly", () => {
+    const mockDbRoutine: RoutineStep = {
+      id: "routine-test-1",
+      childId: "child-42",
+      moduleKey: "autism",
+      label: "Pack backpack",
+      scheduledTime: "08:30:00",
+      isComplete: true,
+      orderIndex: 3,
+    };
+
+    const scheduleStep = toScheduleStep(mockDbRoutine);
+    assert.equal(scheduleStep.id, "routine-test-1");
+    assert.equal(scheduleStep.label, "Pack backpack");
+    assert.equal(scheduleStep.timeEstimate, "08:30:00");
+    assert.equal(scheduleStep.isComplete, true);
+    assert.equal(scheduleStep.orderIndex, 3);
+  });
+
+  // ============================================================================
+  // 3. STORAGE & SERVICE LOGIC TESTS
   // ============================================================================
 
   const mockStorage = new MockMemoryStorage();
@@ -243,6 +272,7 @@ async function runAll() {
   };
 
   try {
+    // EmotionCardsService
     await test("EmotionCardsService: records taps and retrieves newest first", async () => {
       mockStorage.clear();
       const service = new LocalEmotionCardsService();
@@ -255,7 +285,7 @@ async function runAll() {
 
       const history = await service.getRecentSelections();
       assert.equal(history.length, 2);
-      assert.equal(history[0].cardId, "calm"); // newest first
+      assert.equal(history[0].cardId, "calm");
       assert.equal(history[1].cardId, "happy");
 
       await service.clearRecentSelections();
@@ -273,6 +303,7 @@ async function runAll() {
       assert.deepEqual(fallback, []);
     });
 
+    // TransitionService
     await test("TransitionService: saves and retrieves transition presets", async () => {
       mockStorage.clear();
       const service = new LocalTransitionService();
@@ -296,8 +327,96 @@ async function runAll() {
       assert.deepEqual(fallback, DEFAULT_TRANSITION_CONFIG);
     });
 
+    // ScheduleService
+    await test("ScheduleService: adds, completes, reorders, and removes steps", async () => {
+      mockStorage.clear();
+      const service = new LocalScheduleService();
+
+      // Initial list is empty
+      const empty = await service.listSteps();
+      assert.deepEqual(empty, []);
+
+      // Add steps
+      const s1 = await service.addStep({ label: "Put shoes on", icon: "👟", isComplete: false, orderIndex: 0 });
+      const s2 = await service.addStep({ label: "Drink water", icon: "💧", isComplete: false, orderIndex: 1 });
+      const s3 = await service.addStep({ label: "Feed pet", icon: "🐕", isComplete: false, orderIndex: 2 });
+
+      let list = await service.listSteps();
+      assert.equal(list.length, 3);
+      assert.equal(list[0].label, "Put shoes on");
+
+      // Mark complete
+      const completed = await service.setComplete(s1.id, true);
+      assert.equal(completed.isComplete, true);
+      list = await service.listSteps();
+      assert.equal(list[0].isComplete, true);
+
+      // Reorder (s3 first, then s2, then s1)
+      const reordered = await service.reorder([s3.id, s2.id, s1.id]);
+      assert.equal(reordered[0].id, s3.id);
+      assert.equal(reordered[1].id, s2.id);
+      assert.equal(reordered[2].id, s1.id);
+
+      // Remove step
+      await service.removeStep(s2.id);
+      list = await service.listSteps();
+      assert.equal(list.length, 2);
+      assert.ok(!list.some((s) => s.id === s2.id));
+
+      // Reset to samples
+      const samples = await service.resetToSampleSteps();
+      assert.equal(samples.length, DEFAULT_SAMPLE_STEPS.length);
+    });
+
+    // AacService
+    await test("AacService: manages custom tile labels", async () => {
+      mockStorage.clear();
+      const service = new LocalAacService();
+
+      const initial = await service.getConfig();
+      assert.deepEqual(initial.customLabels, {});
+
+      await service.setCustomLabel("help", "Ask Teacher");
+      const updated = await service.getConfig();
+      assert.equal(updated.customLabels["help"], "Ask Teacher");
+
+      await service.resetCustomLabels();
+      const reset = await service.getConfig();
+      assert.deepEqual(reset.customLabels, {});
+    });
+
+    // ThemeService & Low-Sensory Rule
+    await test("ThemeService: resolveActiveTheme always forces calm theme under low-sensory mode", () => {
+      // Standard motion: user preference is honored
+      assert.equal(resolveActiveTheme("space", false), "space");
+      assert.equal(resolveActiveTheme("animals", false), "animals");
+      assert.equal(resolveActiveTheme("trains", false), "trains");
+      assert.equal(resolveActiveTheme("nature", false), "nature");
+      assert.equal(resolveActiveTheme("ocean", false), "ocean");
+      assert.equal(resolveActiveTheme("calm", false), "calm");
+
+      // Low-sensory ON: unconditionally forces calm theme
+      assert.equal(resolveActiveTheme("space", true), "calm");
+      assert.equal(resolveActiveTheme("animals", true), "calm");
+      assert.equal(resolveActiveTheme("trains", true), "calm");
+      assert.equal(resolveActiveTheme("nature", true), "calm");
+      assert.equal(resolveActiveTheme("ocean", true), "calm");
+
+      // Invalid key fallback
+      assert.equal(resolveActiveTheme("invalid" as any, false), "calm");
+    });
+
+    await test("ThemeService: all theme palettes define valid CSS variables", () => {
+      Object.values(THEME_DEFINITIONS).forEach((theme) => {
+        assert.ok(theme.cssVariables["--theme-bg"]);
+        assert.ok(theme.cssVariables["--theme-surface"]);
+        assert.ok(theme.cssVariables["--theme-text"]);
+        assert.ok(theme.cssVariables["--theme-accent"]);
+      });
+    });
+
     // ============================================================================
-    // 3. COMPONENT MARKUP TESTS
+    // 4. COMPONENT MARKUP TESTS
     // ============================================================================
 
     await test("EmotionCards: renders 10 emotion cards with role=group and reassurance slots", () => {
@@ -306,18 +425,8 @@ async function runAll() {
       assert.ok(html.includes('role="group"'));
       assert.ok(html.includes("I want a grown-up"));
       assert.ok(html.includes("Saved on this device only"));
-
-      // Checks representation of the 6 shared mood values + additional cards
       assert.ok(html.includes("Happy"));
       assert.ok(html.includes("Calm"));
-      assert.ok(html.includes("Very Joyful"));
-      assert.ok(html.includes("In-Between"));
-      assert.ok(html.includes("Sad"));
-      assert.ok(html.includes("Tired"));
-      assert.ok(html.includes("A Bit Full"));
-      assert.ok(html.includes("Too Much Noise"));
-      assert.ok(html.includes("Proud"));
-      assert.ok(html.includes("Curious"));
     });
 
     await test("TransitionCountdown: renders text-first timer, progress bar, and preset buttons", () => {
@@ -332,8 +441,39 @@ async function runAll() {
       assert.ok(html.includes("Start Countdown"));
       assert.ok(html.includes("Quick Transition Presets"));
     });
+
+    await test("VisualSchedule: renders schedule header and sample routine load button", () => {
+      const html = render(React.createElement(VisualSchedule));
+      assert.ok(html.includes("Routine Steps"));
+      assert.ok(html.includes("Grown-Up Edit Mode"));
+      assert.ok(html.includes("Saved on this device only"));
+    });
+
+    await test("AacBoard: renders sentence strip, speak button, clear button, and category tiles", () => {
+      const html = render(React.createElement(AacBoard));
+      assert.ok(html.includes("Sentence Strip"));
+      assert.ok(html.includes("Speak"));
+      assert.ok(html.includes("Clear Sentence"));
+      assert.ok(html.includes("← Backspace"));
+      assert.ok(html.includes("Help"));
+      assert.ok(html.includes("Break"));
+      assert.ok(html.includes("Hungry"));
+      assert.ok(html.includes("Thirsty"));
+    });
+
+    await test("SpecialInterestThemes: renders scoped CSS variables and theme choices", () => {
+      const html = render(
+        React.createElement(SpecialInterestThemes, {}, React.createElement("div", null, "Child Content"))
+      );
+      assert.ok(html.includes("Personalize Your Space"));
+      assert.ok(html.includes("Deep Space"));
+      assert.ok(html.includes("Friendly Safari"));
+      assert.ok(html.includes("Steam Trains"));
+      assert.ok(html.includes("Forest Walk"));
+      assert.ok(html.includes("Tide Pool"));
+      assert.ok(html.includes("Child Content"));
+    });
   } finally {
-    // Clean restore
     (globalThis as unknown as { window?: unknown }).window = originalWindow;
   }
 

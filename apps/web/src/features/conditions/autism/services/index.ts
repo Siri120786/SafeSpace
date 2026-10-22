@@ -10,3 +10,25 @@ export {
   DEFAULT_TRANSITION_CONFIG,
 } from "./transitionService";
 export type { TransitionService } from "./transitionService";
+
+export {
+  LocalScheduleService,
+  createScheduleService,
+  DEFAULT_SAMPLE_STEPS,
+} from "./scheduleService";
+export type { ScheduleService } from "./scheduleService";
+
+export {
+  LocalAacService,
+  createAacService,
+  DEFAULT_AAC_TILES,
+} from "./aacService";
+export type { AacService } from "./aacService";
+
+export {
+  LocalThemeService,
+  createThemeService,
+  THEME_DEFINITIONS,
+  resolveActiveTheme,
+} from "./themeService";
+export type { ThemeService } from "./themeService";
