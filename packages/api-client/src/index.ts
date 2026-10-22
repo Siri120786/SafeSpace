@@ -51,3 +51,9 @@ export {
   listMyMoodCheckins,
   listChildMoodCheckins,
 } from "./mood";
+
+export {
+  sendAiCompanionMessage,
+  listAiCompanionConversations,
+  getAiCompanionMessages,
+} from "./aiCompanion";
