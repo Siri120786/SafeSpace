@@ -73,3 +73,73 @@ export const DEFAULT_POMODORO_CONFIG: PomodoroConfig = {
   longBreakMinutes: 15,
   cyclesBeforeLongBreak: 4,
 };
+
+// ─── Task Breakdown ───────────────────────────────────────────────────────────
+
+export interface TaskStep {
+  id: string;
+  label: string;
+  isComplete: boolean;
+  orderIndex: number;
+  completedAt?: number;
+}
+
+export interface TaskItem {
+  id: string;
+  title: string;
+  steps: TaskStep[];
+  createdAt: number;
+  isArchived?: boolean;
+}
+
+// ─── Habit Tracker ────────────────────────────────────────────────────────────
+
+export interface HabitItem {
+  id: string;
+  title: string;
+  icon?: string;
+  createdAt: number;
+  isArchived?: boolean;
+}
+
+/** Map of habitId -> dateKey ("YYYY-MM-DD") -> completed */
+export type HabitLog = Record<string, Record<string, boolean>>;
+
+export interface DayCheck {
+  dateKey: string;
+  dayLabel: string;
+  dayNumber: number;
+  isToday: boolean;
+}
+
+// ─── Rewards & Progress ───────────────────────────────────────────────────────
+
+export interface RewardGoal {
+  id: string;
+  title: string;
+  targetStars: number;
+  icon?: string;
+}
+
+export interface RewardState {
+  currentStars: number;
+  lifetimeStars: number;
+  goal: RewardGoal;
+  /** Unique event keys (`${source}:${sourceId}:${dateKey}`) to enforce idempotency */
+  awardedEventKeys: string[];
+}
+
+export const DEFAULT_REWARD_GOAL: RewardGoal = {
+  id: "default-goal",
+  title: "Fun Movie or Game Night",
+  targetStars: 10,
+  icon: "🎬",
+};
+
+export const INITIAL_REWARD_STATE: RewardState = {
+  currentStars: 0,
+  lifetimeStars: 0,
+  goal: DEFAULT_REWARD_GOAL,
+  awardedEventKeys: [],
+};
+

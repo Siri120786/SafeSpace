@@ -8,6 +8,9 @@ export const ADHD_DISPLAY_NAME = "Focus Zone";
 
 export * from "./types";
 export * from "./lib/timerLogic";
+export * from "./lib/taskLogic";
+export * from "./lib/habitLogic";
+export * from "./lib/rewardLogic";
 export * from "./services";
 export * from "./hooks";
 export * from "./components";

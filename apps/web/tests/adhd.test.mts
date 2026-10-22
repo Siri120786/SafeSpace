@@ -42,13 +42,44 @@ import {
   LocalFocusStatsService,
   aggregateFocusStats,
 } from "../src/features/conditions/adhd/services/focusStatsService";
+import { LocalTaskService } from "../src/features/conditions/adhd/services/taskService";
+import { LocalHabitService } from "../src/features/conditions/adhd/services/habitService";
+import { LocalRewardService } from "../src/features/conditions/adhd/services/rewardService";
+import {
+  addTaskStep,
+  calculateTaskProgress,
+  createNewTaskItem,
+  editTaskStep,
+  removeTaskStep,
+  reorderTaskSteps,
+  toggleTaskStep,
+} from "../src/features/conditions/adhd/lib/taskLogic";
+import {
+  calculateHabitWeeklyRate,
+  getPast7Days,
+  isHabitChecked,
+  toggleHabitLog,
+} from "../src/features/conditions/adhd/lib/habitLogic";
+import {
+  awardStarsIdempotent,
+  buildRewardEventKey,
+  calculateGoalProgress,
+  redeemGoal,
+  updateGoal,
+} from "../src/features/conditions/adhd/lib/rewardLogic";
 import type {
   FocusSessionRecord,
+  HabitLog,
   PomodoroConfig,
+  RewardState,
+  TaskStep,
 } from "../src/features/conditions/adhd/types";
 import { FocusTimer } from "../src/features/conditions/adhd/components/FocusTimer";
 import { PomodoroTimer } from "../src/features/conditions/adhd/components/PomodoroTimer";
 import { FocusStats } from "../src/features/conditions/adhd/components/FocusStats";
+import { TaskBreakdown } from "../src/features/conditions/adhd/components/TaskBreakdown";
+import { HabitTracker } from "../src/features/conditions/adhd/components/HabitTracker";
+import { RewardsProgress } from "../src/features/conditions/adhd/components/RewardsProgress";
 import { AdhdFocusZone } from "../src/features/conditions/adhd/components/AdhdFocusZone";
 
 // ─── Environment Setup ─────────────────────────────────────────────────────────
@@ -470,10 +501,326 @@ async function runAll() {
     await test("AdhdFocusZone: renders top banner, mode switch tabs, and stats section", () => {
       const html = render(React.createElement(AdhdFocusZone));
       assert.ok(html.includes("ADHD Focus Zone"));
-      assert.ok(html.includes("Calm Focus Space"));
-      assert.ok(html.includes("Quick Focus Timer"));
-      assert.ok(html.includes("Pomodoro Flow"));
-      assert.ok(html.includes("Focus Activity"));
+      assert.ok(html.includes("Gentle Focus Space") || html.includes("Calm Focus Space"));
+      assert.ok(html.includes("Timers"));
+      assert.ok(html.includes("Step Breakdown"));
+      assert.ok(html.includes("Daily Habits"));
+      assert.ok(html.includes("Star Bank"));
+    });
+
+    // 19. Task Breakdown: addTaskStep and calculateTaskProgress
+    await test("TaskBreakdown: addTaskStep and calculateTaskProgress", () => {
+      let steps: TaskStep[] = [];
+      assert.deepEqual(calculateTaskProgress(steps), { completed: 0, total: 0, percent: 0 });
+
+      steps = addTaskStep(steps, "First step");
+      steps = addTaskStep(steps, "Second step");
+      steps = addTaskStep(steps, "Third step");
+      assert.equal(steps.length, 3);
+      assert.equal(steps[0].label, "First step");
+      assert.equal(steps[0].orderIndex, 0);
+
+      // Blank label ignored
+      steps = addTaskStep(steps, "   ");
+      assert.equal(steps.length, 3);
+
+      let prog = calculateTaskProgress(steps);
+      assert.equal(prog.total, 3);
+      assert.equal(prog.completed, 0);
+      assert.equal(prog.percent, 0);
+
+      // Toggle step 0
+      const { updatedSteps } = toggleTaskStep(steps, steps[0].id);
+      steps = updatedSteps;
+      prog = calculateTaskProgress(steps);
+      assert.equal(prog.completed, 1);
+      assert.equal(prog.percent, 33);
+    });
+
+    // 20. Task Breakdown: reorderTaskSteps
+    await test("TaskBreakdown: reorderTaskSteps moves items and safely handles out of bounds", () => {
+      let steps: TaskStep[] = [
+        { id: "s1", label: "A", isComplete: false, orderIndex: 0 },
+        { id: "s2", label: "B", isComplete: false, orderIndex: 1 },
+        { id: "s3", label: "C", isComplete: false, orderIndex: 2 },
+      ];
+
+      // Move index 2 ("C") to index 0 -> C, A, B
+      steps = reorderTaskSteps(steps, 2, 0);
+      assert.equal(steps[0].label, "C");
+      assert.equal(steps[0].orderIndex, 0);
+      assert.equal(steps[1].label, "A");
+      assert.equal(steps[1].orderIndex, 1);
+      assert.equal(steps[2].label, "B");
+      assert.equal(steps[2].orderIndex, 2);
+
+      // Out of bounds indices return unchanged array
+      const unchanged = reorderTaskSteps(steps, -1, 5);
+      assert.equal(unchanged[0].label, "C");
+      assert.equal(unchanged[2].label, "B");
+    });
+
+    // 21. Task Breakdown: toggleTaskStep, editTaskStep, removeTaskStep
+    await test("TaskBreakdown: toggleTaskStep, editTaskStep, and removeTaskStep", () => {
+      let steps: TaskStep[] = [
+        { id: "s1", label: "Original Label", isComplete: false, orderIndex: 0 },
+        { id: "s2", label: "Keep Step", isComplete: false, orderIndex: 1 },
+      ];
+
+      // Edit
+      steps = editTaskStep(steps, "s1", "Updated Label");
+      assert.equal(steps[0].label, "Updated Label");
+
+      // Toggle Complete
+      const { updatedSteps, justCompleted } = toggleTaskStep(steps, "s1");
+      steps = updatedSteps;
+      assert.equal(steps[0].isComplete, true);
+      assert.equal(justCompleted, true);
+      assert.ok(typeof steps[0].completedAt === "number");
+
+      // Toggle Incomplete
+      const uncomplete = toggleTaskStep(steps, "s1");
+      steps = uncomplete.updatedSteps;
+      assert.equal(steps[0].isComplete, false);
+      assert.equal(uncomplete.justCompleted, false);
+
+      // Remove
+      steps = removeTaskStep(steps, "s1");
+      assert.equal(steps.length, 1);
+      assert.equal(steps[0].label, "Keep Step");
+      assert.equal(steps[0].orderIndex, 0);
+    });
+
+    // 22. Habit Tracker: getPast7Days date math across month boundaries
+    await test("HabitTracker: getPast7Days spans calendar dates across month boundaries cleanly", () => {
+      // Fixed time: November 2, 2026 12:00:00 UTC
+      const fixedNovDate = new Date("2026-11-02T12:00:00Z").getTime();
+      const past7 = getPast7Days(fixedNovDate);
+
+      assert.equal(past7.length, 7);
+      // Day 0 (6 days ago): Oct 27
+      assert.equal(past7[0].dateKey, "2026-10-27");
+      assert.equal(past7[0].isToday, false);
+
+      // Day 4: Oct 31
+      assert.equal(past7[4].dateKey, "2026-10-31");
+
+      // Day 5: Nov 01 (Month boundary crossed smoothly!)
+      assert.equal(past7[5].dateKey, "2026-11-01");
+
+      // Day 6: Nov 02 (Today!)
+      assert.equal(past7[6].dateKey, "2026-11-02");
+      assert.equal(past7[6].isToday, true);
+
+      // Test leap year boundary: March 2, 2024
+      const leapYearDate = new Date("2024-03-02T12:00:00Z").getTime();
+      const leapDays = getPast7Days(leapYearDate);
+      assert.equal(leapDays.length, 7);
+      // Feb 29, 2024 must exist in the week!
+      assert.ok(leapDays.some((d) => d.dateKey === "2024-02-29"));
+    });
+
+    // 23. Habit Tracker: toggleHabitLog and calculateHabitWeeklyRate
+    await test("HabitTracker: toggleHabitLog updates daily checks and computes weekly rate", () => {
+      let log: HabitLog = {};
+      const habitId = "water-habit";
+      const dateKey = "2026-10-22";
+
+      assert.equal(isHabitChecked(log, habitId, dateKey), false);
+
+      const check1 = toggleHabitLog(log, habitId, dateKey);
+      log = check1.updatedLog;
+      assert.equal(check1.isNowChecked, true);
+      assert.equal(isHabitChecked(log, habitId, dateKey), true);
+
+      // Uncheck
+      const check2 = toggleHabitLog(log, habitId, dateKey);
+      log = check2.updatedLog;
+      assert.equal(check2.isNowChecked, false);
+      assert.equal(isHabitChecked(log, habitId, dateKey), false);
+
+      // Re-check
+      log = toggleHabitLog(log, habitId, dateKey).updatedLog;
+
+      const dummyWeek = [
+        { dateKey: "2026-10-21", dayLabel: "Wed", dayNumber: 21, isToday: false },
+        { dateKey: "2026-10-22", dayLabel: "Thu", dayNumber: 22, isToday: true },
+      ];
+      const rate = calculateHabitWeeklyRate(log, habitId, dummyWeek);
+      assert.equal(rate.completedCount, 1);
+      assert.equal(rate.totalDays, 2);
+    });
+
+    // 24. Rewards: awardStarsIdempotent strictly prevents star farming
+    await test("Rewards: awardStarsIdempotent awards stars once and prevents un-tick/re-tick farming", () => {
+      let state: RewardState = {
+        currentStars: 0,
+        lifetimeStars: 0,
+        goal: { id: "g1", title: "Game Night", targetStars: 10 },
+        awardedEventKeys: [],
+      };
+
+      // 1. First completion: awards 1 star
+      const firstAward = awardStarsIdempotent(
+        state,
+        "task_step",
+        "step-math-1",
+        "2026-10-22",
+        1
+      );
+      state = firstAward.updatedState;
+      assert.equal(firstAward.wasAwarded, true);
+      assert.equal(state.currentStars, 1);
+      assert.equal(state.lifetimeStars, 1);
+      assert.equal(state.awardedEventKeys.length, 1);
+
+      // 2. User un-ticks step in UI, then re-ticks it (attempts to farm stars):
+      // The idempotency key ("task_step:step-math-1:2026-10-22") is already in awardedEventKeys!
+      const farmAttempt = awardStarsIdempotent(
+        state,
+        "task_step",
+        "step-math-1",
+        "2026-10-22",
+        1
+      );
+      assert.equal(farmAttempt.wasAwarded, false);
+      // Critical check: currentStars is STILL 1, lifetimeStars is STILL 1!
+      assert.equal(farmAttempt.updatedState.currentStars, 1);
+      assert.equal(farmAttempt.updatedState.lifetimeStars, 1);
+
+      // 3. Different step awards normally
+      const nextStepAward = awardStarsIdempotent(
+        state,
+        "task_step",
+        "step-math-2",
+        "2026-10-22",
+        1
+      );
+      assert.equal(nextStepAward.wasAwarded, true);
+      assert.equal(nextStepAward.updatedState.currentStars, 2);
+    });
+
+    // 25. Rewards: calculateGoalProgress and redeemGoal
+    await test("Rewards: calculateGoalProgress and redeemGoal updates currentStars and retains lifetime", () => {
+      let state: RewardState = {
+        currentStars: 10,
+        lifetimeStars: 10,
+        goal: { id: "g1", title: "Fun Outing", targetStars: 10 },
+        awardedEventKeys: ["event-1", "event-2"],
+      };
+
+      let prog = calculateGoalProgress(state);
+      assert.equal(prog.current, 10);
+      assert.equal(prog.target, 10);
+      assert.equal(prog.percent, 100);
+      assert.equal(prog.isGoalReached, true);
+
+      // Redeem goal
+      const redeemed = redeemGoal(state);
+      assert.equal(redeemed.success, true);
+      state = redeemed.updatedState;
+      assert.equal(state.currentStars, 0);
+      assert.equal(state.lifetimeStars, 10); // Lifetime stars preserved!
+      assert.equal(state.awardedEventKeys.length, 2); // Event keys preserved!
+
+      // Cannot redeem again without enough stars
+      const failedRedeem = redeemGoal(state);
+      assert.equal(failedRedeem.success, false);
+      assert.equal(failedRedeem.updatedState.currentStars, 0);
+    });
+
+    // 26. LocalTaskService: CRUD persistence
+    await test("LocalTaskService: creates, retrieves, updates, and deletes tasks", async () => {
+      mockStorage.clear();
+      const service = new LocalTaskService();
+
+      const task = await service.createTask("Homework", ["Open book", "Read page 1"]);
+      assert.equal(task.title, "Homework");
+      assert.equal(task.steps.length, 2);
+
+      const list = await service.listTasks();
+      assert.equal(list.length, 1);
+      assert.equal(list[0].id, task.id);
+
+      // Update task
+      task.steps[0].isComplete = true;
+      await service.updateTask(task);
+      const fetched = await service.getTask(task.id);
+      assert.equal(fetched?.steps[0].isComplete, true);
+
+      // Delete task
+      await service.deleteTask(task.id);
+      const afterDelete = await service.listTasks();
+      assert.equal(afterDelete.length, 0);
+    });
+
+    // 27. LocalHabitService: habits and log persistence
+    await test("LocalHabitService: manages habits and persists 7-day checks", async () => {
+      mockStorage.clear();
+      const service = new LocalHabitService();
+
+      const habits = await service.listHabits();
+      assert.ok(habits.length > 0);
+
+      const custom = await service.addHabit("Take deep breath", "🧘");
+      const list = await service.listHabits();
+      assert.ok(list.some((h) => h.id === custom.id));
+
+      const { updatedLog, isNowChecked } = await service.toggleDay(custom.id, "2026-10-22");
+      assert.equal(isNowChecked, true);
+      assert.equal(updatedLog[custom.id]["2026-10-22"], true);
+
+      const fetchedLog = await service.getLog();
+      assert.equal(fetchedLog[custom.id]["2026-10-22"], true);
+    });
+
+    // 28. LocalRewardService: star bank and goal updates
+    await test("LocalRewardService: manages stars and goals idempotently", async () => {
+      mockStorage.clear();
+      const service = new LocalRewardService();
+
+      const initial = await service.getState();
+      assert.equal(initial.currentStars, 0);
+
+      // Award 2 stars
+      const res1 = await service.awardStars("habit_day", "h1", "2026-10-22", 2);
+      assert.equal(res1.wasAwarded, true);
+      assert.equal(res1.updatedState.currentStars, 2);
+
+      // Award same again -> rejected
+      const res2 = await service.awardStars("habit_day", "h1", "2026-10-22", 2);
+      assert.equal(res2.wasAwarded, false);
+      assert.equal(res2.updatedState.currentStars, 2);
+
+      // Update goal
+      const updated = await service.setGoal({ title: "Read Book", targetStars: 5 });
+      assert.equal(updated.goal.title, "Read Book");
+      assert.equal(updated.goal.targetStars, 5);
+    });
+
+    // 29. Component Rendering: TaskBreakdown
+    await test("TaskBreakdown: renders step breakdown header and actions", () => {
+      const html = render(React.createElement(TaskBreakdown));
+      assert.ok(html.includes("Task Breakdown"));
+      assert.ok(html.includes("Bite-Sized Steps"));
+      assert.ok(html.includes("Saved on this device only"));
+    });
+
+    // 30. Component Rendering: HabitTracker
+    await test("HabitTracker: renders 7-day grid and daily habits", () => {
+      const html = render(React.createElement(HabitTracker));
+      assert.ok(html.includes("Daily Habits"));
+      assert.ok(html.includes("Small Daily Rhythms"));
+      assert.ok(html.includes("Saved on this device only"));
+    });
+
+    // 31. Component Rendering: RewardsProgress
+    await test("RewardsProgress: renders Star Bank, target goal, and DeviceOnlyNote", () => {
+      const html = render(React.createElement(RewardsProgress));
+      assert.ok(html.includes("Star Bank"));
+      assert.ok(html.includes("Rewards &amp; Progress") || html.includes("Rewards & Progress"));
+      assert.ok(html.includes("stars available"));
+      assert.ok(html.includes("Saved on this device only"));
     });
   } finally {
     (globalThis as unknown as { window?: unknown }).window = originalWindow;
