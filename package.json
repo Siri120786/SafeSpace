@@ -13,7 +13,8 @@
     "db:reset": "supabase db reset",
     "functions:serve": "supabase functions serve --env-file supabase/.env.local",
 
-    "test": "tsx supabase/tests/crypto.test.mts && tsx supabase/tests/rls.test.mts && tsx supabase/tests/profile_contract.test.mts && tsx supabase/tests/caregiver-rls.test.mts && tsx supabase/tests/mood.test.mts && tsx apps/web/tests/calm-tools.test.mts"
+    "test": "tsx supabase/tests/crypto.test.mts && tsx supabase/tests/rls.test.mts && tsx supabase/tests/profile_contract.test.mts && tsx supabase/tests/caregiver-rls.test.mts && tsx supabase/tests/mood.test.mts && tsx apps/web/tests/calm-tools.test.mts && tsx supabase/tests/ai_companion.test.mts && tsx supabase/tests/ai_companion_handler.test.mts",
+    "test:local:ai-companion": "tsx supabase/tests/local/ai_companion_rate_limit.local.mts"
 
   },
   "packageManager": "pnpm@9.12.0",

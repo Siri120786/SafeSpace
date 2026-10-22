@@ -170,3 +170,38 @@ export interface CreateMoodCheckinInput {
 export interface ListMoodCheckinsOptions {
   limit?: number;             // default 30, max 100
 }
+
+// ----------------------------------------------------------------------------
+// AI Companion types. Mirrors ai_companion_conversations / ai_companion_messages
+// (column `language` -> preferredLanguage, `detected_language` -> language).
+// ----------------------------------------------------------------------------
+export type LanguageCode = "en" | "hi" | "te" | "ta" | "kn" | "mr" | "bn" | "ur";
+
+export interface AiCompanionConversation {
+  id: string;
+  profileId: string | null;
+  childId: string | null;
+  preferredLanguage: LanguageCode;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AiCompanionMessage {
+  id: string;
+  conversationId: string;
+  sender: "user" | "assistant";
+  content: string;
+  language: LanguageCode;
+  isSafetyResponse: boolean; // fixed crisis-screen exchange, not model output
+  createdAt: string;
+}
+
+export interface AiCompanionSendResult {
+  conversation: AiCompanionConversation;
+  userMessage: AiCompanionMessage;
+  assistantMessage: AiCompanionMessage;
+  // true when the message matched the crisis screen: the reply is a fixed
+  // safety message, not model output, and the UI should keep it prominent.
+  safetyResponse: boolean;
+}

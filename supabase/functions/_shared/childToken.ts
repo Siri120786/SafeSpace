@@ -35,14 +35,26 @@ export async function signChildToken(childId: string): Promise<string> {
 }
 
 // Returns the child_id if the token is authentic and unexpired, else null.
-export async function verifyChildToken(token: string | undefined): Promise<string | null> {
-  if (!token) return null;
-  const [payload, sig] = token.split(".");
-  if (!payload || !sig) return null;
-  const ok = await crypto.subtle.verify("HMAC", await hmacKey(), fromB64url(sig), enc.encode(payload));
+// Accepts any value straight from a request body: anything malformed (not a
+// string, wrong shape, bad base64, bad JSON) is null, never a thrown error, so
+// callers answer 401 rather than 500. A missing CHILD_SESSION_SECRET still
+// throws, because that is a server misconfiguration, not a bad token.
+export async function verifyChildToken(token: unknown): Promise<string | null> {
+  if (typeof token !== "string" || !token) return null;
+  const parts = token.split(".");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+  const [payload, sig] = parts;
+  let sigBytes: Uint8Array;
+  try {
+    sigBytes = fromB64url(sig);
+  } catch {
+    return null;
+  }
+  const ok = await crypto.subtle.verify("HMAC", await hmacKey(), sigBytes, enc.encode(payload));
   if (!ok) return null;
   try {
     const { child_id, exp } = JSON.parse(new TextDecoder().decode(fromB64url(payload)));
+    if (typeof child_id !== "string" || !child_id || typeof exp !== "number") return null;
     return exp > Math.floor(Date.now() / 1000) ? child_id : null;
   } catch {
     return null;

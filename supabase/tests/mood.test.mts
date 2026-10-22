@@ -25,10 +25,14 @@ await db.exec(`
   create function auth.uid() returns uuid language sql stable
     as $$ select nullif(current_setting('app.uid', true), '')::uuid $$;
   create role authenticated;
+  create role anon;
+  create role service_role bypassrls;
   grant usage on schema public, auth to authenticated;
   -- Hosted/local Supabase grants ALL on new public tables to authenticated by
   -- default; reproduce that so migrations' explicit revokes are what's tested.
-  alter default privileges in schema public grant all on tables to authenticated;
+  alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+  alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
 `);
 
 // Apply every migration in order, exactly as `supabase db reset` would.
@@ -189,3 +193,36 @@ ok("validator drops owner fields from the request body",
   extra.ok && !("child_id" in extra.value) && !("profile_id" in extra.value));
 ok("list limit defaults to 30 and caps at 100",
   clampLimit(undefined) === 30 && clampLimit(-1) === 30 && clampLimit(500) === 100 && clampLimit(10) === 10);
+
+// ---- anon privilege gap closed (Step 4, migration 20261022000100) ----
+const priv = async (role: string, p: string) =>
+  (await db.query<{ ok: boolean }>(`select has_table_privilege($1, 'public.mood_checkins', $2) as ok`, [role, p])).rows[0].ok;
+let anonAny = false;
+for (const p of ["SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"]) anonAny ||= await priv("anon", p);
+ok("anon has no privileges on mood_checkins", !anonAny);
+const asRole = async (role: string, sql: string) => {
+  await db.exec(`set role ${role};`);
+  try {
+    return (await db.query(sql)).rows;
+  } finally {
+    await db.exec(`reset role;`);
+  }
+};
+let anonDenied = false;
+try { await asRole("anon", `select 1 from mood_checkins`); } catch { anonDenied = true; }
+ok("anon gets permission denied (not just zero rows) on mood_checkins", anonDenied);
+ok("authenticated keeps exactly SELECT and INSERT on mood_checkins",
+  (await priv("authenticated", "SELECT")) && (await priv("authenticated", "INSERT")) &&
+  !(await priv("authenticated", "UPDATE")) && !(await priv("authenticated", "DELETE")));
+const stillWorks = await asUser<{ id: string }>(u2,
+  `insert into mood_checkins (profile_id, mood) values ('${u2}', 'neutral') returning id`);
+ok("authenticated user can still save and read their own check-in after the revoke",
+  stillWorks.length === 1 &&
+  (await asUser(u2, `select 1 from mood_checkins where id = '${stillWorks[0].id}'`)).length === 1);
+const svc = await asRole("service_role",
+  `insert into mood_checkins (child_id, mood) values ('${young}', 'calm') returning id`).catch(() => null);
+const svcOk = await asRole("service_role",
+  `insert into mood_checkins (child_id, mood) values ('${young}', 'happy') returning id`);
+ok("service_role can still write and read a child's check-in (Edge Function path)",
+  svc === null /* 'calm' is not a valid mood: constraint still enforced */ &&
+  svcOk.length === 1 && (await asRole("service_role", `select 1 from mood_checkins where child_id = '${young}'`)).length >= 1);

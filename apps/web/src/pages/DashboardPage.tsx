@@ -11,6 +11,7 @@ import { BrainMascot } from "../components/vectors/BrainMascot";
 import { LeafCluster } from "../components/vectors/LeafFrame";
 import { SessionPlayerModal } from "../components/ui/SessionPlayerModal";
 import { LinkedUsersPanel } from "../features/caregiver";
+import { ChatWindow } from "../features/ai-companion";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -155,6 +156,7 @@ export const DashboardPage: React.FC = () => {
               <nav className="space-y-1 text-sm font-medium">
                 {[
                   { id: "home", label: "Home", icon: "🏠" },
+                  { id: "companion", label: "AI Companion", icon: "💬" },
                   { id: "sessions", label: "Guided Breathing", icon: "🎧" },
                   { id: "profile", label: "Profile Settings", icon: "👤" },
                 ].map((item) => (
@@ -354,6 +356,13 @@ export const DashboardPage: React.FC = () => {
                     </Card>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {/* TAB: COMPANION VIEW */}
+            {activeTab === "companion" && (
+              <section className="space-y-6">
+                <ChatWindow session={session} />
               </section>
             )}
 

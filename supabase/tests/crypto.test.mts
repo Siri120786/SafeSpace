@@ -24,3 +24,22 @@ const b64u = (b: Uint8Array) => btoa(String.fromCharCode(...b)).replace(/\+/g, "
 const expPayload = b64u(new TextEncoder().encode(JSON.stringify({ child_id: "c", exp: 1 })));
 const expSig = b64u(new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(expPayload))));
 assert("expired token rejected", (await verifyChildToken(`${expPayload}.${expSig}`)) === null);
+
+// Malformed tokens straight from a request body must be rejected (null), never throw.
+const rejects = async (name: string, value: unknown) => {
+  try {
+    assert(name, (await verifyChildToken(value as any)) === null);
+  } catch (e) {
+    assert(`${name} (threw ${(e as Error).message})`, false);
+  }
+};
+await rejects("non-string token rejected without throwing", 12345);
+await rejects("object token rejected without throwing", { child_id: "x" });
+await rejects("invalid base64 signature rejected without throwing", "abc.%%%");
+await rejects("token with extra segments rejected", `${t}.extra`);
+await rejects("empty segments rejected", ".");
+const goodSig = (p: string) => crypto.subtle.sign("HMAC", key, new TextEncoder().encode(p)).then((s) => b64u(new Uint8Array(s)));
+const noChild = b64u(new TextEncoder().encode(JSON.stringify({ exp: 9999999999 })));
+await rejects("signed payload without child_id rejected", `${noChild}.${await goodSig(noChild)}`);
+const strExp = b64u(new TextEncoder().encode(JSON.stringify({ child_id: "c", exp: "9999999999" })));
+await rejects("signed payload with non-numeric exp rejected", `${strExp}.${await goodSig(strExp)}`);

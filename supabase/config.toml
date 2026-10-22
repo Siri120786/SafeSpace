@@ -27,5 +27,7 @@ verify_jwt = false
 verify_jwt = false
 [functions.mood-checkin]
 verify_jwt = false   # child-only; authenticated by the signed child-session token
+[functions.ai-companion]
+verify_jwt = false   # checks the user JWT (auth.getUser) or child-session token itself
 [functions.create-child]
 verify_jwt = true    # caregiver-only
