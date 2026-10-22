@@ -6,7 +6,8 @@ export type UserRole = "caregiver" | "user";
 
 export type OnboardingState = "pending" | "completed";
 
-export type ModuleKey = "autism" | "adhd" | "anxiety" | "depression" | "ptsd" | "pcos_pcod";
+export const MODULE_KEYS = ["autism", "adhd", "anxiety", "depression", "ptsd", "pcos_pcod"] as const;
+export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 export type PrivacyTier = "full" | "partial" | "private";
 

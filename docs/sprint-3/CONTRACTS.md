@@ -193,7 +193,7 @@ Rows are snake_case; the api-client maps them to the camelCase types above.
 | Area | Types | api-client | Child Edge Function | Migration and RLS tests |
 | --- | --- | --- | --- | --- |
 | Mood check-ins | Done | **Implemented** | **Implemented** | **Done** |
-| Journaling | Done | Planned | Planned | Planned |
+| Journaling | Done | **Implemented** | **Implemented** (`journal`) | **Done** (`20261024100000`) |
 | Routines | Done | **Implemented** | **Implemented** (`routines`) | **Done** (`20261024000000`) |
 | Reminders | Done | Planned | Planned | Planned |
 | Wellness summary / overview | Done | Planned | Planned | Planned |
@@ -212,3 +212,19 @@ reminders, then caregiver dashboard and module navigation integration.
   - `pnpm test:local:routines` (end to end with the real api-client, local stack only).
 - **Errors:** api-client errors are `ContractError` instances whose `message` is a code from "Common errors".
 - **Superseded:** `listRoutineSteps` and `markRoutineStepComplete` have been removed from the api-client.
+
+### Journaling: implemented
+
+- **Migration:** `supabase/migrations/20261024100000_journal_entries.sql`. It extends the existing table:
+  - adult owner (`profile_id`) and `entry_type`;
+  - optional `module_key`, plus `updated_at`;
+  - the private-note rule, now enforced in the database;
+  - `anon` revoked.
+  The caregiver privacy-tier policy from `0001` is unchanged.
+- **api-client:** `packages/api-client/src/journal.ts`. The old `submitJournalEntry` placeholder (AI orchestrator, stores nothing) is marked deprecated.
+- **Child Edge Function:** `supabase/functions/journal`.
+- **Tests:**
+  - `supabase/tests/journal.test.mts` (database and RLS, including legacy rows);
+  - `supabase/tests/journal_handler.test.mts` (helpers, handler, parity with shared-types);
+  - `pnpm test:local:journal` (end to end with the real api-client).
+- **Shared types:** adds `MODULE_KEYS` (the module list as a value).

@@ -67,6 +67,14 @@ export type { RoutineTarget } from "./routines";
 export { ContractError } from "./edge";
 
 export {
+  createJournalEntry,
+  listMyJournalEntries,
+  deleteJournalEntry,
+  listChildJournalEntries,
+} from "./journal";
+export type { ListJournalOptions } from "./journal";
+
+export {
   sendAiCompanionMessage,
   listAiCompanionConversations,
   getAiCompanionMessages,

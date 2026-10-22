@@ -86,6 +86,11 @@ async function callAiOrchestrator(
   return data.result;
 }
 
+/**
+ * @deprecated Calls the ai-orchestrator placeholder and stores nothing.
+ * Use `createJournalEntry` (./journal.ts), which saves the entry and never
+ * sends it to AI (Sprint 3 contract).
+ */
 export function submitJournalEntry(session: ChildSession, text: string) {
   return callAiOrchestrator(session, "journaling", { text });
 }
