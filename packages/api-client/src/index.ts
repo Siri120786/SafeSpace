@@ -78,6 +78,20 @@ export { getWellnessSummary, getChildWellnessSummary } from "./wellness";
 export type { WellnessOptions } from "./wellness";
 
 export {
+  listReminders,
+  getDueReminders,
+  acknowledgeReminder,
+  createReminder,
+  updateReminder,
+  deleteReminder,
+  listChildReminders,
+  getChildDueReminders,
+  computeDueReminders,
+  isValidTimeZone,
+} from "./reminders";
+export { getChildOverview } from "./overview";
+
+export {
   sendAiCompanionMessage,
   listAiCompanionConversations,
   getAiCompanionMessages,

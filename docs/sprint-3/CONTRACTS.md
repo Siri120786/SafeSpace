@@ -135,6 +135,7 @@ Types:
 | `createReminder(target, input)` | adult (self), caregiver (for a child) | `timezone` is required (IANA, for example `Asia/Kolkata`). |
 | `updateReminder(id, input)` / `deleteReminder(id)` | owner adult, caregiver | |
 | `listChildReminders(childId)` | caregiver | |
+| `getChildDueReminders(childId, now?)` | caregiver | Read-only due view for a child (feeds the overview). |
 | `computeDueReminders(reminders, acknowledgements, now)` | any (pure function) | The exact due-time rule, exported so Flutter can mirror it and tests can pin it down. |
 
 **Due rule:**
@@ -152,7 +153,8 @@ sprint.**
 - PCOS/PCOD use waits on the adult-account decision (Sprint 3 plan, section G).
 
 **Child Edge Function `reminders`:**
-- `list_due { now? }`
+- `list_due {}`: uses the server clock
+- `list {}`
 - `acknowledge { reminder_id, occurs_on }`
 
 ## 5. Wellness summary and caregiver overview
@@ -163,7 +165,7 @@ Types: `WellnessSummary`, `WellnessPeriodDays` (`7 | 30`), `ChildOverview`.
 | --- | --- | --- |
 | `getWellnessSummary(session, periodDays, { to?, timezone? })` | adult, child | Own data. `to` (local date) and `timezone` (IANA) default to the device's. |
 | `getChildWellnessSummary(childId, periodDays, { to?, timezone? })` | caregiver | One child's summary. A partial-tier child's private notes are excluded by RLS. For a child that isn't theirs, the caregiver gets zeros, never data. |
-| `getChildOverview(childId, periodDays)` | caregiver | `child`, `summary`, `dueRemindersToday`. **Lands with reminders** (it needs reminder data). |
+| `getChildOverview(childId, periodDays)` | caregiver | `child`, `summary`, `dueRemindersToday` (due and not acknowledged). `not_found` if the child isn't theirs. |
 
 **Counts only.** The summary includes mood counts by value, days with a
 check-in, the latest mood, routine steps scheduled versus completed, and the
@@ -200,9 +202,9 @@ Rows are snake_case; the api-client maps them to the camelCase types above.
 | Mood check-ins | Done | **Implemented** | **Implemented** | **Done** |
 | Journaling | Done | **Implemented** | **Implemented** (`journal`) | **Done** (`20261024100000`) |
 | Routines | Done | **Implemented** | **Implemented** (`routines`) | **Done** (`20261024000000`) |
-| Reminders | Done | Planned | Planned | Planned |
+| Reminders | Done | **Implemented** | **Implemented** (`reminders`) | **Done** (`20261024300000`) |
 | Wellness summary | Done | **Implemented** | **Implemented** (`wellness-summary`) | **Done** (`20261024200000`) |
-| Caregiver overview | Done | Planned (with reminders) | n/a | n/a |
+| Caregiver overview | Done | **Implemented** | n/a (caregivers use RLS) | Covered by the summary and reminders tests |
 
 Planned order: routines, then journaling, then wellness summary, then
 reminders, then caregiver dashboard and module navigation integration.
@@ -244,3 +246,14 @@ reminders, then caregiver dashboard and module navigation integration.
   - `supabase/tests/wellness_summary.test.mts` (exact counts, timezone boundary, caregiver privacy, isolation);
   - `supabase/tests/wellness_summary_handler.test.mts`;
   - `pnpm test:local:wellness` (end to end).
+
+### Reminders and caregiver overview: implemented
+
+- **Migration:** `supabase/migrations/20261024300000_reminders.sql`. A routine reminder must point at the same owner's routine, the timezone is validated, and acknowledgements are kept per local date.
+- **api-client:** `packages/api-client/src/reminders.ts` and `overview.ts`.
+- **Due rule:** `computeDueReminders` is identical in `supabase/functions/_shared/reminders.ts`, and a parity test checks it. **Flutter should mirror it.**
+- **Child Edge Function:** `supabase/functions/reminders`.
+- **Tests:**
+  - `supabase/tests/reminders.test.mts` (database and RLS);
+  - `supabase/tests/reminders_handler.test.mts` (due rule including DST and day boundaries, parity, handler);
+  - `pnpm test:local:reminders` (end to end, including the overview).
