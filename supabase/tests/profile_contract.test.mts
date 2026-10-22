@@ -37,6 +37,8 @@ async function setupDatabase() {
     create or replace function auth.uid() returns uuid language sql stable
       as $$ select nullif(current_setting('app.uid', true), '')::uuid $$;
     create role authenticated;
+    create role anon;
+    create role service_role bypassrls;
     grant usage on schema public, auth to authenticated;
   `);
 
