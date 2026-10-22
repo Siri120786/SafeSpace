@@ -14,6 +14,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChildPinPage from "./pages/ChildPinPage";
 import UserViewPage from "./pages/UserViewPage";
+import CaregiverDashboardPage from "./pages/CaregiverDashboardPage";
 import { MoodCheckInPage } from "./features/mood";
 
 function MoodCheckInPageWrapper() {
@@ -95,6 +96,16 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Caregiver-only: family code, children, per-child overview */}
+          <Route
+            path={ROUTES.CAREGIVER_DASHBOARD}
+            element={
+              <ProtectedRoute allowedRoles={["caregiver"]}>
+                <CaregiverDashboardPage />
               </ProtectedRoute>
             }
           />

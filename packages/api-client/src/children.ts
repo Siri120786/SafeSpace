@@ -6,6 +6,7 @@
 // signal the policy is incomplete, not that this file should patch around it.
 
 import { getSafeSpaceClient } from "./supabaseClient";
+import { invokeEdge } from "./edge";
 import type { Child, ModuleKey, ChildSession } from "@safespace/shared-types";
 
 export async function listMyChildren(): Promise<Child[]> {
@@ -42,12 +43,12 @@ export async function addChild(input: {
 }): Promise<string> {
   // PIN hashing happens server-side in the create-child Edge Function, never
   // here. The client only ever sends the raw PIN over TLS.
-  const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase.functions.invoke("create-child", {
-    body: { name: input.name, age: input.age, pin: input.pin, modules: input.modules },
+  // Failures throw a ContractError carrying the function's code, e.g.
+  // "invalid_request" or "pin_already_used_in_family".
+  const data = await invokeEdge<{ child_id: string }>("create-child", {
+    name: input.name, age: input.age, pin: input.pin, modules: input.modules,
   });
-  if (error) throw error;
-  return data.child_id as string;
+  return data.child_id;
 }
 
 // ----------------------------------------------------------------------------
