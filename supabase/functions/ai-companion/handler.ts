@@ -17,6 +17,7 @@
 // fake "assistant" reply in the history; the attempt still used its slot.
 
 import { json, preflight } from "../_shared/http.ts";
+import { errorSummary } from "../_shared/errors.ts";
 import {
   HISTORY_LIMIT,
   MAX_BODY_BYTES,
@@ -94,14 +95,9 @@ export interface AiCompanionDeps {
 export const RATE_LIMIT_WINDOW_SECONDS = 60;
 const LIST_LIMIT = 50;
 
-export function errorSummary(e: unknown): string {
-  if (e && typeof e === "object") {
-    const o = e as { code?: unknown; name?: unknown };
-    if (typeof o.code === "string" && o.code) return o.code;
-    if (typeof o.name === "string" && o.name) return o.name;
-  }
-  return "unknown_error";
-}
+// errorSummary moved to _shared/errors.ts so other functions can use it;
+// re-exported here so existing imports (index.ts) keep working.
+export { errorSummary };
 
 function toConversation(c: ConversationRow) {
   return {

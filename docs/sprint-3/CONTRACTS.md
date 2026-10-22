@@ -194,9 +194,21 @@ Rows are snake_case; the api-client maps them to the camelCase types above.
 | --- | --- | --- | --- | --- |
 | Mood check-ins | Done | **Implemented** | **Implemented** | **Done** |
 | Journaling | Done | Planned | Planned | Planned |
-| Routines | Done | Planned | Planned | Planned |
+| Routines | Done | **Implemented** | **Implemented** (`routines`) | **Done** (`20261024000000`) |
 | Reminders | Done | Planned | Planned | Planned |
 | Wellness summary / overview | Done | Planned | Planned | Planned |
 
 Planned order: routines, then journaling, then wellness summary, then
 reminders, then caregiver dashboard and module navigation integration.
+
+### Routines: implemented
+
+- **Migration:** `supabase/migrations/20261024000000_routines.sql`.
+- **api-client:** `packages/api-client/src/routines.ts`, exported from `@safespace/api-client`.
+- **Child Edge Function:** `supabase/functions/routines`.
+- **Tests:**
+  - `supabase/tests/routines.test.mts` (database and RLS);
+  - `supabase/tests/routines_handler.test.mts` (helpers and the child handler);
+  - `pnpm test:local:routines` (end to end with the real api-client, local stack only).
+- **Errors:** api-client errors are `ContractError` instances whose `message` is a code from "Common errors".
+- **Superseded:** `listRoutineSteps` and `markRoutineStepComplete` have been removed from the api-client.

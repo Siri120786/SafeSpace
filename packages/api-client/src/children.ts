@@ -95,26 +95,7 @@ export function generateStory(session: ChildSession, context: Record<string, unk
 }
 
 // ----------------------------------------------------------------------------
-// Routines — data only, deliberately implemented with plain table access,
-// NOT via callAiOrchestrator. See docs/Architecture_Specification.md §6:
-// "Routines is the only feature that never touches AI services."
+// Routines moved to ./routines.ts (Sprint 3): routines with ordered steps and
+// per-day completion. Still data only: routines never call AI services
+// (docs/Architecture_Specification.md §6).
 // ----------------------------------------------------------------------------
-export async function listRoutineSteps(childId: string) {
-  const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase
-    .from("routine_steps")
-    .select("*")
-    .eq("child_id", childId)
-    .order("order_index");
-  if (error) throw error;
-  return data;
-}
-
-export async function markRoutineStepComplete(stepId: string, isComplete: boolean) {
-  const supabase = getSafeSpaceClient();
-  const { error } = await supabase
-    .from("routine_steps")
-    .update({ is_complete: isComplete })
-    .eq("id", stepId);
-  if (error) throw error;
-}

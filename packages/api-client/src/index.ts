@@ -27,8 +27,6 @@ export {
   getMyChildProfile,
   submitJournalEntry,
   generateStory,
-  listRoutineSteps,
-  markRoutineStepComplete,
 } from "./children";
 
 export {
@@ -51,6 +49,22 @@ export {
   listMyMoodCheckins,
   listChildMoodCheckins,
 } from "./mood";
+
+export {
+  listMyRoutines,
+  setRoutineStepCompleted,
+  createRoutine,
+  updateRoutine,
+  deleteRoutine,
+  addRoutineStep,
+  updateRoutineStep,
+  reorderRoutineSteps,
+  deleteRoutineStep,
+  listChildRoutines,
+  isRoutineScheduledOn,
+} from "./routines";
+export type { RoutineTarget } from "./routines";
+export { ContractError } from "./edge";
 
 export {
   sendAiCompanionMessage,
