@@ -1,48 +1,57 @@
 // supabase/functions/create-child/index.ts
-// Caregiver-authenticated. Hashes the PIN server-side and creates the child +
-// module assignments. The PIN never touches the database in plaintext.
+// Caregiver-authenticated child creation: wiring only. Request logic lives in
+// ./handler.ts. The caller's JWT is verified with the anon-key client; writes
+// go through create_child() with the service role, which only ever runs here
+// on the server.
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { json, preflight } from "../_shared/http.ts";
 import { hashPin, verifyPin } from "../_shared/pin.ts";
+import { createCreateChildHandler, CreateChildRejected, type CreateChildStore } from "./handler.ts";
 
-const VALID_MODULES = ["autism", "adhd", "anxiety", "depression", "ptsd", "pcos_pcod"];
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-serve(async (req) => {
-  const pre = preflight(req); if (pre) return pre;
-  if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+const log = (event: string, detail?: string) =>
+  console.error(`create-child: ${event}${detail ? ` (${detail})` : ""}`);
 
-  // Act AS the caregiver: their JWT flows through, so RLS applies to every query.
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-    global: { headers: { Authorization: authHeader } },
+async function getUserId(authorization: string): Promise<string | null> {
+  const asCaller = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: authorization } },
   });
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return json({ error: "unauthorized" }, 401);
+  const { data, error } = await asCaller.auth.getUser();
+  if (error || !data.user) return null;
+  return data.user.id;
+}
 
-  const { name, age, pin, modules } = await req.json().catch(() => ({}));
-  if (!name || !Number.isInteger(age) || age < 4 || age > 17 || !/^\d{4}$/.test(pin ?? "")) {
-    return json({ error: "invalid_request" }, 400);
-  }
-  const mods: string[] = Array.isArray(modules) ? modules.filter((m) => VALID_MODULES.includes(m)) : [];
+const store: CreateChildStore = {
+  async isCaregiver(userId) {
+    const { data, error } = await admin.from("caregivers").select("id").eq("id", userId).maybeSingle();
+    if (error) throw error;
+    return !!data;
+  },
 
-  // PINs must be unique within a family, otherwise verify-child-pin is ambiguous.
-  const { data: siblings } = await supabase.from("children").select("pin_hash");
-  for (const s of siblings ?? []) {
-    if (await verifyPin(pin, s.pin_hash)) return json({ error: "pin_already_used_in_family" }, 409);
-  }
+  async listSiblingPinHashes(caregiverId) {
+    const { data, error } = await admin.from("children").select("pin_hash").eq("caregiver_id", caregiverId);
+    if (error) throw error;
+    return (data ?? []).map((r: { pin_hash: string }) => r.pin_hash);
+  },
 
-  // Privacy tier follows the age bands in the architecture spec (§3).
-  const privacy_tier = age <= 8 ? "full" : age <= 12 ? "partial" : "private";
+  async createChild({ caregiverId, name, age, pinHash, modules }) {
+    const { data, error } = await admin.rpc("create_child", {
+      p_caregiver_id: caregiverId,
+      p_name: name,
+      p_age: age,
+      p_pin_hash: pinHash,
+      p_modules: modules,
+    });
+    if (error) {
+      if (error.message?.includes("not_a_caregiver")) throw new CreateChildRejected("not_a_caregiver");
+      if (error.message?.includes("invalid_input")) throw new CreateChildRejected("invalid_input");
+      throw error;
+    }
+    return data as string;
+  },
+};
 
-  const { data: child, error } = await supabase.from("children")
-    .insert({ caregiver_id: userData.user.id, name, age, pin_hash: await hashPin(pin), privacy_tier })
-    .select("id").single();
-  if (error) return json({ error: "create_failed" }, 500);
-
-  if (mods.length) {
-    await supabase.from("child_modules").insert(mods.map((module_key) => ({ child_id: child.id, module_key })));
-  }
-  return json({ child_id: child.id });
-});
+serve(createCreateChildHandler({ store, getUserId, hashPin, verifyPin, log }));

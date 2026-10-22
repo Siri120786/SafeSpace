@@ -4,6 +4,7 @@
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { hashPin } from "../functions/_shared/pin.ts";
 
 const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
@@ -107,19 +108,25 @@ ok("authenticated TRUNCATE is permission denied",
   await denied("authenticated", cg, `truncate condition_modules cascade`));
 
 // ---- 4. foreign-key-dependent paths still work ----
-const linked = await as("authenticated", cg,
-  `insert into child_modules (child_id, module_key) values ('${kid}', 'anxiety') returning module_key`);
-ok("caregiver can still assign a module to their own child (FK check passes)", linked.length === 1);
+// Modules are assigned through create_child() (service role, called by the
+// create-child Edge Function; migration 20261026200000), not by clients.
+const hash = await hashPin("2741");
+const kid2 = (await as<{ id: string }>("service_role", "",
+  `select create_child('${cg}', 'k2', 7, '${hash}', '{anxiety}') id`))[0].id;
+const linked = await as<{ module_key: string }>("service_role", "",
+  `select module_key from child_modules where child_id = '${kid2}'`);
+ok("a module can still be assigned to a caregiver's child through create_child (FK check passes)",
+  linked.length === 1 && linked[0].module_key === "anxiety");
 let badKeyRejected = false;
 try {
-  await as("authenticated", cg, `insert into child_modules (child_id, module_key) values ('${kid}', 'nope')`);
+  await db.query(`insert into child_modules (child_id, module_key) values ('${kid}', 'nope')`);
 } catch (e) {
   badKeyRejected = /foreign key/i.test((e as Error).message);
 }
 ok("an unknown module key is still rejected by the foreign key", badKeyRejected);
-ok("another caregiver still cannot assign modules to someone else's child (RLS unchanged)",
-  !(await as("authenticated", cgOther,
-    `insert into child_modules (child_id, module_key) values ('${kid}', 'adhd') returning 1`).then(() => true, () => false)));
+ok("caregivers can't assign modules directly, to their own or someone else's child",
+  (await denied("authenticated", cg, `insert into child_modules (child_id, module_key) values ('${kid}', 'adhd')`)) &&
+  (await denied("authenticated", cgOther, `insert into child_modules (child_id, module_key) values ('${kid}', 'adhd')`)));
 
 // ---- 5. trusted backend (service role) still works ----
 const journal = await as("service_role", "",

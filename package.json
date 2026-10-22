@@ -13,12 +13,14 @@
     "db:reset": "supabase db reset",
     "functions:serve": "supabase functions serve --env-file supabase/.env.local",
 
-    "test": "tsx supabase/tests/crypto.test.mts && tsx supabase/tests/rls.test.mts && tsx supabase/tests/profile_contract.test.mts && tsx supabase/tests/caregiver-rls.test.mts && tsx supabase/tests/mood.test.mts && tsx apps/web/tests/calm-tools.test.mts && tsx supabase/tests/condition_modules_rls.test.mts && tsx apps/web/src/features/mood/__tests__/mood-logic.test.mts && tsx supabase/tests/ai_companion.test.mts && tsx supabase/tests/ai_companion_handler.test.mts && tsx supabase/tests/routines.test.mts && tsx supabase/tests/routines_handler.test.mts && tsx supabase/tests/journal.test.mts && tsx supabase/tests/journal_handler.test.mts && tsx supabase/tests/wellness_summary.test.mts && tsx supabase/tests/wellness_summary_handler.test.mts && tsx supabase/tests/reminders.test.mts && tsx supabase/tests/reminders_handler.test.mts",
+    "test": "tsx supabase/tests/crypto.test.mts && tsx supabase/tests/rls.test.mts && tsx supabase/tests/profile_contract.test.mts && tsx supabase/tests/caregiver-rls.test.mts && tsx supabase/tests/mood.test.mts && tsx apps/web/tests/calm-tools.test.mts && tsx supabase/tests/condition_modules_rls.test.mts && tsx apps/web/src/features/mood/__tests__/mood-logic.test.mts && tsx supabase/tests/ai_companion.test.mts && tsx supabase/tests/ai_companion_handler.test.mts && tsx supabase/tests/routines.test.mts && tsx supabase/tests/routines_handler.test.mts && tsx supabase/tests/journal.test.mts && tsx supabase/tests/journal_handler.test.mts && tsx supabase/tests/wellness_summary.test.mts && tsx supabase/tests/wellness_summary_handler.test.mts && tsx supabase/tests/reminders.test.mts && tsx supabase/tests/reminders_handler.test.mts && tsx supabase/tests/verify_child_pin_handler.test.mts && tsx supabase/tests/create_child_handler.test.mts && tsx supabase/tests/hosted_grants.test.mts",
     "test:local:ai-companion": "tsx supabase/tests/local/ai_companion_rate_limit.local.mts",
     "test:local:routines": "tsx supabase/tests/local/routines.local.mts",
     "test:local:journal": "tsx supabase/tests/local/journal.local.mts",
     "test:local:wellness": "tsx supabase/tests/local/wellness.local.mts",
-    "test:local:reminders": "tsx supabase/tests/local/reminders.local.mts"
+    "test:local:reminders": "tsx supabase/tests/local/reminders.local.mts",
+    "test:local:pin": "tsx supabase/tests/local/pin_rate_limit.local.mts",
+    "test:local:create-child": "tsx supabase/tests/local/create_child.local.mts"
 
   },
   "packageManager": "pnpm@9.12.0",
