@@ -11,6 +11,7 @@ import {
   WellnessCard,
   useReducedMotion,
 } from "../wellness-ui";
+import { AutismMySpace } from "../conditions/autism";
 
 export interface PreviewTab {
   id: string;
@@ -278,5 +279,11 @@ export const PREVIEW_REGISTRY: PreviewTab[] = [
     label: "Wellness UI Gallery",
     description: "Accessible, low-sensory design system primitives and device-only indicator.",
     component: WellnessGalleryTab,
+  },
+  {
+    id: "autism-my-space",
+    label: "Autism: My Space",
+    description: "Visual emotion cards, supportive reassurance, and transition countdown timer.",
+    component: AutismMySpace,
   },
 ];
