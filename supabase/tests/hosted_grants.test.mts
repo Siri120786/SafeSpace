@@ -15,13 +15,15 @@
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { hashPin } from "../functions/_shared/pin.ts";
 
 const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
   if (!c) process.exitCode = 1;
 };
 
-const NEW_MIGRATIONS = ["20261026000000_hosted_data_api_grants.sql", "20261026100000_pin_attempt_slots.sql"];
+const NEW_MIGRATIONS = ["20261026000000_hosted_data_api_grants.sql", "20261026100000_pin_attempt_slots.sql",
+  "20261026200000_create_child_server_side.sql"];
 const dir = fileURLToPath(new URL("../migrations/", import.meta.url));
 const allFiles = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
 
@@ -120,8 +122,9 @@ async function privs(d: PGlite, role: string, table: string): Promise<Privs> {
 // Exact expected access. anon gets nothing anywhere.
 const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = {
   caregivers: { authenticated: "S", service_role: "S" },
-  children: { authenticated: "SI", service_role: "S" },
-  child_modules: { authenticated: "SI", service_role: "S" },
+  // authenticated reads children through column grants (no pin_hash), checked below.
+  children: { authenticated: "", service_role: "S" },
+  child_modules: { authenticated: "S", service_role: "S" },
   pin_attempts: { authenticated: "", service_role: "" },
   condition_modules: { authenticated: "S", service_role: "" },
   caregiver_user_links: { authenticated: "S", service_role: "" },
@@ -157,17 +160,25 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
     (await db.query<{ h: boolean }>(`select has_column_privilege('authenticated', 'public.profiles', $1, 'UPDATE') h`, [col])).rows[0].h;
   ok("profiles: users may update display_name and onboarding_state only, never role",
     (await colUpdate("display_name")) && (await colUpdate("onboarding_state")) && !(await colUpdate("role")));
+  const childCol = async (col: string, p: string) =>
+    (await db.query<{ h: boolean }>(`select has_column_privilege('authenticated', 'public.children', $1, $2) h`, [col, p])).rows[0].h;
+  let readable = true;
+  for (const c of ["id", "caregiver_id", "name", "age", "privacy_tier", "created_at"]) readable &&= await childCol(c, "SELECT");
+  ok("children: signed-in users may read every column except pin_hash, and insert none",
+    readable && !(await childCol("pin_hash", "SELECT")) && !(await childCol("name", "INSERT")) &&
+    !(await childCol("privacy_tier", "INSERT")) && !(await childCol("pin_hash", "INSERT")));
 }
 {
   const fn = async (role: string, sig: string) =>
     (await db.query<{ h: boolean }>(`select has_function_privilege($1, $2, 'EXECUTE') h`, [role, sig])).rows[0].h;
   const serverOnly = ["public.pin_attempt_begin(text)", "public.pin_attempt_succeeded(bigint)",
-    "public.ai_companion_take_slot(uuid, uuid, integer, integer)"];
+    "public.ai_companion_take_slot(uuid, uuid, integer, integer)",
+    "public.create_child(uuid, text, integer, text, text[])"];
   const userFns = ["public.wellness_summary(uuid, uuid, date, integer, text)",
     "public.create_routine_with_steps(uuid, text, text, smallint[], jsonb)", "public.reorder_routine_steps(uuid, uuid[])"];
   let good = true;
   for (const f of serverOnly) good &&= (await fn("service_role", f)) && !(await fn("authenticated", f)) && !(await fn("anon", f));
-  ok("PIN-attempt and AI rate-limit functions: service_role only", good);
+  ok("PIN-attempt, AI rate-limit and create_child functions: service_role only", good);
   good = true;
   for (const f of userFns) good &&= (await fn("authenticated", f)) && (await fn("service_role", f)) && !(await fn("anon", f));
   ok("wellness and routine functions: authenticated and service_role, never anon", good);
@@ -193,20 +204,64 @@ await db.query(`insert into ai_companion_conversations (profile_id) values ($1)`
 // ---------------------------------------------------------------------------
 ok("caregiver reads their own family code", (await as<{ family_code: string }>("authenticated", cgA, `select family_code from caregivers`))
   .map((r) => r.family_code).join() === famA);
-const kidA = (await as<{ id: string }>("authenticated", cgA,
-  `insert into children (caregiver_id, name, age, pin_hash, privacy_tier) values ($1, 'A kid', 10, 'h', 'partial') returning id`, [cgA]))[0].id;
-await as("authenticated", cgA, `insert into child_modules (child_id, module_key) values ($1, 'autism'), ($1, 'adhd')`, [kidA]);
-ok("caregiver adds a child and assigns modules (create-child runs as the caregiver)", !!kidA);
+// The approved path: create-child verifies the caller's JWT, then calls
+// create_child() as service_role with the caregiver id from that JWT.
+const goodHash = await hashPin("4826");
+const createChild = (caregiver: string, name: string, age: number, hash: string, mods: string[]) =>
+  as<{ id: string }>("service_role", "", `select create_child($1, $2, $3, $4, $5::text[]) id`, [caregiver, name, age, hash, mods]);
+const childCount = async () => (await one<{ n: number }>(`select count(*)::int n from children`)).n;
+
+const kidA = (await createChild(cgA, "  A kid ", 10, goodHash, ["autism", "adhd", "autism"]))[0].id;
+const created = await one<{ name: string; privacy_tier: string; caregiver_id: string }>(
+  `select name, privacy_tier, caregiver_id from children where id = $1`, [kidA]);
+ok("the approved flow creates a child with modules for the authorised caregiver (name trimmed, modules de-duplicated)",
+  !!kidA && created.caregiver_id === cgA && created.name === "A kid" &&
+  (await one<{ n: number }>(`select count(*)::int n from child_modules where child_id = $1`, [kidA])).n === 2);
+ok("privacy tier is derived from age, never chosen by the caller",
+  created.privacy_tier === "partial" &&
+  (await one<{ t: string }>(`select privacy_tier t from children where id = $1`,
+    [(await createChild(cgA, "Small", 6, await hashPin("1357"), []))[0].id])).t === "full" &&
+  (await one<{ t: string }>(`select privacy_tier t from children where id = $1`,
+    [(await createChild(cgA, "Teen", 15, await hashPin("2468"), []))[0].id])).t === "private");
+await db.query(`delete from children where name in ('Small', 'Teen')`);
+
+const before = await childCount();
+ok("a caregiver can't insert a child directly (bypassing create-child), even for their own family",
+  (await denied("authenticated", cgA,
+    `insert into children (caregiver_id, name, age, pin_hash, privacy_tier) values ($1, 'x', 15, 'h', 'full')`, [cgA])));
+ok("...or for another family", await denied("authenticated", cgA,
+  `insert into children (caregiver_id, name, age, pin_hash) values ($1, 'x', 6, 'h')`, [cgB]));
+ok("a caregiver can't assign modules directly, to their own or another family's child",
+  (await denied("authenticated", cgA, `insert into child_modules (child_id, module_key) values ($1, 'anxiety')`, [kidA])) &&
+  (await denied("authenticated", cgA, `insert into child_modules (child_id, module_key) values ($1, 'autism')`, [kidB])));
+ok("a caregiver can't call create_child() themselves (it's server-only)",
+  (await denied("authenticated", cgA, `select create_child($1, 'x', 10, $2, '{}')`, [cgA, goodHash])) &&
+  (await denied("anon", "", `select create_child($1, 'x', 10, $2, '{}')`, [cgA, goodHash])));
+ok("create_child() refuses a non-caregiver or unknown owner",
+  (await err("service_role", "", `select create_child($1, 'x', 10, $2, '{}')`, [adult, goodHash])).includes("not_a_caregiver") &&
+  (await err("service_role", "", `select create_child(gen_random_uuid(), 'x', 10, $1, '{}')`, [goodHash])).includes("not_a_caregiver"));
+const rejects = async (name: string, age: number, hash: string, mods: string[]) =>
+  (await err("service_role", "", `select create_child($1, $2, $3, $4, $5::text[])`, [cgA, name, age, hash, mods])).includes("invalid_input");
+ok("create_child() validates every field (name, age band, hash format and cost, modules)",
+  (await rejects("  ", 10, goodHash, [])) && (await rejects("x".repeat(81), 10, goodHash, [])) &&
+  (await rejects("x", 3, goodHash, [])) && (await rejects("x", 18, goodHash, [])) &&
+  (await rejects("x", 10, "h", [])) &&
+  (await rejects("x", 10, goodHash.replace("pbkdf2$100000$", "pbkdf2$999999999$"), [])) &&
+  (await rejects("x", 10, goodHash, ["autism", "not_a_module"])));
+ok("rejected and refused attempts created nothing (the child and modules insert together or not at all)",
+  (await childCount()) === before);
+
 const listed = await as<{ id: string; mods: string[] }>("authenticated", cgA,
   `select c.id, array_agg(m.module_key order by m.module_key) mods from children c
    left join child_modules m on m.child_id = c.id group by c.id`);
 ok("caregiver lists only their own children with modules", listed.length === 1 && listed[0].id === kidA && listed[0].mods.join() === "adhd,autism");
-ok("caregiver can't add a child to another family (RLS)",
-  (await err("authenticated", cgA, `insert into children (caregiver_id, name, age, pin_hash) values ($1, 'x', 6, 'h')`, [cgB])).includes("row-level security"));
-ok("caregiver can't assign modules to another family's child (RLS)",
-  (await err("authenticated", cgA, `insert into child_modules (child_id, module_key) values ($1, 'autism')`, [kidB])).includes("row-level security"));
+ok("caregiver reads the child columns the app uses, but not PIN hashes",
+  (await as("authenticated", cgA, `select id, caregiver_id, name, age, privacy_tier, created_at from children`)).length === 1 &&
+  (await denied("authenticated", cgA, `select pin_hash from children`)) &&
+  (await denied("authenticated", cgA, `select * from children`)));
 ok("no client UPDATE or DELETE on children (the app never does either)",
   (await denied("authenticated", cgA, `update children set name = 'x' where id = $1`, [kidA])) &&
+  (await denied("authenticated", cgA, `update children set privacy_tier = 'full' where id = $1`, [kidA])) &&
   (await denied("authenticated", cgA, `delete from children where id = $1`, [kidA])));
 ok("PIN hashes and attempts stay unreadable to signed-in users",
   (await denied("authenticated", cgA, `select * from pin_attempts`)) &&
