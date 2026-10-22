@@ -12,6 +12,7 @@ import { LeafCluster } from "../components/vectors/LeafFrame";
 import { SessionPlayerModal } from "../components/ui/SessionPlayerModal";
 import { LinkedUsersPanel } from "../features/caregiver";
 import { ChatWindow } from "../features/ai-companion";
+import { ROUTES } from "../routes";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -251,6 +252,26 @@ export const DashboardPage: React.FC = () => {
                       <p className="text-xs text-textMuted italic">No support areas selected yet.</p>
                     )}
                   </div>
+                </Card>
+
+                {/* Daily Mood Check-In Entry Card */}
+                <Card className="p-5 border border-olive-100 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-olive-50 text-deepGreen flex items-center justify-center text-xl shrink-0">
+                      🌱
+                    </div>
+                    <div>
+                      <h4 className="font-display text-base font-medium text-textHeading">Daily Mood Check-in</h4>
+                      <p className="text-xs text-textMuted font-light">How are you feeling right now?</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => navigate(ROUTES.MOOD_CHECK_IN)}
+                  >
+                    Check in
+                  </Button>
                 </Card>
 
                 {isCaregiver && profileId && (<LinkedUsersPanel caregiverId={profileId} />)}
