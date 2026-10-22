@@ -161,8 +161,9 @@ Types: `WellnessSummary`, `WellnessPeriodDays` (`7 | 30`), `ChildOverview`.
 
 | Function | Who | Notes |
 | --- | --- | --- |
-| `getWellnessSummary(session, periodDays)` | adult, child | Own data. |
-| `getChildOverview(childId, periodDays)` | caregiver | `child`, `summary`, `dueRemindersToday`. |
+| `getWellnessSummary(session, periodDays, { to?, timezone? })` | adult, child | Own data. `to` (local date) and `timezone` (IANA) default to the device's. |
+| `getChildWellnessSummary(childId, periodDays, { to?, timezone? })` | caregiver | One child's summary. A partial-tier child's private notes are excluded by RLS. For a child that isn't theirs, the caregiver gets zeros, never data. |
+| `getChildOverview(childId, periodDays)` | caregiver | `child`, `summary`, `dueRemindersToday`. **Lands with reminders** (it needs reminder data). |
 
 **Counts only.** The summary includes mood counts by value, days with a
 check-in, the latest mood, routine steps scheduled versus completed, and the
@@ -171,7 +172,11 @@ journal text**. UI copy must stay non-diagnostic, for example "You checked in
 on 5 of the last 7 days", never anything like "signs of depression". For a
 caregiver, a partial-tier child's private notes aren't counted.
 
-**Child Edge Function `wellness-summary`:** `get { period_days }`
+**Child Edge Function `wellness-summary`:** `get { period_days, to, timezone }`
+
+**How it's computed:** the `wellness_summary` database function runs with the caller's own RLS (SECURITY INVOKER).
+- **Days** are local dates in the given timezone.
+- **Routine counts** use each routine's current schedule and active flag; the schedule history isn't stored.
 
 ---
 
@@ -196,7 +201,8 @@ Rows are snake_case; the api-client maps them to the camelCase types above.
 | Journaling | Done | **Implemented** | **Implemented** (`journal`) | **Done** (`20261024100000`) |
 | Routines | Done | **Implemented** | **Implemented** (`routines`) | **Done** (`20261024000000`) |
 | Reminders | Done | Planned | Planned | Planned |
-| Wellness summary / overview | Done | Planned | Planned | Planned |
+| Wellness summary | Done | **Implemented** | **Implemented** (`wellness-summary`) | **Done** (`20261024200000`) |
+| Caregiver overview | Done | Planned (with reminders) | n/a | n/a |
 
 Planned order: routines, then journaling, then wellness summary, then
 reminders, then caregiver dashboard and module navigation integration.
@@ -228,3 +234,13 @@ reminders, then caregiver dashboard and module navigation integration.
   - `supabase/tests/journal_handler.test.mts` (helpers, handler, parity with shared-types);
   - `pnpm test:local:journal` (end to end with the real api-client).
 - **Shared types:** adds `MODULE_KEYS` (the module list as a value).
+
+### Wellness summary: implemented
+
+- **Migration:** `supabase/migrations/20261024200000_wellness_summary.sql` (`wellness_summary` function).
+- **api-client:** `packages/api-client/src/wellness.ts`.
+- **Child Edge Function:** `supabase/functions/wellness-summary`.
+- **Tests:**
+  - `supabase/tests/wellness_summary.test.mts` (exact counts, timezone boundary, caregiver privacy, isolation);
+  - `supabase/tests/wellness_summary_handler.test.mts`;
+  - `pnpm test:local:wellness` (end to end).

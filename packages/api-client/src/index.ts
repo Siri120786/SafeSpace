@@ -74,6 +74,9 @@ export {
 } from "./journal";
 export type { ListJournalOptions } from "./journal";
 
+export { getWellnessSummary, getChildWellnessSummary } from "./wellness";
+export type { WellnessOptions } from "./wellness";
+
 export {
   sendAiCompanionMessage,
   listAiCompanionConversations,
