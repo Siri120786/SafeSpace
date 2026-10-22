@@ -12,6 +12,7 @@ import {
   useReducedMotion,
 } from "../wellness-ui";
 import { AutismMySpace } from "../conditions/autism";
+import { AdhdFocusZone } from "../conditions/adhd";
 
 export interface PreviewTab {
   id: string;
@@ -285,5 +286,11 @@ export const PREVIEW_REGISTRY: PreviewTab[] = [
     label: "Autism: My Space",
     description: "Visual emotion cards, supportive reassurance, and transition countdown timer.",
     component: AutismMySpace,
+  },
+  {
+    id: "adhd-focus-zone",
+    label: "ADHD: Focus Zone",
+    description: "Flexible focus timers (simple & Pomodoro) with gentle pacing, drift correction, and local stats.",
+    component: AdhdFocusZone,
   },
 ];
