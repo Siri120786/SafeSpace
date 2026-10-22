@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, ProtectedRoute, GuestRoute } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
 import { CalmToolsRoutes } from "./features/calm-tools";
+import { ROUTES } from "./routes";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
 import LoginPage from "./pages/LoginPage";
@@ -13,6 +14,13 @@ import OnboardingPage from "./pages/OnboardingPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChildPinPage from "./pages/ChildPinPage";
 import UserViewPage from "./pages/UserViewPage";
+import CaregiverDashboardPage from "./pages/CaregiverDashboardPage";
+import { MoodCheckInPage } from "./features/mood";
+
+function MoodCheckInPageWrapper() {
+  const navigate = useNavigate();
+  return <MoodCheckInPage onBack={() => navigate(-1)} />;
+}
 
 export default function App() {
   return (
@@ -92,6 +100,16 @@ export default function App() {
             }
           />
 
+          {/* Caregiver-only: family code, children, per-child overview */}
+          <Route
+            path={ROUTES.CAREGIVER_DASHBOARD}
+            element={
+              <ProtectedRoute allowedRoles={["caregiver"]}>
+                <CaregiverDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Protected Calm Tools (breathing, grounding) */}
           <Route
             path="/calm-tools/*"
@@ -108,6 +126,16 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Mood Check-In Route */}
+          <Route
+            path={ROUTES.MOOD_CHECK_IN}
+            element={
+              <ProtectedRoute>
+                <MoodCheckInPageWrapper />
               </ProtectedRoute>
             }
           />

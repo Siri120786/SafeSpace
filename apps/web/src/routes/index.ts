@@ -11,4 +11,5 @@ export const ROUTES = {
   CAREGIVER_DASHBOARD: "/caregiver/dashboard",
   CHILD_PIN: "/child/pin",
   CHILD_HOME: "/child/home",
+  MOOD_CHECK_IN: "/mood/check-in",
 };

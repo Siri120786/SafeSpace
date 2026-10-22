@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getMyChildProfile, logOut } from "@safespace/api-client";
 import type { Child, ModuleKey } from "@safespace/shared-types";
 import { getStoredChildSession, clearChildSession } from "../lib/childSessionStorage";
 import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
 import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
 import { SafeSpaceBrandHeader } from "../components/ui/SafeSpaceBrandHeader";
+import { ROUTES } from "../routes";
 
 interface Props {
   onLogOut: () => void;
@@ -20,6 +22,7 @@ const MODULE_META: Record<ModuleKey, { name: string; emoji: string }> = {
 };
 
 export default function UserViewPage({ onLogOut }: Props) {
+  const navigate = useNavigate();
   const [child, setChild] = useState<Child | null>(null);
   const [openModule, setOpenModule] = useState<ModuleKey | null>(null);
 
@@ -87,6 +90,9 @@ export default function UserViewPage({ onLogOut }: Props) {
             Welcome to your space! Reflection and routine tools will appear here.
           </p>
           <div className="pt-4 space-y-2">
+            <SafeSpaceButton onClick={() => navigate(ROUTES.MOOD_CHECK_IN)} className="w-full">
+              How am I feeling?
+            </SafeSpaceButton>
             {child.assignedModules.length > 1 && (
               <SafeSpaceButton
                 variant="secondary"
