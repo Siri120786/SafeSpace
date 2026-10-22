@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SafeSpace: lock down condition_modules (static reference data)
--- Migration: 20261023000000_condition_modules_rls
+-- Migration: 20261025000000_condition_modules_rls
 --
 -- 0001 created condition_modules without RLS, and Supabase's default
 -- privileges gave anon/authenticated ALL on it, so any client could insert,

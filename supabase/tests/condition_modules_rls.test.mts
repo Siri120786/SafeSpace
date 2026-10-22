@@ -1,4 +1,4 @@
-// condition_modules lockdown (migration 20261023000000): RLS on, anon has no
+// condition_modules lockdown (migration 20261025000000): RLS on, anon has no
 // access, authenticated is read-only, and foreign-key and service-role paths
 // keep working. Usage: npx tsx supabase/tests/condition_modules_rls.test.mts
 import { PGlite } from "@electric-sql/pglite";
@@ -125,8 +125,10 @@ ok("another caregiver still cannot assign modules to someone else's child (RLS u
 const journal = await as("service_role", "",
   `insert into journal_entries (child_id, module_key, content) values ('${kid}', 'autism', 'x') returning id`);
 const routine = await as("service_role", "",
-  `insert into routine_steps (child_id, module_key, label) values ('${kid}', 'autism', 'Brush teeth') returning id`);
-ok("service role can still write journal entries and routine steps (FK checks pass)",
+  `with r as (insert into routines (child_id, module_key, title) values ('${kid}', 'autism', 'Morning') returning id)
+   insert into routine_steps (routine_id, child_id, module_key, label)
+   select r.id, '${kid}', 'autism', 'Brush teeth' from r returning id`);
+ok("service role can still write journal entries, routines and routine steps (FK checks pass)",
   journal.length === 1 && routine.length === 1);
 const svcUpdate = await as("service_role", "",
   `update condition_modules set display_name = display_name where key = 'adhd' returning key`);
