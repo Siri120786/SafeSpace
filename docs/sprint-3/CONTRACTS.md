@@ -257,3 +257,9 @@ reminders, then caregiver dashboard and module navigation integration.
   - `supabase/tests/reminders.test.mts` (database and RLS);
   - `supabase/tests/reminders_handler.test.mts` (due rule including DST and day boundaries, parity, handler);
   - `pnpm test:local:reminders` (end to end, including the overview).
+
+### Caregiver family page (web): implemented
+
+- **Route:** `/caregiver/dashboard` (`ROUTES.CAREGIVER_DASHBOARD`), caregivers only. Shows the family code, one `getChildOverview(childId, 7)` card per child, and add-child.
+- **`addChild` errors:** failures now throw a `ContractError` carrying the `create-child` code: `invalid_request` (name, age 4 to 17, or 4-digit PIN) or `pin_already_used_in_family`.
+- **Navigation:** the dashboard links to Mood Check-in, Calm Tools and (for caregivers) Family; a child's module screen links to the mood check-in page. Flutter isn't wired yet.
