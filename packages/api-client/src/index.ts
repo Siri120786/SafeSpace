@@ -92,6 +92,15 @@ export {
 export { getChildOverview } from "./overview";
 
 export {
+  listChildCaregivers,
+  createCaregiverInvite,
+  acceptCaregiverInvite,
+  removeChildCaregiver,
+  getChildFamilyCode,
+  normaliseInviteCode,
+} from "./childCaregivers";
+
+export {
   sendAiCompanionMessage,
   listAiCompanionConversations,
   getAiCompanionMessages,

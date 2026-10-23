@@ -141,6 +141,9 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
   profiles: { authenticated: "SID", service_role: "" },
   profile_support_preferences: { authenticated: "SIUD", service_role: "" },
   profile_accessibility_preferences: { authenticated: "SIUD", service_role: "" },
+  // Several caregivers (20261027000000): functions only, no client access.
+  child_caregivers: { authenticated: "", service_role: "" },
+  caregiver_invites: { authenticated: "", service_role: "" },
   // Not covered yet: no code uses them (see the migration header).
   emergency_events: { authenticated: "", service_role: "" },
   generated_stories: { authenticated: "", service_role: "" },
@@ -175,6 +178,7 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
     "public.ai_companion_take_slot(uuid, uuid, integer, integer)",
     "public.create_child(uuid, text, integer, text, text[])"];
   const userFns = ["public.wellness_summary(uuid, uuid, date, integer, text)",
+    "public.is_caregiver_of(uuid)", "public.is_primary_caregiver_of(uuid)",
     "public.create_routine_with_steps(uuid, text, text, smallint[], jsonb)", "public.reorder_routine_steps(uuid, uuid[])"];
   let good = true;
   for (const f of serverOnly) good &&= (await fn("service_role", f)) && !(await fn("authenticated", f)) && !(await fn("anon", f));
@@ -182,6 +186,14 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
   good = true;
   for (const f of userFns) good &&= (await fn("authenticated", f)) && (await fn("service_role", f)) && !(await fn("anon", f));
   ok("wellness and routine functions: authenticated and service_role, never anon", good);
+  const caregiverFns = ["public.child_family_code(uuid)", "public.list_child_caregivers(uuid)",
+    "public.create_caregiver_invite(uuid)", "public.accept_caregiver_invite(text)",
+    "public.remove_child_caregiver(uuid, uuid)"];
+  good = true;
+  for (const f of caregiverFns) good &&= (await fn("authenticated", f)) && !(await fn("anon", f));
+  const internalFns = ["public.add_primary_caregiver()", "public.caregiver_invite_hash(text)"];
+  for (const f of internalFns) good &&= !(await fn("authenticated", f)) && !(await fn("anon", f));
+  ok("caregiver functions: signed-in users only; internal helpers: nobody", good);
 }
 
 // Fixtures (as the table owner, like seed data).
