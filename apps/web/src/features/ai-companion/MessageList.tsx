@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import type { AiCompanionMessage } from "@safespace/shared-types";
 import { BrainMascot } from "../../components/vectors/BrainMascot";
+import { ReadAloudButton, langTag } from "../speech";
 
 interface MessageListProps {
   messages: AiCompanionMessage[];
@@ -70,10 +71,11 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, sending = fa
               )}
               <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
               <span
-                className={`block text-[10px] mt-1 text-right font-light ${
+                className={`flex items-center justify-end gap-2 text-[10px] mt-1 font-light ${
                   isUser ? "text-white/60" : "text-textMuted/70"
                 }`}
               >
+                {!isUser && <ReadAloudButton text={msg.content} lang={langTag(msg.language)} label="Read this reply aloud" />}
                 {formatTime(msg.createdAt)}
               </span>
             </div>

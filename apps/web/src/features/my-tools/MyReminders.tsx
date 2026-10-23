@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { acknowledgeReminder, getDueReminders, listReminders } from "@safespace/api-client";
 import type { AppSession, DueReminder, Reminder } from "@safespace/shared-types";
 import { laterToday } from "./toolsLogic";
+import { ReadAloudButton, reminderSpeech } from "../speech";
 import type { Guard } from "./MyRoutines";
 
 const REFRESH_MS = 60_000;
@@ -74,14 +75,17 @@ export const MyReminders: React.FC<Props> = ({ session, guard = (p) => p }) => {
                 <span className="text-base text-charcoal">
                   <span className="font-semibold">{timeOf(d.occursAt)}</span> · {d.reminder.title}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => done(d)}
-                  disabled={busy === d.reminder.id}
-                  className="rounded-full bg-botanical-700 px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
-                >
-                  Done
-                </button>
+                <span className="flex items-center gap-2">
+                  <ReadAloudButton text={reminderSpeech(d)} label={`Read "${d.reminder.title}" aloud`} />
+                  <button
+                    type="button"
+                    onClick={() => done(d)}
+                    disabled={busy === d.reminder.id}
+                    className="rounded-full bg-botanical-700 px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
+                  >
+                    Done
+                  </button>
+                </span>
               </li>
             ))}
           </ul>

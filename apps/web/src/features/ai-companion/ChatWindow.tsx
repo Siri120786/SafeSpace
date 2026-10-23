@@ -4,6 +4,7 @@ import { useAiCompanion } from "./useAiCompanion";
 import { LanguageSelector } from "./LanguageSelector";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
+import { langTag } from "../speech";
 import { BrainMascot } from "../../components/vectors/BrainMascot";
 
 interface ChatWindowProps {
@@ -107,7 +108,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ session, className = "" 
 
           {/* Input Footer */}
           <div className="p-3 bg-white/60 backdrop-blur-xs border-t border-olive-100 shrink-0">
-            <MessageInput onSendMessage={sendMessage} disabled={sending} />
+            <MessageInput onSendMessage={sendMessage} disabled={sending} lang={langTag(selectedLanguage)} />
             <p className="mt-2 px-1 text-[10px] leading-snug text-textMuted">
               SafeSpace Companion is an AI, not a therapist or doctor, and can make mistakes.
               If you might be in danger, call 112. For free mental health support in India, call Tele-MANAS on 14416.

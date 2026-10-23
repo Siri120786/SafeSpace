@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { createJournalEntry, deleteJournalEntry, listMyJournalEntries } from "@safespace/api-client";
 import { JOURNAL_CONTENT_MAX_LENGTH, type AppSession, type JournalEntry, type JournalEntryType } from "@safespace/shared-types";
 import { validateJournal } from "./toolsLogic";
+import { MicButton, ReadAloudButton, appendTranscript } from "../speech";
 import type { Guard } from "./MyRoutines";
 
 interface Props {
@@ -93,6 +94,7 @@ export const MyJournal: React.FC<Props> = ({ session, guard = (p) => p, visibili
             className="mt-1 block w-full rounded-2xl border border-black/10 bg-white px-3 py-2 text-base font-normal"
           />
         </label>
+        <MicButton onText={(spoken) => setContent((c) => appendTranscript(c, spoken, JOURNAL_CONTENT_MAX_LENGTH))} />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-charcoal/70">{visibilityNote}</span>
           <button type="submit" disabled={saving} className="rounded-full bg-botanical-700 px-5 py-2 text-sm font-semibold text-white disabled:opacity-60">
@@ -115,6 +117,8 @@ export const MyJournal: React.FC<Props> = ({ session, guard = (p) => p, visibili
                   {j.entryType === "gratitude" ? "Thankful for · " : ""}
                   {new Date(j.createdAt).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                 </span>
+                <span className="flex items-center gap-2">
+                <ReadAloudButton text={j.content} label="Read this entry aloud" />
                 {canDelete && (confirming === j.id ? (
                   <span className="flex gap-2">
                     <button type="button" onClick={() => remove(j.id)} className="font-semibold text-red-700 underline">Delete it</button>
@@ -123,6 +127,7 @@ export const MyJournal: React.FC<Props> = ({ session, guard = (p) => p, visibili
                 ) : (
                   <button type="button" onClick={() => setConfirming(j.id)} className="underline">Delete</button>
                 ))}
+                </span>
               </div>
               <p className="whitespace-pre-wrap break-words text-base text-charcoal">{j.content}</p>
             </li>
