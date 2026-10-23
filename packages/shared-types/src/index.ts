@@ -337,3 +337,161 @@ export interface ChildOverview {
   summary: WellnessSummary;
   dueRemindersToday: number;
 }
+
+// ----------------------------------------------------------------------------
+// Role-based flow (docs/role-flow/CONTRACT.md). Contract types only: nothing
+// uses them until step 2 moves children to birth month/year and the age-15
+// sharing rule. Until then Child keeps `age` and `privacyTier`.
+// ----------------------------------------------------------------------------
+
+// The three roles as the app presents them. Profiles store "user" for an
+// Individual; children have no profile.
+export type AppRole = "individual" | "caregiver" | "child";
+
+export const USER_ROLE_TO_APP_ROLE: Record<UserRole, Exclude<AppRole, "child">> = {
+  user: "individual",
+  caregiver: "caregiver",
+};
+
+// Where each role lands after signing in.
+export const ROLE_HOME_ROUTES: Record<AppRole, string> = {
+  individual: "/dashboard",
+  caregiver: "/caregiver",
+  child: "/child",
+};
+
+// Child accounts cover ages 4 to 17. From 15 the young person decides whether
+// their caregiver sees their activity.
+export const CHILD_MIN_AGE = 4;
+export const CHILD_MAX_AGE = 17;
+export const CAREGIVER_VISIBILITY_AGE = 15;
+
+// Calculated from age and the stored choice, never stored directly:
+//   under_15    caregiver sees activity
+//   not_asked   15+, no choice yet: caregiver sees activity
+//   shared      15+, chose to share
+//   not_shared  15+, chose not to share: caregiver sees no activity
+export type ChildSharingStatus = "under_15" | "not_asked" | "shared" | "not_shared";
+
+export type ActivityVisibility =
+  | { visible: true; reason: "under_15" | "not_asked" | "shared" }
+  | { visible: false; reason: "not_shared" };
+
+// Birth month precision is enough for the age rule; month is 1 to 12.
+export interface CreateChildInput {
+  name: string;
+  birthYear: number;
+  birthMonth: number;
+  pin: string;              // exactly 4 digits; hashed server-side
+  modules: ModuleKey[];
+}
+
+export interface UpdateChildInput {
+  name?: string;
+  birthYear?: number;
+  birthMonth?: number;
+}
+
+// What a signed-in child can read about their own settings.
+export interface ChildSettings {
+  ageYears: number;
+  sharing: ChildSharingStatus;
+  canChangeSharing: boolean;      // true only at 15 or over
+  sharingDecidedAt: string | null;
+}
+
+// Caregiver's detail page for one child. Each activity list is null when the
+// young person has chosen not to share (activity.visible === false).
+export interface CaregiverChildDetail {
+  child: Child;
+  ageYears: number;
+  sharing: ChildSharingStatus;
+  myRole: ChildCaregiverRole;
+  unreviewedAlerts: number;
+  activity: ActivityVisibility;
+  periodDays: WellnessPeriodDays;
+  summary: WellnessSummary | null;
+  recentMoods: MoodCheckin[] | null;
+  recentJournal: JournalEntry[] | null;
+  aiConversations: AiCompanionConversation[] | null;
+  routines: RoutineWithSteps[];   // set up by the caregiver: always visible
+  reminders: Reminder[];          // set up by the caregiver: always visible
+}
+
+// Several caregivers per child. The creator is the primary; others join with a
+// one-time invite code.
+export type ChildCaregiverRole = "primary" | "co_caregiver";
+
+export interface ChildCaregiver {
+  caregiverId: string;
+  displayName: string | null;
+  role: ChildCaregiverRole;
+  addedAt: string;
+}
+
+export const CAREGIVER_INVITE_CODE_LENGTH = 8;
+export const CAREGIVER_INVITE_TTL_HOURS = 48;
+
+export interface CaregiverInvite {
+  code: string;
+  childId: string;
+  expiresAt: string;
+}
+
+// Child appearance and sensory defaults, set by a caregiver.
+export const CHILD_THEMES = ["space", "ocean", "dinosaurs", "trains"] as const;
+export type ChildTheme = (typeof CHILD_THEMES)[number];
+
+// Talk board. Phrases are spoken on the device and not stored, except
+// "I need help", which raises an alert to every caregiver of the child.
+export const TALK_BOARD_PHRASES = [
+  "I need a break",
+  "Too loud",
+  "I'm hungry",
+  "Not right now",
+  "Yes",
+  "No",
+  "I feel happy",
+  "I need help",
+] as const;
+export type TalkBoardPhrase = (typeof TALK_BOARD_PHRASES)[number];
+export const HELP_PHRASE: TalkBoardPhrase = "I need help";
+export const HELP_ALERT_REPEAT_WINDOW_SECONDS = 120;
+
+// An alert as caregivers see it (an emergency_events row). Always visible to
+// every caregiver of the child, whatever the sharing choice.
+export type AlertSource = "aac_tap" | "check_in" | "journal_flag";
+
+export interface CaregiverAlert {
+  id: string;
+  childId: string;
+  childName: string;
+  source: AlertSource;
+  createdAt: string;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+}
+
+export interface ListAlertsOptions {
+  unreviewedOnly?: boolean;
+  limit?: number;
+}
+
+// Stories (only if the team confirms they're ours; docs/role-flow/CONTRACT.md D15).
+export const STORY_TITLE_MAX_LENGTH = 80;
+export const STORY_TEXT_MAX_LENGTH = 4000;
+
+export interface Story {
+  id: string;
+  childId: string;
+  title: string;
+  text: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateStoryInput {
+  title: string;
+  text: string;
+}
