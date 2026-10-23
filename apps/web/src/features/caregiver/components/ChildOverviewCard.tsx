@@ -14,13 +14,26 @@ const SHARING_LABELS: Record<ChildSharingStatus, string> = {
 
 interface Props {
   child: Child;
+  familyCode: string | null;   // the primary caregiver's code: what the child's device needs
 }
 
 // Non-diagnostic counts for the last 7 days, read with the caregiver's own RLS
 // (docs/sprint-3/CONTRACTS.md section 5).
-export const ChildOverviewCard: React.FC<Props> = ({ child }) => {
+export const ChildOverviewCard: React.FC<Props> = ({ child, familyCode }) => {
   const [overview, setOverview] = useState<ChildOverview | null>(null);
   const [error, setError] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function copyCode() {
+    if (!familyCode) return;
+    try {
+      await navigator.clipboard.writeText(familyCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable; the code is still on screen.
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -45,14 +58,39 @@ export const ChildOverviewCard: React.FC<Props> = ({ child }) => {
             <h3 className="font-display text-lg font-medium text-textHeading">{child.name}</h3>
             <p className="text-xs text-textMuted">Age {child.ageYears}</p>
             <p className="text-xs text-textMuted">{SHARING_LABELS[child.sharing]}</p>
+            {child.myRole === "co_caregiver" && <p className="text-xs text-textMuted">You're a co-caregiver</p>}
           </div>
         </div>
+        {overview && overview.unreviewedAlerts > 0 && (
+          <span className="text-xs font-semibold text-red-700 bg-red-50 border border-red-200 px-3 py-1 rounded-full whitespace-nowrap">
+            {overview.unreviewedAlerts} alert{overview.unreviewedAlerts === 1 ? "" : "s"} to review
+          </span>
+        )}
         {overview && (overview.dueRemindersToday ?? 0) > 0 && (
           <span className="text-xs font-semibold text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full whitespace-nowrap">
             {overview.dueRemindersToday} reminder{overview.dueRemindersToday === 1 ? "" : "s"} due today
           </span>
         )}
       </div>
+
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-olive-50/70 border border-olive-100 px-4 py-2.5">
+        <div>
+          <span className="block text-[11px] font-semibold uppercase tracking-wider text-deepGreen">Family code</span>
+          <span className="font-display text-lg tracking-[0.2em] text-textHeading" aria-live="polite">
+            {familyCode ?? "······"}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={copyCode}
+          disabled={!familyCode}
+          aria-label={`Copy ${child.name}'s family code`}
+          className="text-xs font-medium text-deepGreen underline disabled:opacity-50"
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <p className="-mt-2 text-[11px] text-textMuted">{child.name} signs in with this code and their own PIN.</p>
 
       {child.assignedModules.length > 0 && (
         <div className="flex flex-wrap gap-2">

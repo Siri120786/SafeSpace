@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { homeFor, useAuth } from "../features/auth";
+import { JoinInviteForm } from "../features/caregiver";
 import type { ModuleKey, UserRole } from "@safespace/shared-types";
 import {
   getSupportPreferences,
@@ -11,7 +12,6 @@ import {
   updateUserProfile,
   addChild,
   isValidChildBirth,
-  acceptCaregiverInvite,
 } from "@safespace/api-client";
 import { Card } from "../components/ui/Card";
 import { InputField } from "../components/ui/InputField";
@@ -30,11 +30,6 @@ const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon:
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
-
-const INVITE_ERRORS: Record<string, string> = {
-  invite_invalid: "That invite code isn't valid or has expired. Ask for a new one.",
-  already_caregiver: "You already help look after this child.",
-};
 
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
@@ -69,8 +64,6 @@ export const OnboardingPage: React.FC = () => {
   const [childModules, setChildModules] = useState<ModuleKey[]>([]);
   // Step 2 for caregivers: add a first child, join one with an invite, or skip.
   const [childSetup, setChildSetup] = useState<"choose" | "add" | "join" | "joined" | "skipped">("choose");
-  const [inviteCode, setInviteCode] = useState<string>("");
-  const [isJoining, setIsJoining] = useState<boolean>(false);
 
   const [isLoadingExisting, setIsLoadingExisting] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -209,21 +202,6 @@ export const OnboardingPage: React.FC = () => {
       updateStep(2);
     } else if (currentStep > 1) {
       updateStep(currentStep - 1);
-    }
-  };
-
-  const handleJoinInvite = async () => {
-    setErrorMsg(null);
-    setIsJoining(true);
-    try {
-      await acceptCaregiverInvite(inviteCode);
-      setChildSetup("joined");
-      updateStep(4);
-    } catch (err: unknown) {
-      const code = err instanceof Error ? err.message : "";
-      setErrorMsg(INVITE_ERRORS[code] ?? "Couldn't join with that code right now. Please try again.");
-    } finally {
-      setIsJoining(false);
     }
   };
 
@@ -584,29 +562,10 @@ export const OnboardingPage: React.FC = () => {
                     Join with an invite code
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Codes work once and last 48 hours.
+                    Enter the code another caregiver gave you.
                   </p>
                 </div>
-                <div className="text-left">
-                  <InputField
-                    label="Invite code"
-                    type="text"
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                    placeholder="e.g. ABCD-2345"
-                    autoComplete="off"
-                    autoFocus
-                  />
-                </div>
-                <Button
-                  variant="primary"
-                  fullWidth
-                  size="lg"
-                  onClick={handleJoinInvite}
-                  disabled={isJoining || inviteCode.replace(/[\s-]/g, "").length !== 8}
-                >
-                  {isJoining ? "Joining..." : "Join"}
-                </Button>
+                <JoinInviteForm onJoined={() => { setChildSetup("joined"); updateStep(4); }} />
               </Card>
             )}
 
