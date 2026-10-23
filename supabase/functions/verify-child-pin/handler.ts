@@ -21,7 +21,7 @@ export interface PinAttemptStore {
   beginAttempt(familyCode: string): Promise<number | null>;
   // PIN hashes of the children in the family with this code; empty when no
   // caregiver has the code.
-  listFamilyChildren(familyCode: string): Promise<{ id: string; pin_hash: string }[]>;
+  listFamilyChildren(familyCode: string): Promise<{ id: string; pin_hash: string; session_version?: number }[]>;
   // Marks a reserved attempt as succeeded. Throws if it can't.
   markSucceeded(attemptId: number): Promise<void>;
 }
@@ -29,7 +29,8 @@ export interface PinAttemptStore {
 export interface VerifyChildPinDeps {
   store: PinAttemptStore;
   verifyPin(pin: string, hash: string): Promise<boolean>;
-  signChildToken(childId: string): Promise<string>;
+  // sessionVersion: the child's current session_version (role flow M3).
+  signChildToken(childId: string, sessionVersion?: number): Promise<string>;
   log(event: string, detail?: string): void;
 }
 
@@ -61,15 +62,16 @@ export function createVerifyChildPinHandler(deps: VerifyChildPinDeps) {
       if (attemptId === null) return json({ error: "too_many_attempts" }, 429);
 
       let matchId: string | null = null;
+      let sessionVersion = 1;
       for (const k of await deps.store.listFamilyChildren(code)) {
-        if (await deps.verifyPin(pin, k.pin_hash)) { matchId = k.id; break; }
+        if (await deps.verifyPin(pin, k.pin_hash)) { matchId = k.id; sessionVersion = k.session_version ?? 1; break; }
       }
       // Same response for "unknown family" and "wrong PIN" so codes can't be
       // probed. The reserved attempt already counts as a failure.
       if (!matchId) return json({ error: "invalid_credentials" }, 401);
 
       await deps.store.markSucceeded(attemptId);
-      return json({ child_session_token: await deps.signChildToken(matchId), child_id: matchId });
+      return json({ child_session_token: await deps.signChildToken(matchId, sessionVersion), child_id: matchId });
     } catch (e) {
       deps.log("unhandled_exception", errorSummary(e));
       return json({ error: "internal_error" }, 500);

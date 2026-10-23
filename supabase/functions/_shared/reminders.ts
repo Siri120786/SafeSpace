@@ -18,6 +18,7 @@ export interface ReminderLike {
   daysOfWeek: number[];
   timezone: string;    // IANA
   isEnabled: boolean;
+  leadMinutes?: number; // heads-up before timeOfDay; 0 or missing = at the time
 }
 
 export interface AckLike {
@@ -27,7 +28,8 @@ export interface AckLike {
 
 export interface DueOccurrence<R extends ReminderLike> {
   reminder: R;
-  dueAt: string;       // ISO instant of today's occurrence
+  dueAt: string;       // ISO instant it becomes due (occursAt minus the heads-up)
+  occursAt: string;    // ISO instant of the occurrence itself
   occursOn: string;    // local date in the reminder's timezone
   acknowledged: boolean;
 }
@@ -86,17 +88,26 @@ export function computeDueReminders<R extends ReminderLike>(
   for (const r of reminders) {
     if (!r.isEnabled || !isValidTimeZone(r.timezone)) continue;
     const p = localParts(now, r.timezone);
-    const occursOn = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
-    const dow = new Date(Date.UTC(p.year, p.month - 1, p.day)).getUTCDay();
-    if (r.daysOfWeek.length > 0 && !r.daysOfWeek.includes(dow)) continue;
+    const nowMinutes = p.hour * 60 + p.minute;
     const [h, m] = r.timeOfDay.split(":").map(Number);
-    if (p.hour * 60 + p.minute < h * 60 + m) continue;
-    due.push({
-      reminder: r,
-      dueAt: zonedTimeToUtc(occursOn, r.timeOfDay, r.timezone).toISOString(),
-      occursOn,
-      acknowledged: acked.has(`${r.id}|${occursOn}`),
-    });
+    const lead = r.leadMinutes ?? 0;
+    const today = Date.UTC(p.year, p.month - 1, p.day);
+    // An occurrence is due from `lead` minutes before its time. Today's is due
+    // from (time - lead) on; tomorrow's only when the heads-up crosses midnight.
+    for (const [offset, start] of [[0, h * 60 + m - lead], [1, h * 60 + m + 1440 - lead]]) {
+      if (nowMinutes < start) continue;
+      const day = new Date(today + offset * 86_400_000);
+      if (r.daysOfWeek.length > 0 && !r.daysOfWeek.includes(day.getUTCDay())) continue;
+      const occursOn = `${day.getUTCFullYear()}-${pad(day.getUTCMonth() + 1)}-${pad(day.getUTCDate())}`;
+      const at = zonedTimeToUtc(occursOn, r.timeOfDay, r.timezone).getTime();
+      due.push({
+        reminder: r,
+        dueAt: new Date(at - lead * 60_000).toISOString(),
+        occursAt: new Date(at).toISOString(),
+        occursOn,
+        acknowledged: acked.has(`${r.id}|${occursOn}`),
+      });
+    }
   }
   return due.sort((a, b) => a.dueAt.localeCompare(b.dueAt));
 }
@@ -166,6 +177,7 @@ export interface ReminderRow {
   days_of_week: number[];
   timezone: string;
   is_enabled: boolean;
+  lead_minutes?: number;
   created_at: string;
   updated_at: string;
 }
@@ -182,6 +194,7 @@ export function toReminder(r: ReminderRow) {
     daysOfWeek: r.days_of_week ?? [],
     timezone: r.timezone,
     isEnabled: r.is_enabled,
+    leadMinutes: r.lead_minutes ?? 0,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };

@@ -26,6 +26,7 @@ export {
   addChild,
   updateChild,
   setChildModules,
+  resetChildPin,
   getMyChildProfile,
   submitJournalEntry,
   generateStory,
@@ -93,6 +94,7 @@ export {
 } from "./reminders";
 export { getChildOverview } from "./overview";
 export { getMyChildSettings, setMySharing } from "./childSettings";
+export { listAlerts, markAlertReviewed, raiseHelpAlert } from "./alerts";
 export { childAgeYears, childSharingStatus, isValidChildBirth, activityVisibility } from "./childSharing";
 
 export {

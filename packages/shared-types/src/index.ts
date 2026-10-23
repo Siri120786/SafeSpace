@@ -273,6 +273,7 @@ export interface AiCompanionSendResult {
 export const REMINDER_KINDS = ["routine", "water", "medication", "wellness", "custom"] as const;
 export type ReminderKind = (typeof REMINDER_KINDS)[number];
 export const REMINDER_TITLE_MAX_LENGTH = 80;
+export const REMINDER_LEAD_MAX_MINUTES = 120;
 
 export interface Reminder {
   id: string;
@@ -285,14 +286,17 @@ export interface Reminder {
   daysOfWeek: number[];         // 0 = Sunday ... 6 = Saturday; empty = every day
   timezone: string;             // IANA name, e.g. "Asia/Kolkata"
   isEnabled: boolean;
+  leadMinutes: number;          // heads-up: due this many minutes before timeOfDay
   createdAt: string;
   updatedAt: string;
 }
 
-// A reminder occurrence that is due (or past due) today.
+// A reminder occurrence that is due: today's from (time - heads-up) on, or
+// tomorrow's when the heads-up crosses midnight.
 export interface DueReminder {
   reminder: Reminder;
-  dueAt: string;                // ISO timestamp of today's occurrence
+  dueAt: string;                // ISO timestamp it becomes due (occursAt minus the heads-up)
+  occursAt: string;             // ISO timestamp of the occurrence itself
   occursOn: string;             // local date "YYYY-MM-DD" in the reminder's timezone
   acknowledged: boolean;        // marked done or dismissed for occursOn
 }
@@ -305,6 +309,7 @@ export interface CreateReminderInput {
   daysOfWeek?: number[];
   timezone: string;
   isEnabled?: boolean;
+  leadMinutes?: number;         // 0 to 120, default 0
 }
 
 export type UpdateReminderInput = Partial<Omit<CreateReminderInput, "kind">> & { isEnabled?: boolean };
@@ -342,6 +347,7 @@ export interface ChildOverview {
   activity: ActivityVisibility;
   summary: WellnessSummary | null;
   dueRemindersToday: number | null;
+  unreviewedAlerts: number;       // never gated by the sharing choice
 }
 
 // ----------------------------------------------------------------------------

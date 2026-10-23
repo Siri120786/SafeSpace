@@ -5,10 +5,12 @@
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { verifyChildToken } from "../_shared/childToken.ts";
+import { childSessionVerifier, sessionVersionLookup } from "../_shared/childSession.ts";
 import { createJournalHandler, type ChildJournalStore } from "./handler.ts";
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+// Signature, expiry AND session version (a PIN reset ends sessions).
+const verifyChildToken = childSessionVerifier(sessionVersionLookup(admin));
 
 const COLUMNS = "id, profile_id, child_id, module_key, entry_type, content, is_private_note, created_at, updated_at";
 

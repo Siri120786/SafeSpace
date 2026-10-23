@@ -112,6 +112,14 @@ export async function updateChild(
   if (error) throw toContractError(error);
 }
 
+// Primary caregiver only, through the reset-child-pin Edge Function (hashing is
+// server-side). Signs the child out everywhere. Errors: invalid_request,
+// not_found, not_primary_caregiver, pin_already_used_in_family.
+export async function resetChildPin(childId: string, pin: string): Promise<void> {
+  if (typeof pin !== "string" || !/^\d{4}$/.test(pin)) throw new ContractError("invalid_input");
+  await invokeEdge<{ ok: true }>("reset-child-pin", { child_id: childId, pin });
+}
+
 // Any caregiver. Replaces the child's whole module list.
 export async function setChildModules(childId: string, modules: ModuleKey[]): Promise<void> {
   if (!Array.isArray(modules) || modules.some((m) => !(MODULE_KEYS as readonly string[]).includes(m))) {

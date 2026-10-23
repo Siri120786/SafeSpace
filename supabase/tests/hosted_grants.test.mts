@@ -146,7 +146,8 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
   child_caregivers: { authenticated: "", service_role: "" },
   caregiver_invites: { authenticated: "", service_role: "" },
   // Not covered yet: no code uses them (see the migration header).
-  emergency_events: { authenticated: "", service_role: "" },
+  // Alerts (20261027200000): caregivers read; writes only through functions.
+  emergency_events: { authenticated: "S", service_role: "" },
   generated_stories: { authenticated: "", service_role: "" },
 };
 {
@@ -178,7 +179,8 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
     (await db.query<{ h: boolean }>(`select has_function_privilege($1, $2, 'EXECUTE') h`, [role, sig])).rows[0].h;
   const serverOnly = ["public.pin_attempt_begin(text)", "public.pin_attempt_succeeded(bigint)",
     "public.ai_companion_take_slot(uuid, uuid, integer, integer)",
-    "public.create_child(uuid, text, integer, text, text[])"];
+    "public.create_child(uuid, text, integer, text, text[])",
+    "public.raise_help_alert(uuid)", "public.caregiver_role_for_child(uuid, uuid)", "public.reset_child_pin(uuid, uuid, text)"];
   const userFns = ["public.wellness_summary(uuid, uuid, date, integer, text)",
     "public.is_caregiver_of(uuid)", "public.is_primary_caregiver_of(uuid)",
     "public.create_routine_with_steps(uuid, text, text, smallint[], jsonb)", "public.reorder_routine_steps(uuid, uuid[])"];
@@ -188,7 +190,7 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
   good = true;
   for (const f of userFns) good &&= (await fn("authenticated", f)) && (await fn("service_role", f)) && !(await fn("anon", f));
   ok("wellness and routine functions: authenticated and service_role, never anon", good);
-  const caregiverFns = ["public.child_family_code(uuid)", "public.list_child_caregivers(uuid)",
+  const caregiverFns = ["public.child_family_code(uuid)", "public.list_child_caregivers(uuid)", "public.mark_alert_reviewed(uuid)",
     "public.create_caregiver_invite(uuid)", "public.accept_caregiver_invite(text)",
     "public.remove_child_caregiver(uuid, uuid)"];
   good = true;

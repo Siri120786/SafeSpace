@@ -7,7 +7,7 @@
 
 (globalThis as any).Deno = { env: { get: (k: string) => (k === "CHILD_SESSION_SECRET" ? "pin-test-secret" : undefined) } };
 const { hashPin, verifyPin } = await import("../functions/_shared/pin.ts");
-const { signChildToken, verifyChildToken } = await import("../functions/_shared/childToken.ts");
+const { signChildToken, verifyChildToken, readChildToken } = await import("../functions/_shared/childToken.ts");
 const { createVerifyChildPinHandler } = await import("../functions/verify-child-pin/handler.ts");
 
 const ok = (n: string, c: boolean) => {
@@ -19,7 +19,7 @@ const KID_A = "11111111-1111-4111-8111-111111111111";
 const KID_B = "22222222-2222-4222-8222-222222222222";
 const KID_OTHER = "33333333-3333-4333-8333-333333333333";
 const families: Record<string, { id: string; pin_hash: string }[]> = {
-  AB12CD: [{ id: KID_A, pin_hash: await hashPin("4826") }, { id: KID_B, pin_hash: await hashPin("5937") }],
+  AB12CD: [{ id: KID_A, pin_hash: await hashPin("4826") }, { id: KID_B, pin_hash: await hashPin("5937"), session_version: 3 }],
   EF34AB: [{ id: KID_OTHER, pin_hash: await hashPin("4826") }],
 };
 
@@ -99,6 +99,7 @@ function makeWorld() {
   const r = await w.call({ family_code: " ab12cd ", pin: "5937" });
   ok("correct PIN returns a token for the matching child (code trimmed and upper-cased)",
     r.status === 200 && r.json.child_id === KID_B && (await verifyChildToken(r.json.child_session_token)) === KID_B);
+  ok("the token carries the child's current session version (role flow M3)", (await readChildToken(r.json.child_session_token))?.sessionVersion === 3);
   ok("a successful attempt is marked succeeded and doesn't count as a failure",
     w.attempts.length === 1 && w.attempts[0].succeeded && w.failures("AB12CD") === 0);
   ok("the PIN only matches within its own family",

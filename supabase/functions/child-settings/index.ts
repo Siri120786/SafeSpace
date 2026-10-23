@@ -4,10 +4,12 @@
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { verifyChildToken } from "../_shared/childToken.ts";
+import { childSessionVerifier, sessionVersionLookup } from "../_shared/childSession.ts";
 import { createChildSettingsHandler, type ChildSettingsStore } from "./handler.ts";
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+// Signature, expiry AND session version (a PIN reset ends sessions).
+const verifyChildToken = childSessionVerifier(sessionVersionLookup(admin));
 
 const log = (event: string, detail?: string) =>
   console.error(`child-settings: ${event}${detail ? ` (${detail})` : ""}`);

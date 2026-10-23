@@ -26,11 +26,17 @@ export async function getChildOverview(
   const now = options?.now ?? new Date();
   const child = toChild(data as ChildRow, await currentUserId(), now);
   const activity = activityVisibility(child.sharing);
-  if (!activity.visible) return { child, activity, summary: null, dueRemindersToday: null };
+  // Alerts are never gated by the sharing choice.
+  const { count, error: alertError } = await supabase.from("emergency_events")
+    .select("id", { count: "exact", head: true })
+    .eq("child_id", childId).is("reviewed_at", null);
+  if (alertError) throw toContractError(alertError);
+  const unreviewedAlerts = count ?? 0;
+  if (!activity.visible) return { child, activity, summary: null, dueRemindersToday: null, unreviewedAlerts };
 
   const [summary, due] = await Promise.all([
     getChildWellnessSummary(childId, periodDays, options),
     getChildDueReminders(childId, now),
   ]);
-  return { child, activity, summary, dueRemindersToday: due.filter((d) => !d.acknowledged).length };
+  return { child, activity, summary, dueRemindersToday: due.filter((d) => !d.acknowledged).length, unreviewedAlerts };
 }
