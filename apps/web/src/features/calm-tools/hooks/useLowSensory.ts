@@ -3,6 +3,7 @@ import { getAccessibilityPreferences } from "@safespace/api-client";
 import { useAuth } from "../../auth";
 import { useAccessibility } from "../../profile";
 import { resolveLowSensory } from "../lib/lowSensory";
+import { useOptionalChildSpace } from "../../child-space/ChildSpaceContext";
 
 const QUERY = "(prefers-reduced-motion: reduce)";
 
@@ -28,6 +29,7 @@ export interface LowSensoryResult {
 export function useLowSensory(): LowSensoryResult {
   const { session } = useAuth();
   const { preferences } = useAccessibility();
+  const childSpace = useOptionalChildSpace();
   const profileId = session?.kind === "auth_user" ? session.profile.id : null;
 
   const [osReduced, setOsReduced] = useState<boolean>(readOsPreference);
@@ -60,6 +62,7 @@ export function useLowSensory(): LowSensoryResult {
     };
   }, [profileId, contextLoaded]);
 
-  const saved = contextLoaded ? preferences.reducedSensoryStimulation : fetched ?? false;
+  // A child: their caregiver's default, or their own choice on this device.
+  const saved = childSpace ? childSpace.lowSensory : contextLoaded ? preferences.reducedSensoryStimulation : fetched ?? false;
   return { lowSensory: resolveLowSensory(osReduced, saved), preferenceError };
 }

@@ -29,4 +29,5 @@ export const ROUTES = {
   CHILD_HOME: "/child",
   CHILD_MOOD: "/child/mood",
   CHILD_CALM_TOOLS: "/child/calm-tools",
+  CHILD_SETTINGS: "/child/settings",
 };

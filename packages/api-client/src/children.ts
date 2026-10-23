@@ -137,13 +137,13 @@ export async function setChildModules(childId: string, modules: ModuleKey[]): Pr
 // child_session_token instead. See supabase/functions/get-child-profile
 // .
 // ----------------------------------------------------------------------------
+// Errors are ContractErrors with the function's code (invalid_session when the
+// session has ended, e.g. after a PIN reset).
 export async function getMyChildProfile(session: ChildSession): Promise<Child> {
-  const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase.functions.invoke("get-child-profile", {
-    body: { child_session_token: session.childSessionToken },
+  const data = await invokeEdge<{ child: Child }>("get-child-profile", {
+    child_session_token: session.childSessionToken,
   });
-  if (error) throw error;
-  return data.child as Child;   // get-child-profile already returns the Child shape
+  return data.child;   // get-child-profile already returns the Child shape
 }
 
 // ----------------------------------------------------------------------------

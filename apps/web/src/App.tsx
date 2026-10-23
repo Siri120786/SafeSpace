@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { AuthProvider, RoleRoute, GuestRoute } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
 import { CalmToolsRoutes } from "./features/calm-tools";
@@ -15,7 +15,6 @@ import DashboardPage from "./pages/DashboardPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChildPinPage from "./pages/ChildPinPage";
-import UserViewPage from "./pages/UserViewPage";
 import CaregiverDashboardPage from "./pages/CaregiverDashboardPage";
 import CaregiverAlertsPage from "./pages/CaregiverAlertsPage";
 import CaregiverAddChildPage from "./pages/CaregiverAddChildPage";
@@ -26,10 +25,23 @@ import CaregiverRemindersPage from "./pages/CaregiverRemindersPage";
 import CaregiverChildSettingsPage from "./pages/CaregiverChildSettingsPage";
 import CaregiverChildCaregiversPage from "./pages/CaregiverChildCaregiversPage";
 import { MoodCheckInPage } from "./features/mood";
+import { ChildSpaceProvider, SharingQuestionScreen } from "./features/child-space";
+import ChildHomePage from "./pages/ChildHomePage";
+import ChildSettingsPage from "./pages/ChildSettingsPage";
 
 function MoodCheckInPageWrapper() {
   const navigate = useNavigate();
   return <MoodCheckInPage onBack={() => navigate(-1)} />;
+}
+
+// Every child page shares one loaded profile, the 15+ sharing question and
+// session-ended handling (docs/role-flow/CONTRACT.md section 10).
+function ChildSpaceLayout() {
+  return (
+    <ChildSpaceProvider pinPath={ROUTES.CHILD_PIN} sharingQuestion={(answer) => <SharingQuestionScreen onAnswered={answer} />}>
+      <Outlet />
+    </ChildSpaceProvider>
+  );
 }
 
 // Every signed-in route says which roles it is for (docs/role-flow/CONTRACT.md
@@ -121,24 +133,16 @@ export default function App() {
                 />
               }
             />
-            <Route
-              path={ROUTES.CHILD_HOME}
-              element={
-                <RoleRoute allow={["child"]}>
-                  <UserViewPage onLogOut={() => window.location.assign(ROUTES.HOME)} />
-                </RoleRoute>
-              }
-            />
             <Route path="/child/dashboard" element={<Navigate to={ROUTES.CHILD_HOME} replace />} />
-            <Route path={ROUTES.CHILD_MOOD} element={<RoleRoute allow={["child"]}><MoodCheckInPageWrapper /></RoleRoute>} />
-            <Route
-              path={`${ROUTES.CHILD_CALM_TOOLS}/*`}
-              element={
-                <RoleRoute allow={["child"]}>
-                  <CalmToolsRoutes basePath={ROUTES.CHILD_CALM_TOOLS} homePath={ROUTES.CHILD_HOME} />
-                </RoleRoute>
-              }
-            />
+            <Route path={ROUTES.CHILD_HOME} element={<RoleRoute allow={["child"]}><ChildSpaceLayout /></RoleRoute>}>
+              <Route index element={<ChildHomePage />} />
+              <Route path="mood" element={<MoodCheckInPageWrapper />} />
+              <Route
+                path="calm-tools/*"
+                element={<CalmToolsRoutes basePath={ROUTES.CHILD_CALM_TOOLS} homePath={ROUTES.CHILD_HOME} />}
+              />
+              <Route path="settings" element={<ChildSettingsPage />} />
+            </Route>
 
             {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}
             <Route
