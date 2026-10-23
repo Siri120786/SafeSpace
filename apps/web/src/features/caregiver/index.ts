@@ -10,3 +10,5 @@ export { JoinInviteForm } from "./components/JoinInviteForm";
 export { CaregiverPageShell } from "./components/CaregiverPageShell";
 export { useAlerts } from "./useAlerts";
 export * from "./alertsView";
+export * from "./childView";
+export { AiChatList } from "./components/AiChatList";

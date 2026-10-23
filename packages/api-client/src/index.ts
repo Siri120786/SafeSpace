@@ -93,6 +93,7 @@ export {
   isValidTimeZone,
 } from "./reminders";
 export { getChildOverview } from "./overview";
+export { getChildDetail, listChildAiConversations, getChildAiMessages } from "./childDetail";
 export { getMyChildSettings, setMySharing } from "./childSettings";
 export { listAlerts, markAlertReviewed, raiseHelpAlert } from "./alerts";
 export { childAgeYears, childSharingStatus, isValidChildBirth, activityVisibility } from "./childSharing";

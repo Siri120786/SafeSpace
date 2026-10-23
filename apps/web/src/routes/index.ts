@@ -18,6 +18,7 @@ export const ROUTES = {
   CAREGIVER_ALERTS: "/caregiver/alerts",
   CAREGIVER_ADD_CHILD: "/caregiver/add-child",
   CAREGIVER_JOIN: "/caregiver/join",
+  CAREGIVER_CHILD: "/caregiver/children/:childId",
 
   // Child
   CHILD_PIN: "/child/pin",

@@ -1,16 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getChildOverview } from "@safespace/api-client";
-import type { Child, ChildOverview, ChildSharingStatus } from "@safespace/shared-types";
+import type { Child, ChildOverview } from "@safespace/shared-types";
 import { MODULE_LABELS } from "../moduleLabels";
+import { ROLE_LABELS, SHARING_LABELS, caregiverChildPath, hiddenActivityText } from "../childView";
 import { Card } from "../../../components/ui/Card";
 import { Chip } from "../../../components/ui/Chip";
-
-const SHARING_LABELS: Record<ChildSharingStatus, string> = {
-  under_15: "Under 15: you see their activity",
-  not_asked: "15+: hasn't chosen yet, so it's shared",
-  shared: "15+: chose to share with you",
-  not_shared: "15+: chose not to share",
-};
 
 interface Props {
   child: Child;
@@ -58,7 +53,7 @@ export const ChildOverviewCard: React.FC<Props> = ({ child, familyCode }) => {
             <h3 className="font-display text-lg font-medium text-textHeading">{child.name}</h3>
             <p className="text-xs text-textMuted">Age {child.ageYears}</p>
             <p className="text-xs text-textMuted">{SHARING_LABELS[child.sharing]}</p>
-            {child.myRole === "co_caregiver" && <p className="text-xs text-textMuted">You're a co-caregiver</p>}
+            {child.myRole === "co_caregiver" && <p className="text-xs text-textMuted">{ROLE_LABELS.co_caregiver}</p>}
           </div>
         </div>
         {overview && overview.unreviewedAlerts > 0 && (
@@ -102,7 +97,7 @@ export const ChildOverviewCard: React.FC<Props> = ({ child, familyCode }) => {
 
       {error && <p className="text-sm text-textMuted">This week's summary couldn't load right now.</p>}
       {!error && overview && !overview.activity.visible && (
-        <p className="text-sm text-textMuted">{child.name} has chosen not to share their activity.</p>
+        <p className="text-sm text-textMuted">{hiddenActivityText(child.name)}</p>
       )}
       {!error && !overview && <p className="text-sm text-textMuted">Loading this week...</p>}
       {s && (
@@ -112,6 +107,13 @@ export const ChildOverviewCard: React.FC<Props> = ({ child, familyCode }) => {
           <Stat label="Journal entries" value={String(s.journal.entries)} />
         </div>
       )}
+
+      <Link
+        to={caregiverChildPath(child.id)}
+        className="block w-full rounded-full bg-darkBtn px-4 py-2.5 text-center text-sm font-semibold text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-olive-500"
+      >
+        Open {child.name}'s space
+      </Link>
     </Card>
   );
 };

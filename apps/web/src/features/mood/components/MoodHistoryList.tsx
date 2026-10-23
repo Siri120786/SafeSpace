@@ -17,6 +17,7 @@ interface MoodHistoryListProps {
   status: MoodHistoryStatus;
   errorMessage: string | null;
   onRetry: () => void;
+  title?: string; // default "My History"; caregiver views pass their own
 }
 
 export const MoodHistoryList: React.FC<MoodHistoryListProps> = ({
@@ -24,6 +25,7 @@ export const MoodHistoryList: React.FC<MoodHistoryListProps> = ({
   status,
   errorMessage,
   onRetry,
+  title = "My History",
 }) => {
   if (status === "loading" && history.length === 0) {
     return (
@@ -64,7 +66,7 @@ export const MoodHistoryList: React.FC<MoodHistoryListProps> = ({
   return (
     <div className="w-full flex flex-col gap-3">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-base font-semibold text-textHeading">My History</h3>
+        <h3 className="text-base font-semibold text-textHeading">{title}</h3>
         <span className="text-xs text-textMuted">
           {history.length} {history.length === 1 ? "entry" : "entries"}
         </span>
