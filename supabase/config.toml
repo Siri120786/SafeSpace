@@ -37,5 +37,7 @@ verify_jwt = false   # child-only; authenticated by the signed child-session tok
 verify_jwt = false   # child-only; authenticated by the signed child-session token
 [functions.reminders]
 verify_jwt = false   # child-only; authenticated by the signed child-session token
+[functions.child-settings]
+verify_jwt = false   # child-only; authenticated by the signed child-session token
 [functions.create-child]
 verify_jwt = true    # caregiver-only

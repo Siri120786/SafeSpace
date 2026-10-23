@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { getChildOverview } from "@safespace/api-client";
-import type { Child, ChildOverview, PrivacyTier } from "@safespace/shared-types";
+import type { Child, ChildOverview, ChildSharingStatus } from "@safespace/shared-types";
 import { MODULE_LABELS } from "../moduleLabels";
 import { Card } from "../../../components/ui/Card";
 import { Chip } from "../../../components/ui/Chip";
 
-const PRIVACY_LABELS: Record<PrivacyTier, string> = {
-  full: "You see all of their entries",
-  partial: "Notes they mark private stay hidden",
-  private: "Their entries stay private",
+const SHARING_LABELS: Record<ChildSharingStatus, string> = {
+  under_15: "Under 15: you see their activity",
+  not_asked: "15+: hasn't chosen yet, so it's shared",
+  shared: "15+: chose to share with you",
+  not_shared: "15+: chose not to share",
 };
 
 interface Props {
@@ -42,11 +43,11 @@ export const ChildOverviewCard: React.FC<Props> = ({ child }) => {
           </div>
           <div>
             <h3 className="font-display text-lg font-medium text-textHeading">{child.name}</h3>
-            <p className="text-xs text-textMuted">Age {child.age}</p>
-            <p className="text-xs text-textMuted">{PRIVACY_LABELS[child.privacyTier]}</p>
+            <p className="text-xs text-textMuted">Age {child.ageYears}</p>
+            <p className="text-xs text-textMuted">{SHARING_LABELS[child.sharing]}</p>
           </div>
         </div>
-        {overview && overview.dueRemindersToday > 0 && (
+        {overview && (overview.dueRemindersToday ?? 0) > 0 && (
           <span className="text-xs font-semibold text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full whitespace-nowrap">
             {overview.dueRemindersToday} reminder{overview.dueRemindersToday === 1 ? "" : "s"} due today
           </span>
@@ -62,7 +63,10 @@ export const ChildOverviewCard: React.FC<Props> = ({ child }) => {
       )}
 
       {error && <p className="text-sm text-textMuted">This week's summary couldn't load right now.</p>}
-      {!error && !s && <p className="text-sm text-textMuted">Loading this week...</p>}
+      {!error && overview && !overview.activity.visible && (
+        <p className="text-sm text-textMuted">{child.name} has chosen not to share their activity.</p>
+      )}
+      {!error && !overview && <p className="text-sm text-textMuted">Loading this week...</p>}
       {s && (
         <div className="grid grid-cols-3 gap-3 text-center">
           <Stat label="Days with a check-in" value={`${s.mood.daysWithCheckin} / ${s.periodDays}`} />

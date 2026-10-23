@@ -61,10 +61,8 @@ function makeWorld() {
   const calls: string[] = [];
   const logs: string[] = [];
   const cfg = { failCreate: false };
-  const tiers: Record<string, string> = { [PARTIAL]: "partial", [FULL]: "full" };
   let n = 0;
   const store = {
-    async childPrivacyTier(id: string) { calls.push("tier"); return tiers[id] ?? null; },
     async createEntry(row: any) {
       calls.push("create");
       if (cfg.failCreate) throw Object.assign(new Error(`insert failed: ${row.content}`), { code: "23514" });
@@ -123,10 +121,10 @@ const tokFull = await signChildToken(FULL);
 
   const privFull = await w.call({ action: "create", content: "secret", is_private_note: true, child_session_token: tokFull });
   const privPartial = await w.call({ action: "create", content: "my secret", is_private_note: true, child_session_token: tokPartial });
-  ok("private note refused for a full-tier child, allowed for a partial-tier child",
-    privFull.status === 400 && privFull.json.error === "private_note_not_allowed_for_privacy_tier" &&
-    privPartial.status === 200 && privPartial.json.entry.isPrivateNote === true);
-  ok("refused private note writes nothing", !w.rows.some((r) => r.content === "secret"));
+  ok("private notes are refused for every child (removed in the role flow)",
+    privFull.status === 400 && privFull.json.error === "invalid_input" &&
+    privPartial.status === 400 && privPartial.json.error === "invalid_input");
+  ok("refused private notes write nothing", !w.rows.some((r) => r.content === "secret" || r.content === "my secret"));
 }
 {
   const w = makeWorld();

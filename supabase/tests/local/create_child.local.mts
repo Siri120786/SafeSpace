@@ -25,6 +25,8 @@ const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
   if (!c) process.exitCode = 1;
 };
+// A birth month/year giving this age today (role flow: children have birth dates).
+const born = (years: number) => ({ birthYear: new Date().getUTCFullYear() - years, birthMonth: new Date().getUTCMonth() + 1 });
 const errCode = async (p: Promise<unknown>) => {
   try {
     await p;
@@ -54,21 +56,21 @@ const db = () => getSafeSpaceClient();
 // Caregiver B first, so A can try to reach B's family later.
 // ---------------------------------------------------------------------------
 const cgB = await becomeNew("caregiver");
-const kidB = await addChild({ name: "B kid", age: 9, pin: "6040", modules: ["adhd"] });
+const kidB = await addChild({ name: "B kid", ...born(9), pin: "6040", modules: ["adhd"] });
 
 const cgA = await becomeNew("caregiver");
-const kidA = await addChild({ name: "  Asha ", age: 10, pin: "4826", modules: ["anxiety", "adhd", "anxiety", "nope"] });
+const kidA = await addChild({ name: "  Asha ", ...born(10), pin: "4826", modules: ["anxiety", "adhd", "anxiety", "nope"] as any });
 const mine = await listMyChildren();
 ok("an authorised caregiver creates a child through create-child",
   mine.length === 1 && mine[0].id === kidA && mine[0].name === "Asha" && mine[0].caregiverId === cgA);
-ok("privacy tier comes from age and modules are cleaned up server-side",
-  mine[0].privacyTier === "partial" && [...mine[0].assignedModules].sort().join() === "adhd,anxiety");
+ok("age comes from the birth month/year, a 10-year-old shares with caregivers, and modules are cleaned up server-side",
+  mine[0].ageYears === 10 && mine[0].sharing === "under_15" && mine[0].myRole === "primary" && [...mine[0].assignedModules].sort().join() === "adhd,anxiety");
 ok("the new child can sign in with the family code and PIN",
   (await verifyChildPin(await getMyFamilyCode(), "4826")).childId === kidA);
 // A fresh caregiver C probes A's and B's families.
 const cgC = await becomeNew("caregiver");
-ok("existing reads still work: overview of one's own child", (await addChild({ name: "C kid", age: 6, pin: "1357", modules: [] })) !== "" &&
-  (await listMyChildren()).length === 1 && (await getChildOverview((await listMyChildren())[0].id, 7)).child.privacyTier === "full");
+ok("existing reads still work: overview of one's own child", (await addChild({ name: "C kid", ...born(6), pin: "1357", modules: [] })) !== "" &&
+  (await listMyChildren()).length === 1 && (await getChildOverview((await listMyChildren())[0].id, 7)).child.ageYears === 6);
 
 // ---------------------------------------------------------------------------
 // Bypass attempts through the REST API, as caregiver C
@@ -86,18 +88,18 @@ ok("PIN hashes can't be read, even for one's own children", !!hashes.error);
 const others = await db().from("children").select("id").in("id", [kidA, kidB]);
 ok("other families' children stay invisible (RLS)", !others.error && (others.data ?? []).length === 0);
 ok("another family's overview is not_found", (await errCode(getChildOverview(kidB, 7))) === "not_found");
-const spoof = await addChild({ name: "Spoof", age: 8, pin: "9182", modules: [] } as any).then(async (id) => {
+const spoof = await addChild({ name: "Spoof", ...born(8), pin: "9182", modules: [] } as any).then(async (id) => {
   const row = await db().from("children").select("caregiver_id").eq("id", id).single();
   return row.data?.caregiver_id;
 });
 ok("a child created by C always belongs to C", spoof === cgC);
-ok("a duplicate PIN in the family is refused", (await errCode(addChild({ name: "Twin", age: 8, pin: "1357", modules: [] }))) === "pin_already_used_in_family");
+ok("a duplicate PIN in the family is refused", (await errCode(addChild({ name: "Twin", ...born(8), pin: "1357", modules: [] }))) === "pin_already_used_in_family");
 
 // ---------------------------------------------------------------------------
 // Non-caregivers and anonymous callers
 // ---------------------------------------------------------------------------
 await becomeNew("user");
-ok("an adult (non-caregiver) can't create a child", (await errCode(addChild({ name: "x", age: 8, pin: "2222", modules: [] }))) === "not_a_caregiver");
+ok("an adult (non-caregiver) can't create a child", (await errCode(addChild({ name: "x", ...born(8), pin: "2222", modules: [] }))) === "not_a_caregiver");
 await logOut().catch(() => {});
 const anon = await fetch(`${st.API_URL}/functions/v1/create-child`, {
   method: "POST",

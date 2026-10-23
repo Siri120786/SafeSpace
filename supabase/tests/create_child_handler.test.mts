@@ -43,6 +43,7 @@ function makeWorld() {
     hashPin,
     verifyPin,
     log: (e, d) => logs.push(`${e} ${d ?? ""}`),
+    now: () => new Date("2026-10-23T12:00:00Z"),
   });
   const call = async (body: unknown, opts: { auth?: string | null; raw?: string; method?: string } = {}) => {
     const method = opts.method ?? "POST";
@@ -60,7 +61,7 @@ function makeWorld() {
   return { call, calls, logs, fail, children };
 }
 
-const valid = { name: "Asha", age: 10, pin: "4826", modules: ["anxiety", "adhd"] };
+const valid = { name: "Asha", birthYear: 2016, birthMonth: 3, pin: "4826", modules: ["anxiety", "adhd"] };
 
 // ---------------------------------------------------------------------------
 // Authentication and authorization
@@ -90,10 +91,13 @@ const valid = { name: "Asha", age: 10, pin: "4826", modules: ["anxiety", "adhd"]
     await w.call({ ...valid, name: "   " }),
     await w.call({ ...valid, name: 42 }),
     await w.call({ ...valid, name: "x".repeat(81) }),
-    await w.call({ ...valid, age: 3 }),
-    await w.call({ ...valid, age: 18 }),
-    await w.call({ ...valid, age: 9.5 }),
-    await w.call({ ...valid, age: "10" }),
+    await w.call({ ...valid, birthYear: 2023 }),                   // age 3
+    await w.call({ ...valid, birthYear: 2008, birthMonth: 10 }),   // age 18
+    await w.call({ ...valid, birthYear: 2026, birthMonth: 11 }),   // future
+    await w.call({ ...valid, birthMonth: 13 }),
+    await w.call({ ...valid, birthMonth: undefined }),             // year without month
+    await w.call({ ...valid, birthYear: "2016" }),
+    await w.call({ name: "Asha", pin: "4826", modules: [] }),     // no birth date or age
     await w.call({ ...valid, pin: "482" }),
     await w.call({ ...valid, pin: 4826 }),
     await w.call({ ...valid, pin: "48a6" }),
@@ -111,7 +115,8 @@ const valid = { name: "Asha", age: 10, pin: "4826", modules: ["anxiety", "adhd"]
   const r = await w.call({ ...valid, name: "  Asha  ", modules: ["anxiety", "adhd", "anxiety", "made_up", 7] });
   const c = w.children[0];
   ok("an authorised caregiver creates a child", r.status === 200 && r.json.child_id === "child-1" && w.children.length === 1);
-  ok("name is trimmed; modules are de-duplicated and unknown keys dropped",
+  ok("the birth month and year are passed through as given", c.birthYear === 2016 && c.birthMonth === 3);
+ok("name is trimmed; modules are de-duplicated and unknown keys dropped",
     c.name === "Asha" && c.modules.join() === "anxiety,adhd");
   ok("the PIN is stored only as a PBKDF2 hash that verifies", c.pinHash.startsWith("pbkdf2$100000$") &&
     !c.pinHash.includes("4826") && (await verifyPin("4826", c.pinHash)));
@@ -142,4 +147,18 @@ const valid = { name: "Asha", age: 10, pin: "4826", modules: ["anxiety", "adhd"]
   ok("any other failure is 500 create_failed, with no error text leaked or logged",
     r.status === 500 && r.json.error === "create_failed" && !r.text.includes("permission") &&
     w.logs.length === 1 && w.logs[0] === "unhandled_exception 42501");
+}
+
+// ---------------------------------------------------------------------------
+// Legacy input: age in years (still accepted during the transition)
+// ---------------------------------------------------------------------------
+{
+  const w = makeWorld();
+  const r = await w.call({ name: "Old app", age: 9, pin: "4826", modules: [] });
+  ok("an age is turned into an approximate birth month/year (October 2017 on 23 Oct 2026)",
+    r.status === 200 && w.children[0].birthYear === 2017 && w.children[0].birthMonth === 10);
+  ok("legacy ages outside 4 to 17 are refused",
+    (await w.call({ name: "x", age: 3, pin: "4826", modules: [] })).status === 400 &&
+    (await w.call({ name: "x", age: 18, pin: "4826", modules: [] })).status === 400 &&
+    (await w.call({ name: "x", age: 9.5, pin: "4826", modules: [] })).status === 400);
 }

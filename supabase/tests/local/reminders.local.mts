@@ -33,6 +33,8 @@ const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
   if (!c) process.exitCode = 1;
 };
+// A birth month/year giving this age today (role flow: children have birth dates).
+const born = (years: number) => ({ birthYear: new Date().getUTCFullYear() - years, birthMonth: new Date().getUTCMonth() + 1 });
 const errCode = async (p: Promise<unknown>) => {
   try {
     await p;
@@ -102,7 +104,7 @@ ok("another adult can't link A's routine to their reminder",
 // Caregiver, child, overview
 // ---------------------------------------------------------------------------
 await becomeNew("cg", "caregiver");
-const childId = await addChild({ name: "Reminder kid", age: 8, pin: "3058", modules: ["autism"] });
+const childId = await addChild({ name: "Reminder kid", ...born(8), pin: "3058", modules: ["autism"] });
 const kidWater = await createReminder({ kind: "child", childId }, { kind: "water", title: "Water bottle", timeOfDay: "00:00", timezone: TZ });
 await createReminder({ kind: "child", childId }, { kind: "wellness", title: "Breathing", timeOfDay: "00:01", timezone: TZ });
 ok("caregiver creates reminders for their child", kidWater.childId === childId && (await listChildReminders(childId)).length === 2);
@@ -110,7 +112,7 @@ ok("caregiver creates reminders for their child", kidWater.childId === childId &
 let overview = await getChildOverview(childId, 7);
 ok("overview: child profile, summary and 2 due reminders",
   overview.child.id === childId && overview.child.name === "Reminder kid" && overview.child.assignedModules.includes("autism") &&
-  overview.summary.periodDays === 7 && overview.dueRemindersToday === 2);
+  overview.summary?.periodDays === 7 && overview.dueRemindersToday === 2);
 
 const child = await verifyChildPin(await getMyFamilyCode(), "3058");
 ok("child lists their reminders through the Edge Function", (await listReminders(child)).length === 2);
@@ -124,7 +126,7 @@ ok("child can't acknowledge the adult's reminder (not_found)",
 await become("cg");
 overview = await getChildOverview(childId, 7);
 ok("after the child acknowledges one, the overview shows 1 due; the summary has the new check-in",
-  overview.dueRemindersToday === 1 && overview.summary.mood.checkins === 1);
+  overview.dueRemindersToday === 1 && overview.summary?.mood.checkins === 1);
 
 await becomeNew("cg2", "caregiver");
 ok("another caregiver can't get this child's overview (not_found)", (await errCode(getChildOverview(childId, 7))) === "not_found");

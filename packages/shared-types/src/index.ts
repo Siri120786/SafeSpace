@@ -9,6 +9,7 @@ export type OnboardingState = "pending" | "completed";
 export const MODULE_KEYS = ["autism", "adhd", "anxiety", "depression", "ptsd", "pcos_pcod"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
+/** @deprecated Role flow: replaced by ChildSharingStatus (age 15 rule). Kept only for legacy readers. */
 export type PrivacyTier = "full" | "partial" | "private";
 
 export interface ConditionModule {
@@ -44,11 +45,16 @@ export interface ProfileAccessibilityPreferences {
 }
 export interface Child {
   id: string;
-  caregiverId: string;
+  caregiverId: string;            // the primary caregiver
   name: string;
-  age: number;
-  privacyTier: PrivacyTier;
+  birthYear: number;
+  birthMonth: number;             // 1 to 12
+  ageYears: number;               // calculated from birth month/year
+  sharing: ChildSharingStatus;    // docs/role-flow/CONTRACT.md section 5
+  theme: ChildTheme | null;
+  lowSensoryDefault: boolean;
   assignedModules: ModuleKey[];
+  myRole?: ChildCaregiverRole;    // caregiver views only: the caller's role
 }
 
 export interface Caregiver {
@@ -80,7 +86,6 @@ export interface CreateJournalEntryInput {
   content: string;
   entryType?: JournalEntryType; // default "journal"
   moduleKey?: ModuleKey | null;
-  isPrivateNote?: boolean;      // ignored for adults; rejected unless child tier is 'partial'
 }
 
 // ----------------------------------------------------------------------------
@@ -218,7 +223,6 @@ export interface CreateMoodCheckinInput {
   mood: MoodValue;
   intensity?: number | null;
   note?: string | null;
-  isPrivateNote?: boolean;    // ignored for adults; rejected unless child tier is 'partial'
 }
 
 export interface ListMoodCheckinsOptions {
@@ -331,17 +335,17 @@ export interface WellnessSummary {
   };
 }
 
-// Caregiver dashboard card for one child.
+// Caregiver dashboard card for one child. When the young person has chosen not
+// to share (activity.visible === false), summary and dueRemindersToday are null.
 export interface ChildOverview {
   child: Child;
-  summary: WellnessSummary;
-  dueRemindersToday: number;
+  activity: ActivityVisibility;
+  summary: WellnessSummary | null;
+  dueRemindersToday: number | null;
 }
 
 // ----------------------------------------------------------------------------
-// Role-based flow (docs/role-flow/CONTRACT.md). Contract types only: nothing
-// uses them until step 2 moves children to birth month/year and the age-15
-// sharing rule. Until then Child keeps `age` and `privacyTier`.
+// Role-based flow (docs/role-flow/CONTRACT.md).
 // ----------------------------------------------------------------------------
 
 // The three roles as the app presents them. Profiles store "user" for an

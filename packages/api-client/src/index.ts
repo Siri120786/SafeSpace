@@ -24,6 +24,8 @@ export {
   listMyChildren,
   getMyFamilyCode,
   addChild,
+  updateChild,
+  setChildModules,
   getMyChildProfile,
   submitJournalEntry,
   generateStory,
@@ -90,6 +92,8 @@ export {
   isValidTimeZone,
 } from "./reminders";
 export { getChildOverview } from "./overview";
+export { getMyChildSettings, setMySharing } from "./childSettings";
+export { childAgeYears, childSharingStatus, isValidChildBirth, activityVisibility } from "./childSharing";
 
 export {
   listChildCaregivers,

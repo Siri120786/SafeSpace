@@ -6,7 +6,7 @@
 // directly under RLS (see packages/api-client/src/mood.ts).
 //
 // Actions:
-//   create  { child_session_token, mood, intensity?, note?, is_private_note? }
+//   create  { child_session_token, mood, intensity?, note? }  (private notes were removed)
 //   list    { child_session_token, limit? }
 // Responses carry raw mood_checkins rows (snake_case), the same shape as a
 // direct table read, so each client keeps a single row mapper.
@@ -50,14 +50,8 @@ serve(async (req) => {
     const result = validateMoodCheckin(body);
     if (!result.ok) return json({ error: result.error }, 400);
 
-    if (result.value.is_private_note) {
-      // Checked here for a clear error; the DB trigger enforces it as well.
-      const { data: child } = await admin.from("children")
-        .select("privacy_tier").eq("id", childId).single();
-      if (child?.privacy_tier !== "partial") {
-        return json({ error: "private_note_not_allowed_for_privacy_tier" }, 400);
-      }
-    }
+    // Private notes were removed (role flow); the DB trigger refuses them too.
+    if (result.value.is_private_note) return json({ error: "invalid_input" }, 400);
 
     const { data, error } = await admin.from("mood_checkins")
       .insert({ child_id: childId, ...result.value })

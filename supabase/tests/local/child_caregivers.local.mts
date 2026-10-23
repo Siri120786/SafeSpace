@@ -27,6 +27,8 @@ const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
   if (!c) process.exitCode = 1;
 };
+// A birth month/year giving this age today (role flow: children have birth dates).
+const born = (years: number) => ({ birthYear: new Date().getUTCFullYear() - years, birthMonth: new Date().getUTCMonth() + 1 });
 const errCode = async (p: Promise<unknown>) => {
   try { await p; return "no_error"; } catch (e) { return (e as Error).message; }
 };
@@ -53,7 +55,7 @@ async function become(key: string) {
 }
 
 const primaryId = await becomeNew("primary", "caregiver");
-const kid = await addChild({ name: "Shared kid", age: 9, pin: "5163", modules: ["adhd"] });
+const kid = await addChild({ name: "Shared kid", ...born(9), pin: "5163", modules: ["adhd"] });
 const familyCode = await getMyFamilyCode();
 const invite = await createCaregiverInvite(kid);
 ok("the primary creates an invite code", invite.code.length === 8 && invite.childId === kid);

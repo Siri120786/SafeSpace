@@ -70,7 +70,9 @@ export async function createJournalEntry(session: AppSession, input: CreateJourn
   if (content.length > JOURNAL_CONTENT_MAX_LENGTH) throw new ContractError("content_too_long");
   const entryType = checkEntryType(input.entryType) ?? "journal";
   const moduleKey = checkModule(input.moduleKey) ?? null;
-  if (input.isPrivateNote !== undefined && typeof input.isPrivateNote !== "boolean") throw new ContractError("invalid_input");
+  // Private notes were removed (role flow): refuse callers that still send one.
+  if ((input as { isPrivateNote?: unknown }).isPrivateNote !== undefined &&
+      (input as { isPrivateNote?: unknown }).isPrivateNote !== false) throw new ContractError("invalid_input");
 
   if (session?.kind === "child") {
     const data = await invokeEdge<{ entry: JournalEntry }>("journal", {
@@ -79,13 +81,11 @@ export async function createJournalEntry(session: AppSession, input: CreateJourn
       content,
       entry_type: entryType,
       module_key: moduleKey,
-      is_private_note: input.isPrivateNote === true,
     });
     return data.entry;
   }
 
   if (session?.kind === "auth_user") {
-    if (input.isPrivateNote) throw new ContractError("private_note_not_allowed_for_privacy_tier");
     const supabase = getSafeSpaceClient();
     const { data, error } = await supabase
       .from("journal_entries")

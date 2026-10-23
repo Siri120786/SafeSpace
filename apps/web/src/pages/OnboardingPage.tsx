@@ -10,6 +10,7 @@ import {
   completeOnboarding,
   updateUserProfile,
   addChild,
+  isValidChildBirth,
 } from "@safespace/api-client";
 import { Card } from "../components/ui/Card";
 import { InputField } from "../components/ui/InputField";
@@ -25,6 +26,9 @@ const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon:
   { key: "ptsd", label: "PTSD & Safety", desc: "Grounding exercises & comforting routines", icon: "🛡️" },
   { key: "pcos_pcod", label: "PCOS / PCOD Wellbeing", desc: "Hormonal balance, rest & self-care", icon: "🌸" },
 ];
+
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"];
 
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
@@ -53,8 +57,9 @@ export const OnboardingPage: React.FC = () => {
 
   // Caregiver Child Setup State
   const [childName, setChildName] = useState<string>("");
-  const [childAge, setChildAge] = useState<number | "">(8);
-  const [childPin, setChildPin] = useState<string>("1234");
+  const [childBirthMonth, setChildBirthMonth] = useState<number | "">("");
+  const [childBirthYear, setChildBirthYear] = useState<number | "">("");
+  const [childPin, setChildPin] = useState<string>("");
   const [childModules, setChildModules] = useState<ModuleKey[]>([]);
 
   const [isLoadingExisting, setIsLoadingExisting] = useState<boolean>(true);
@@ -191,15 +196,16 @@ export const OnboardingPage: React.FC = () => {
       if (isCaregiver) {
         // CAREGIVER FLOW: Create child if child details provided.
         // NEVER save child modules to caregiver's adult profile_support_preferences!
-        if (childName.trim() && typeof childAge === "number") {
-          const validatedAge = Math.max(4, Math.min(17, childAge));
+        if (childName.trim()) {
+          if (!isValidChildBirth(childBirthYear, childBirthMonth) || !/^\d{4}$/.test(childPin)) {
+            throw new Error("Enter your child's birth month and year (age 4 to 17) and a 4-digit PIN.");
+          }
           await addChild({
             name: childName.trim(),
-            age: validatedAge,
-            pin: childPin || "1234",
+            birthYear: childBirthYear as number,
+            birthMonth: childBirthMonth as number,
+            pin: childPin,
             modules: childModules,
-          }).catch((err) => {
-            console.warn("Child creation warning during onboarding:", err);
           });
         }
       } else {
@@ -501,24 +507,37 @@ export const OnboardingPage: React.FC = () => {
                     placeholder="e.g. Leo"
                   />
                   <div className="grid grid-cols-2 gap-3">
+                    <label className="flex flex-col gap-1.5 text-sm font-medium text-textHeading">
+                      Birth month
+                      <select
+                        value={childBirthMonth}
+                        onChange={(e) => setChildBirthMonth(e.target.value ? Number(e.target.value) : "")}
+                        className="rounded-2xl border border-olive-200 bg-white px-4 py-3 text-sm font-normal"
+                      >
+                        <option value="">Month</option>
+                        {MONTH_NAMES.map((m, i) => (
+                          <option key={m} value={i + 1}>{m}</option>
+                        ))}
+                      </select>
+                    </label>
                     <InputField
-                      label="Age (4–17 years)"
+                      label="Birth year"
                       type="number"
-                      min={4}
-                      max={17}
-                      value={childAge}
-                      onChange={(e) => setChildAge(e.target.value ? Number(e.target.value) : "")}
-                      placeholder="e.g. 8"
-                    />
-                    <InputField
-                      label="Child PIN"
-                      type="password"
-                      maxLength={4}
-                      value={childPin}
-                      onChange={(e) => setChildPin(e.target.value)}
-                      placeholder="4 digits (e.g. 1234)"
+                      value={childBirthYear}
+                      onChange={(e) => setChildBirthYear(e.target.value ? Number(e.target.value) : "")}
+                      placeholder="e.g. 2017"
                     />
                   </div>
+                  <InputField
+                    label="Child PIN"
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={childPin}
+                    onChange={(e) => setChildPin(e.target.value.replace(/\D/g, ""))}
+                    placeholder="4 digits"
+                    helperText="Your child signs in with your family code and this PIN."
+                  />
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={handleNext}>
                   Continue
@@ -589,7 +608,7 @@ export const OnboardingPage: React.FC = () => {
                   <p><strong>Caregiver Lead:</strong> {displayName}</p>
                   {childName && (
                     <>
-                      <p><strong>Child Profile:</strong> {childName} (Age {childAge})</p>
+                      <p><strong>Child Profile:</strong> {childName}{childBirthMonth && childBirthYear ? ` (born ${MONTH_NAMES[(childBirthMonth as number) - 1]} ${childBirthYear})` : ""}</p>
                       <p><strong>Child Support Modules:</strong> {childModules.length} selected</p>
                     </>
                   )}

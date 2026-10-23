@@ -16,12 +16,6 @@ const log = (event: string, detail?: string) =>
   console.error(`journal: ${event}${detail ? ` (${detail})` : ""}`);
 
 const store: ChildJournalStore = {
-  async childPrivacyTier(childId) {
-    const { data, error } = await admin.from("children").select("privacy_tier").eq("id", childId).maybeSingle();
-    if (error) throw error;
-    return data?.privacy_tier ?? null;
-  },
-
   async createEntry(row) {
     const { data, error } = await admin.from("journal_entries").insert(row).select(COLUMNS).single();
     if (error || !data) throw error ?? new Error("journal_insert_failed");

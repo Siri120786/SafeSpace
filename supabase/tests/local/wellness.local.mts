@@ -26,6 +26,8 @@ const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
   if (!c) process.exitCode = 1;
 };
+// A birth month/year giving this age today (role flow: children have birth dates).
+const born = (years: number) => ({ birthYear: new Date().getUTCFullYear() - years, birthMonth: new Date().getUTCMonth() + 1 });
 const errCode = async (p: Promise<unknown>) => {
   try {
     await p;
@@ -82,24 +84,24 @@ ok("summary contains no journal text or labels",
 ok("only 7 or 30 days accepted", (await errCode(getWellnessSummary(a, 14 as any))) === "invalid_input");
 
 // ---------------------------------------------------------------------------
-// Caregiver and a partial-tier child (age 10)
+// Caregiver and a child under 15 (age 10): caregivers see the same counts
 // ---------------------------------------------------------------------------
 await becomeNew("cg", "caregiver");
-const childId = await addChild({ name: "Summary kid", age: 10, pin: "6194", modules: [] });
+const childId = await addChild({ name: "Summary kid", ...born(10), pin: "6194", modules: [] });
 const child = await verifyChildPin(await getMyFamilyCode(), "6194");
 await createMoodCheckin(child, { mood: "happy" });
-await createMoodCheckin(child, { mood: "overwhelmed", note: "private feelings", isPrivateNote: true });
-await createJournalEntry(child, { content: "Shared entry" });
-await createJournalEntry(child, { content: "Private entry", isPrivateNote: true });
+await createMoodCheckin(child, { mood: "overwhelmed", note: "a hard day" });
+await createJournalEntry(child, { content: "First entry" });
+await createJournalEntry(child, { content: "Second entry" });
 
 const childOwn = await getWellnessSummary(child, 7);
-ok("child's own summary (Edge Function) includes their private notes",
+ok("child's own summary (Edge Function) counts their check-ins and entries",
   childOwn.mood.checkins === 2 && childOwn.mood.counts.overwhelmed === 1 && childOwn.journal.entries === 2);
 
 await become("cg");
 const cgView = await getChildWellnessSummary(childId, 7);
-ok("caregiver's summary of the child leaves out the private mood note and private journal entry",
-  cgView.mood.checkins === 1 && cgView.mood.counts.overwhelmed === 0 && cgView.journal.entries === 1);
+ok("the caregiver's summary of an under-15 child matches the child's own",
+  cgView.mood.checkins === 2 && cgView.mood.counts.overwhelmed === 1 && cgView.journal.entries === 2);
 ok("caregiver's 30-day view works too", (await getChildWellnessSummary(childId, 30)).periodDays === 30);
 
 // ---------------------------------------------------------------------------

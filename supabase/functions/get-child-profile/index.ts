@@ -7,6 +7,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { json, preflight } from "../_shared/http.ts";
 import { verifyChildToken } from "../_shared/childToken.ts";
+import { childAgeYears, childSharingStatus } from "../_shared/childSharing.ts";
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -19,7 +20,7 @@ serve(async (req) => {
   if (!childId) return json({ error: "invalid_session" }, 401);
 
   const { data, error } = await admin.from("children")
-    .select("id, caregiver_id, name, age, privacy_tier, child_modules(module_key)")
+    .select("id, caregiver_id, name, birth_year, birth_month, shares_with_caregiver, theme, low_sensory_default, child_modules(module_key)")
     .eq("id", childId).single();
   if (error || !data) return json({ error: "not_found" }, 404);
 
@@ -28,8 +29,12 @@ serve(async (req) => {
       id: data.id,
       caregiverId: data.caregiver_id,
       name: data.name,
-      age: data.age,
-      privacyTier: data.privacy_tier,
+      birthYear: data.birth_year,
+      birthMonth: data.birth_month,
+      ageYears: childAgeYears(data.birth_year, data.birth_month),
+      sharing: childSharingStatus(childAgeYears(data.birth_year, data.birth_month), data.shares_with_caregiver),
+      theme: data.theme,
+      lowSensoryDefault: data.low_sensory_default,
       assignedModules: (data.child_modules ?? []).map((m: { module_key: string }) => m.module_key),
     },
   });

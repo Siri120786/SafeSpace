@@ -51,7 +51,8 @@ async function makeDb(mode: "hosted" | "local", opts: { withoutNew?: boolean } =
     `);
   }
   for (const f of allFiles) {
-    if (opts.withoutNew && NEW_MIGRATIONS.includes(f)) continue;
+    // "Before": the database as it was before the hosted-grants fix.
+    if (opts.withoutNew && f >= NEW_MIGRATIONS[0]) break;
     await db.exec(readFileSync(dir + f, "utf8"));
   }
   return db;
@@ -166,7 +167,8 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
   const childCol = async (col: string, p: string) =>
     (await db.query<{ h: boolean }>(`select has_column_privilege('authenticated', 'public.children', $1, $2) h`, [col, p])).rows[0].h;
   let readable = true;
-  for (const c of ["id", "caregiver_id", "name", "age", "privacy_tier", "created_at"]) readable &&= await childCol(c, "SELECT");
+  for (const c of ["id", "caregiver_id", "name", "age", "privacy_tier", "created_at", "birth_year", "birth_month",
+    "shares_with_caregiver", "sharing_decided_at", "theme", "low_sensory_default"]) readable &&= await childCol(c, "SELECT");
   ok("children: signed-in users may read every column except pin_hash, and insert none",
     readable && !(await childCol("pin_hash", "SELECT")) && !(await childCol("name", "INSERT")) &&
     !(await childCol("privacy_tier", "INSERT")) && !(await childCol("pin_hash", "INSERT")));
@@ -229,8 +231,8 @@ const created = await one<{ name: string; privacy_tier: string; caregiver_id: st
 ok("the approved flow creates a child with modules for the authorised caregiver (name trimmed, modules de-duplicated)",
   !!kidA && created.caregiver_id === cgA && created.name === "A kid" &&
   (await one<{ n: number }>(`select count(*)::int n from child_modules where child_id = $1`, [kidA])).n === 2);
-ok("privacy tier is derived from age, never chosen by the caller",
-  created.privacy_tier === "partial" &&
+ok("the legacy privacy_tier follows the age-15 rule, never chosen by the caller ('full' under 15, 'private' from 15)",
+  created.privacy_tier === "full" &&
   (await one<{ t: string }>(`select privacy_tier t from children where id = $1`,
     [(await createChild(cgA, "Small", 6, await hashPin("1357"), []))[0].id])).t === "full" &&
   (await one<{ t: string }>(`select privacy_tier t from children where id = $1`,
@@ -280,11 +282,15 @@ ok("PIN hashes and attempts stay unreadable to signed-in users",
   (await denied("authenticated", cgA, `select pin_attempt_begin($1)`, [famA])));
 
 // Child data written by Edge Functions (service_role), read back by caregivers.
+// 'secret' is a legacy private note (private notes were removed in role flow
+// M2), seeded with triggers paused the way old data already exists.
+await db.exec(`set session_replication_role = replica`);
 await as("service_role", "", `insert into mood_checkins (child_id, mood, note, is_private_note) values
   ($1, 'happy', 'shared', false), ($1, 'sad', 'secret', true)`, [kidA]);
+await db.exec(`set session_replication_role = origin`);
 await as("service_role", "", `insert into mood_checkins (child_id, mood) values ($1, 'neutral')`, [kidB]);
 const seen = await as<{ note: string | null }>("authenticated", cgA, `select note from mood_checkins`);
-ok("caregiver sees their partial-tier child's shared check-in, not the private one",
+ok("caregiver sees their child's shared check-in, not the legacy private note",
   seen.length === 1 && seen[0].note === "shared");
 ok("caregiver B sees none of caregiver A's family",
   (await as("authenticated", cgB, `select id from children where id = $1`, [kidA])).length === 0 &&
@@ -324,7 +330,7 @@ const sr = <T,>(sql: string, params: unknown[] = []) => as<T>("service_role", ""
   const tier = await sr<{ privacy_tier: string }>(`select privacy_tier from children where id = $1`, [kidA]);
   await sr(`insert into journal_entries (child_id, content) values ($1, 'kid journal')`, [kidA]);
   ok("mood-checkin / journal reads and writes",
-    tier[0].privacy_tier === "partial" &&
+    tier[0].privacy_tier === "full" &&
     (await sr(`select id from mood_checkins where child_id = $1`, [kidA])).length === 2 &&
     (await sr(`select id from journal_entries where child_id = $1`, [kidA])).length === 1);
   // ai-companion

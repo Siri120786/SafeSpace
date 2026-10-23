@@ -1,14 +1,17 @@
 // packages/api-client/src/overview.ts
-// Caregiver dashboard card for one child (docs/sprint-3/CONTRACTS.md section 5).
-// Everything is read with the caregiver's own RLS: the child must be theirs,
-// the summary leaves out a partial-tier child's private notes, and
-// dueRemindersToday counts the child's due-and-unacknowledged occurrences.
+// Caregiver dashboard card for one child (docs/role-flow/CONTRACT.md section 9).
+// Read with the caregiver's own RLS: the caller must be one of the child's
+// caregivers. When the young person (15+) has chosen not to share, their
+// activity is hidden: summary and dueRemindersToday are null, and the card
+// says so instead of showing an empty week.
 
 import { getSafeSpaceClient } from "./supabaseClient";
 import { ContractError, toContractError } from "./edge";
 import { getChildWellnessSummary, type WellnessOptions } from "./wellness";
 import { getChildDueReminders } from "./reminders";
-import type { Child, ChildOverview, ModuleKey, WellnessPeriodDays } from "@safespace/shared-types";
+import { CHILD_COLUMNS, currentUserId, toChild, type ChildRow } from "./children";
+import { activityVisibility } from "./childSharing";
+import type { ChildOverview, WellnessPeriodDays } from "@safespace/shared-types";
 
 export async function getChildOverview(
   childId: string,
@@ -16,27 +19,18 @@ export async function getChildOverview(
   options?: WellnessOptions & { now?: Date },
 ): Promise<ChildOverview> {
   const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase
-    .from("children")
-    .select("id, caregiver_id, name, age, privacy_tier, child_modules(module_key)")
-    .eq("id", childId)
-    .maybeSingle();
+  const { data, error } = await supabase.from("children").select(CHILD_COLUMNS).eq("id", childId).maybeSingle();
   if (error) throw toContractError(error);
-  if (!data) throw new ContractError("not_found"); // not this caregiver's child
+  if (!data) throw new ContractError("not_found"); // not one of the caller's children
 
-  const child: Child = {
-    id: data.id,
-    caregiverId: data.caregiver_id,
-    name: data.name,
-    age: data.age,
-    privacyTier: data.privacy_tier,
-    assignedModules: ((data as any).child_modules ?? []).map((m: { module_key: ModuleKey }) => m.module_key),
-  };
+  const now = options?.now ?? new Date();
+  const child = toChild(data as ChildRow, await currentUserId(), now);
+  const activity = activityVisibility(child.sharing);
+  if (!activity.visible) return { child, activity, summary: null, dueRemindersToday: null };
 
   const [summary, due] = await Promise.all([
     getChildWellnessSummary(childId, periodDays, options),
-    getChildDueReminders(childId, options?.now ?? new Date()),
+    getChildDueReminders(childId, now),
   ]);
-
-  return { child, summary, dueRemindersToday: due.filter((d) => !d.acknowledged).length };
+  return { child, activity, summary, dueRemindersToday: due.filter((d) => !d.acknowledged).length };
 }
