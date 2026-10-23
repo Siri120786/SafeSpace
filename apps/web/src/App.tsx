@@ -29,6 +29,7 @@ import { ChildSpaceProvider, SharingQuestionScreen } from "./features/child-spac
 import ChildHomePage from "./pages/ChildHomePage";
 import ChildSettingsPage from "./pages/ChildSettingsPage";
 import ChildTalkPage from "./pages/ChildTalkPage";
+import { ChildStoriesPage, ChildStoryPage } from "./pages/ChildStoriesPage";
 import {
   IndividualCompanionPage,
   IndividualJournalPage,
@@ -167,6 +168,8 @@ export default function App() {
               <Route path="companion" element={<ChildCompanionPage />} />
               <Route path="modules/*" element={<ChildModulesPage />} />
               <Route path="talk" element={<ChildTalkPage />} />
+              <Route path="stories" element={<ChildStoriesPage />} />
+              <Route path="stories/:storyId" element={<ChildStoryPage />} />
             </Route>
 
             {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}

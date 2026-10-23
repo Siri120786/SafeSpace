@@ -41,4 +41,5 @@ export const ROUTES = {
   CHILD_COMPANION: "/child/companion",
   CHILD_MODULES: "/child/modules",
   CHILD_TALK: "/child/talk",
+  CHILD_STORIES: "/child/stories",
 };

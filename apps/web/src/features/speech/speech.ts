@@ -33,6 +33,7 @@ export interface Utterance {
   voice?: VoiceInfo | null;
   onend?: (() => void) | null;
   onerror?: (() => void) | null;
+  onboundary?: (() => void) | null; // fires at each word, where the browser supports it
 }
 
 // A warm, calm reading voice: slightly slower than normal, a touch above a
@@ -92,7 +93,7 @@ export function speakText(
   text: string,
   speaker: Speaker | null,
   makeUtterance: (t: string) => Utterance,
-  options: { lang?: string; rate?: number; pitch?: number; voice?: VoiceInfo | null; onEnd?: () => void } = {},
+  options: { lang?: string; rate?: number; pitch?: number; voice?: VoiceInfo | null; onEnd?: () => void; onWord?: () => void } = {},
 ): boolean {
   const clean = text.trim();
   if (!speaker || !clean) return false;
@@ -107,6 +108,7 @@ export function speakText(
     u.pitch = options.pitch ?? WARM_PITCH;
     u.onend = options.onEnd ?? null;
     u.onerror = options.onEnd ?? null;
+    u.onboundary = options.onWord ?? null;
     speaker.speak(u);
     return true;
   } catch {
