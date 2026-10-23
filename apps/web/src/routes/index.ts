@@ -30,4 +30,9 @@ export const ROUTES = {
   CHILD_MOOD: "/child/mood",
   CHILD_CALM_TOOLS: "/child/calm-tools",
   CHILD_SETTINGS: "/child/settings",
+  CHILD_ROUTINES: "/child/routines",
+  CHILD_JOURNAL: "/child/journal",
+  CHILD_REMINDERS: "/child/reminders",
+  CHILD_COMPANION: "/child/companion",
+  CHILD_MODULES: "/child/modules",
 };

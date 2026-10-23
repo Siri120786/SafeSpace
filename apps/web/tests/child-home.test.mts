@@ -6,6 +6,7 @@
 import assert from "node:assert/strict";
 import type { RoutineWithSteps } from "@safespace/shared-types";
 import {
+  childModuleKeys,
   clockTime,
   dayPlan,
   effectiveLowSensory,
@@ -121,6 +122,12 @@ test("local date and clock time", () => {
   const d = new Date(2026, 0, 5, 7, 4);
   assert.equal(localDate(d), "2026-01-05");
   assert.equal(clockTime(d), "07:04");
+});
+
+test("a child's spaces: only assigned modules with a child screen, never Cycle Care", () => {
+  assert.deepEqual(childModuleKeys(["anxiety", "autism", "pcos_pcod", "ptsd"]), ["anxiety", "ptsd"]);
+  assert.deepEqual(childModuleKeys(["pcos_pcod"]), []);
+  assert.deepEqual(childModuleKeys([]), []);
 });
 
 console.log(`${passed} child-home checks`);

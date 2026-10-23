@@ -28,6 +28,13 @@ import { MoodCheckInPage } from "./features/mood";
 import { ChildSpaceProvider, SharingQuestionScreen } from "./features/child-space";
 import ChildHomePage from "./pages/ChildHomePage";
 import ChildSettingsPage from "./pages/ChildSettingsPage";
+import {
+  ChildCompanionPage,
+  ChildJournalPage,
+  ChildModulesPage,
+  ChildRemindersPage,
+  ChildRoutinesPage,
+} from "./pages/ChildToolPages";
 
 function MoodCheckInPageWrapper() {
   const navigate = useNavigate();
@@ -142,6 +149,11 @@ export default function App() {
                 element={<CalmToolsRoutes basePath={ROUTES.CHILD_CALM_TOOLS} homePath={ROUTES.CHILD_HOME} />}
               />
               <Route path="settings" element={<ChildSettingsPage />} />
+              <Route path="routines" element={<ChildRoutinesPage />} />
+              <Route path="journal" element={<ChildJournalPage />} />
+              <Route path="reminders" element={<ChildRemindersPage />} />
+              <Route path="companion" element={<ChildCompanionPage />} />
+              <Route path="modules/*" element={<ChildModulesPage />} />
             </Route>
 
             {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}

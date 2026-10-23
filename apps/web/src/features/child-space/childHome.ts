@@ -1,7 +1,7 @@
 // Pure rules for the child's space (docs/role-flow/CONTRACT.md sections 3 and
 // 10, P1 and P2). No React or network, so apps/web/tests/child-home.test.mts
 // can check them.
-import type { ChildSettings, DueReminder, RoutineStepIcon, RoutineWithSteps } from "@safespace/shared-types";
+import type { ChildSettings, DueReminder, ModuleKey, RoutineStepIcon, RoutineWithSteps } from "@safespace/shared-types";
 
 export interface DayStep {
   stepId: string;
@@ -91,6 +91,13 @@ export function reminderWhen(d: Pick<DueReminder, "occursAt">, now: Date): strin
   const mins = Math.ceil((new Date(d.occursAt).getTime() - now.getTime()) / 60_000);
   if (mins <= 0) return "Now";
   return mins === 1 ? "In 1 minute" : `In ${mins} minutes`;
+}
+
+// Wellness modules a child can open: those their caregiver assigned that have
+// a child screen. Cycle Care stays adults-only (canOpenCycleCare), so it's never listed.
+export const CHILD_MODULE_KEYS = ["anxiety", "depression", "ptsd"] as const;
+export function childModuleKeys(assigned: ModuleKey[]): (typeof CHILD_MODULE_KEYS)[number][] {
+  return CHILD_MODULE_KEYS.filter((k) => assigned.includes(k));
 }
 
 // The caregiver's low-sensory default, unless the child changed it on this device.

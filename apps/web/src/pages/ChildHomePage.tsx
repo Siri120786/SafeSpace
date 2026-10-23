@@ -7,6 +7,7 @@ import {
   localDate,
   nowNext,
   openReminders,
+  childModuleKeys,
   reminderWhen,
   useChildSpace,
   type DayStep,
@@ -17,9 +18,14 @@ const REFRESH_MS = 60_000;
 
 const TILES: { to: string; label: string; emoji: string }[] = [
   { to: ROUTES.CHILD_MOOD, label: "How I feel", emoji: "🌱" },
+  { to: ROUTES.CHILD_ROUTINES, label: "My routines", emoji: "✅" },
+  { to: ROUTES.CHILD_JOURNAL, label: "My journal", emoji: "📓" },
+  { to: ROUTES.CHILD_REMINDERS, label: "Reminders", emoji: "⏰" },
   { to: ROUTES.CHILD_CALM_TOOLS, label: "Calm tools", emoji: "🍃" },
-  { to: ROUTES.CHILD_SETTINGS, label: "Settings", emoji: "⚙️" },
+  { to: ROUTES.CHILD_COMPANION, label: "AI Companion", emoji: "💬" },
 ];
+const MODULES_TILE = { to: ROUTES.CHILD_MODULES, label: "My spaces", emoji: "🌈" };
+const SETTINGS_TILE = { to: ROUTES.CHILD_SETTINGS, label: "Settings", emoji: "⚙️" };
 
 const emojiFor = (s: DayStep) => (s.icon ? ROUTINE_STEP_ICONS[s.icon]?.emoji : null) ?? "⭐";
 
@@ -151,7 +157,7 @@ export const ChildHomePage: React.FC = () => {
       )}
 
       <nav aria-label="My tools" className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {TILES.map((t) => (
+        {[...TILES, ...(childModuleKeys(child.assignedModules).length > 0 ? [MODULES_TILE] : []), SETTINGS_TILE].map((t) => (
           <Link
             key={t.to}
             to={t.to}
