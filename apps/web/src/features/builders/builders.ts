@@ -1,4 +1,5 @@
-// Pure rules for the caregiver routine and reminder builders (role-flow 4c).
+// Pure rules for the routine and reminder builders (role-flow 4c; shared with
+// Individuals in 7b).
 // No React or network, so apps/web/tests/caregiver-builders.test.mts can check
 // them. The api-client and database validate again; these give friendly
 // messages before anything is sent.

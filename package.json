@@ -28,7 +28,8 @@
     "test:local:routine-builder": "tsx supabase/tests/local/routine_builder.local.mts",
     "test:local:child-home": "tsx supabase/tests/local/child_home.local.mts",
     "test:local:child-tools": "tsx supabase/tests/local/child_tools.local.mts",
-    "test:local:child-talk": "tsx supabase/tests/local/child_talk.local.mts"
+    "test:local:child-talk": "tsx supabase/tests/local/child_talk.local.mts",
+    "test:local:individual-tools": "tsx supabase/tests/local/individual_tools.local.mts"
 
   },
   "packageManager": "pnpm@9.12.0",

@@ -12,7 +12,8 @@ export { useAlerts } from "./useAlerts";
 export * from "./alertsView";
 export * from "./childView";
 export { AiChatList } from "./components/AiChatList";
-export { DayPicker, IconPicker, StepFields, TextField, SelectField, ConfirmButton } from "./components/BuilderFields";
+// Builders moved to features/builders (shared with Individuals); re-exported here.
+export { DayPicker, IconPicker, StepFields, TextField, SelectField, ConfirmButton } from "../builders";
 export { useCaregiverChild } from "./useCaregiverChild";
-export * from "./builders";
+export * from "../builders/builders";
 export * from "./manage";

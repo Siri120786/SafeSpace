@@ -1,6 +1,6 @@
 import React from "react";
 import { ROUTINE_STEP_ICONS, ROUTINE_STEP_ICON_KEYS, type RoutineStepIcon } from "@safespace/shared-types";
-import { DAY_SHORT, WEEK_ORDER, toggleDay, type StepDraft } from "../builders";
+import { DAY_SHORT, WEEK_ORDER, toggleDay, type StepDraft } from "./builders";
 
 const inputClass =
   "w-full rounded-2xl border border-olive-200 bg-white px-3 py-2 text-sm text-textHeading focus:outline-none focus:ring-2 focus:ring-olive-500";

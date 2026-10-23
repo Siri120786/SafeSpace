@@ -56,7 +56,7 @@ export const TodayCard: React.FC<Props> = ({ session, routinesPath, remindersPat
       {!summary && !error && <p className="text-sm text-textMuted">Loading today…</p>}
       {summary && (
         <div className="grid gap-3 sm:grid-cols-2">
-          <Link to={routinesPath} className="rounded-2xl bg-olive-50/70 border border-olive-100 px-4 py-3 hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500">
+          <Link to={summary.hasRoutines ? routinesPath : `${routinesPath}?edit=1`} className="rounded-2xl bg-olive-50/70 border border-olive-100 px-4 py-3 hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500">
             <span className="block text-xs text-textMuted">Routines</span>
             {!summary.hasRoutines ? (
               <span className="block text-sm text-textHeading">Nothing planned today. Set one up?</span>

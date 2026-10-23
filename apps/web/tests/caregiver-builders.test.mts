@@ -14,7 +14,7 @@ import {
   validateRoutine,
   validateStep,
   type ReminderDraft,
-} from "../src/features/caregiver/builders.ts";
+} from "../src/features/builders/builders.ts";
 
 let passed = 0;
 const test = (name: string, fn: () => void) => {

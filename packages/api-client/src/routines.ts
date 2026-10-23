@@ -332,16 +332,12 @@ export async function deleteRoutineStep(stepId: string): Promise<void> {
 // Caregiver view
 // ---------------------------------------------------------------------------
 
-/**
- * Every routine set up for a child, active or not, whatever the day: what the
- * routine builder edits. Steps in order; no completions (those are activity).
- */
-export async function listChildRoutineSetup(childId: string): Promise<RoutineWithSteps[]> {
+async function selectRoutineSetup(filter: { column: "profile_id" | "child_id"; id: string }): Promise<RoutineWithSteps[]> {
   const supabase = getSafeSpaceClient();
   const { data, error } = await supabase
     .from("routines")
     .select(`${ROUTINE_COLUMNS}, routine_steps(${STEP_COLUMNS})`)
-    .eq("child_id", childId)
+    .eq(filter.column, filter.id)
     .order("created_at", { ascending: true });
   if (error) throw toContractError(error);
   return (data ?? []).map((r: any) => ({
@@ -350,6 +346,20 @@ export async function listChildRoutineSetup(childId: string): Promise<RoutineWit
       .sort((a: any, b: any) => a.order_index - b.order_index)
       .map((s: any) => ({ ...toStep(s), completedOnDate: false })),
   }));
+}
+
+/**
+ * Every routine set up for a child, active or not, whatever the day: what the
+ * routine builder edits. Steps in order; no completions (those are activity).
+ */
+export async function listChildRoutineSetup(childId: string): Promise<RoutineWithSteps[]> {
+  return selectRoutineSetup({ column: "child_id", id: childId });
+}
+
+/** The same for a signed-in adult's own routines (Individuals, role-flow 7b). */
+export async function listMyRoutineSetup(session: AppSession): Promise<RoutineWithSteps[]> {
+  if (session?.kind !== "auth_user") throw new ContractError("unsupported_session");
+  return selectRoutineSetup({ column: "profile_id", id: session.profile.id });
 }
 
 /** A caregiver's view of one child's routines scheduled on `date`. */
