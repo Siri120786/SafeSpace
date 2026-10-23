@@ -76,6 +76,11 @@ class UserDashboardScreen extends ConsumerWidget {
                 onPressed: () => context.push('/calm-tools'),
                 child: const Text('Open calm tools'),
               ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: () => context.push('/modules'),
+                child: const Text('Open modules'),
+              ),
               const SizedBox(height: 12),
               Card(
                 child: InkWell(

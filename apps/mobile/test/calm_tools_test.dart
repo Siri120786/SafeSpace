@@ -63,11 +63,14 @@ void main() {
       expect(find.text('Start'), findsOneWidget);
 
       await tester.tap(find.text('Start'));
-      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(milliseconds: 200));
       expect(find.text('Breathe in'), findsOneWidget);
       expect(find.text('Pause'), findsOneWidget);
 
-      await tester.pump(const Duration(seconds: 4));
+      // The exercise uses a real Stopwatch, which tester.pump does not advance,
+      // so wait real time to reach the hold phase.
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 4300)));
+      await tester.pump(const Duration(milliseconds: 150));
       expect(find.text('Hold'), findsOneWidget);
 
       await tester.tap(find.text('Pause'));

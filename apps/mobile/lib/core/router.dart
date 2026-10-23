@@ -12,6 +12,8 @@ import '../screens/child_home_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/profile_screen.dart';
 import '../features/calm_tools/calm_tools_feature.dart';
+import '../features/wellness_modules/module_screens.dart';
+import '../features/story_workflow/story_workflow_screen.dart';
 import '../features/mood/screens/mood_check_in_screen.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -84,6 +86,44 @@ final GoRouter appRouter = GoRouter(
           },
         ),
       ],
+    ),
+    GoRoute(
+      path: '/modules',
+      builder: (BuildContext context, GoRouterState state) {
+        return const ModulesHomeScreen();
+      },
+      routes: <RouteBase>[
+        GoRoute(
+          path: 'calm-space',
+          builder: (BuildContext context, GoRouterState state) {
+            return const CalmSpaceScreen();
+          },
+        ),
+        GoRoute(
+          path: 'bright-days',
+          builder: (BuildContext context, GoRouterState state) {
+            return const BrightDaysScreen();
+          },
+        ),
+        GoRoute(
+          path: 'safe-harbor',
+          builder: (BuildContext context, GoRouterState state) {
+            return const SafeHarborScreen();
+          },
+        ),
+        GoRoute(
+          path: 'cycle-care',
+          builder: (BuildContext context, GoRouterState state) {
+            return const CycleCareScreen();
+          },
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/story-workflow',
+      builder: (BuildContext context, GoRouterState state) {
+        return const StoryWorkflowScreen();
+      },
     ),
     GoRoute(
       path: '/dashboard',

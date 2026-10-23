@@ -64,6 +64,16 @@ class CaregiverDashboardScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: () => context.push('/story-workflow'),
+                child: const Text('Open story workflow'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: () => context.push('/modules'),
+                child: const Text('Open modules'),
+              ),
             ],
           ),
         ),

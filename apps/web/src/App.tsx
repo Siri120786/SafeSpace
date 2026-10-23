@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { AuthProvider, RoleRoute, GuestRoute } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
 import { CalmToolsRoutes } from "./features/calm-tools";
+import { ModulesRoutes } from "./features/wellness-modules";
+import { StoryWorkflowRoute } from "./features/story-workflow";
 import { ROUTES } from "./routes";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
@@ -96,6 +98,16 @@ export default function App() {
                   <CalmToolsRoutes basePath={ROUTES.CHILD_CALM_TOOLS} homePath={ROUTES.CHILD_HOME} />
                 </RoleRoute>
               }
+            />
+
+            {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}
+            <Route
+              path="/modules/*"
+              element={<RoleRoute allow={["individual", "caregiver"]}><ModulesRoutes /></RoleRoute>}
+            />
+            <Route
+              path="/story-workflow"
+              element={<RoleRoute allow={["individual", "caregiver"]}><StoryWorkflowRoute /></RoleRoute>}
             />
 
             <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
