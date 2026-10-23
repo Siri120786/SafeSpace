@@ -5,10 +5,12 @@
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { verifyChildToken } from "../_shared/childToken.ts";
+import { childSessionVerifier, sessionVersionLookup } from "../_shared/childSession.ts";
 import { createRoutinesHandler, type ChildRoutinesStore } from "./handler.ts";
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+// Signature, expiry AND session version (a PIN reset ends sessions).
+const verifyChildToken = childSessionVerifier(sessionVersionLookup(admin));
 
 const log = (event: string, detail?: string) =>
   console.error(`routines: ${event}${detail ? ` (${detail})` : ""}`);
@@ -17,7 +19,7 @@ const store: ChildRoutinesStore = {
   async listRoutines(childId, date) {
     const { data, error } = await admin.from("routines")
       .select("id, profile_id, child_id, module_key, title, days_of_week, is_active, created_at, updated_at, " +
-        "routine_steps(id, routine_id, label, scheduled_time, order_index, routine_step_completions(completed_on))")
+        "routine_steps(id, routine_id, label, scheduled_time, order_index, icon, routine_step_completions(completed_on))")
       .eq("child_id", childId)
       .eq("routine_steps.routine_step_completions.completed_on", date)
       .order("created_at", { ascending: true });

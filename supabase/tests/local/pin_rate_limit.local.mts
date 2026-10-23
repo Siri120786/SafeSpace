@@ -21,6 +21,8 @@ const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
   if (!c) process.exitCode = 1;
 };
+// A birth month/year giving this age today (role flow: children have birth dates).
+const born = (years: number) => ({ birthYear: new Date().getUTCFullYear() - years, birthMonth: new Date().getUTCMonth() + 1 });
 
 const out = execSync("npx -y supabase@2 status -o json", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 const st = JSON.parse(out.slice(out.indexOf("{")));
@@ -33,7 +35,7 @@ initSafeSpaceClient({ supabaseUrl: st.API_URL, supabaseAnonKey: st.ANON_KEY });
 async function newFamily(pin: string) {
   await logOut().catch(() => {});
   await signUpUser(`pin-${Date.now()}-${Math.random().toString(36).slice(2)}@example.test`, crypto.randomUUID(), "caregiver");
-  await addChild({ name: "Pin kid", age: 7, pin, modules: [] });
+  await addChild({ name: "Pin kid", ...born(7), pin, modules: [] });
   return getMyFamilyCode();
 }
 const attempt = async (family_code: string, pin: string) => {

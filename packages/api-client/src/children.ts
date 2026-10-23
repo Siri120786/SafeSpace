@@ -1,33 +1,72 @@
 // packages/api-client/src/children.ts
-// Caregiver-side child profile management. Every read here is subject to the
-// RLS policies in supabase/migrations/0001_init_schema.sql — this file does
-// not, and must not, apply its own filtering logic on top. If a caregiver
-// query ever needs "extra" filtering beyond what RLS already does, that's a
-// signal the policy is incomplete, not that this file should patch around it.
+// Caregiver-side child profile management. Every read here is subject to RLS
+// (any caregiver of the child, 20261027000000_child_caregivers.sql); this file
+// does not, and must not, apply its own access filtering on top. Children are
+// created and changed only through server functions (create-child,
+// update_child, set_child_modules).
 
 import { getSafeSpaceClient } from "./supabaseClient";
-import { invokeEdge } from "./edge";
-import type { Child, ModuleKey, ChildSession } from "@safespace/shared-types";
+import { ContractError, invokeEdge, toContractError } from "./edge";
+import { childAgeYears, childSharingStatus, isValidChildBirth } from "./childSharing";
+import {
+  MODULE_KEYS,
+  type Child,
+  type ChildSession,
+  type ChildTheme,
+  type CreateChildInput,
+  type ModuleKey,
+  type UpdateChildInput,
+} from "@safespace/shared-types";
 
-export async function listMyChildren(): Promise<Child[]> {
-  const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase
-    .from("children")
-    .select("id, caregiver_id, name, age, privacy_tier, child_modules(module_key)");
-  if (error) throw error;
+export const CHILD_COLUMNS =
+  "id, caregiver_id, name, birth_year, birth_month, shares_with_caregiver, theme, low_sensory_default, child_modules(module_key)";
 
-  return (data ?? []).map((row: any) => ({
+export interface ChildRow {
+  id: string;
+  caregiver_id: string;
+  name: string;
+  birth_year: number;
+  birth_month: number;
+  shares_with_caregiver: boolean | null;
+  theme: ChildTheme | null;
+  low_sensory_default: boolean;
+  child_modules?: { module_key: ModuleKey }[] | null;
+}
+
+// myUserId: the signed-in caregiver, to say whether they are the primary.
+export function toChild(row: ChildRow, myUserId?: string | null, now: Date = new Date()): Child {
+  const ageYears = childAgeYears(row.birth_year, row.birth_month, now);
+  return {
     id: row.id,
     caregiverId: row.caregiver_id,
     name: row.name,
-    age: row.age,
-    privacyTier: row.privacy_tier,
-    assignedModules: (row.child_modules ?? []).map((m: any) => m.module_key),
-  }));
+    birthYear: row.birth_year,
+    birthMonth: row.birth_month,
+    ageYears,
+    sharing: childSharingStatus(ageYears, row.shares_with_caregiver),
+    theme: row.theme,
+    lowSensoryDefault: row.low_sensory_default,
+    assignedModules: (row.child_modules ?? []).map((m) => m.module_key),
+    ...(myUserId ? { myRole: row.caregiver_id === myUserId ? "primary" as const : "co_caregiver" as const } : {}),
+  };
 }
 
-// The code a child's device enters once so their PIN can be matched to the right
-// family. Caregivers read their own row (RLS allows it).
+export async function currentUserId(): Promise<string | null> {
+  const { data } = await getSafeSpaceClient().auth.getSession();
+  return data.session?.user.id ?? null;
+}
+
+// Every child the signed-in caregiver cares for (as primary or co-caregiver).
+export async function listMyChildren(): Promise<Child[]> {
+  const supabase = getSafeSpaceClient();
+  const { data, error } = await supabase.from("children").select(CHILD_COLUMNS).order("created_at", { ascending: true });
+  if (error) throw toContractError(error);
+  const me = await currentUserId();
+  return ((data ?? []) as ChildRow[]).map((row) => toChild(row, me));
+}
+
+// The signed-in caregiver's own family code. For the code a particular child
+// signs in with (the primary's), use getChildFamilyCode(childId).
 export async function getMyFamilyCode(): Promise<string> {
   const supabase = getSafeSpaceClient();
   const { data, error } = await supabase.from("caregivers").select("family_code").single();
@@ -35,20 +74,59 @@ export async function getMyFamilyCode(): Promise<string> {
   return data.family_code as string;
 }
 
-export async function addChild(input: {
-  name: string;
-  age: number;
-  pin: string;
-  modules: ModuleKey[];
-}): Promise<string> {
-  // PIN hashing happens server-side in the create-child Edge Function, never
-  // here. The client only ever sends the raw PIN over TLS.
-  // Failures throw a ContractError carrying the function's code, e.g.
-  // "invalid_request" or "pin_already_used_in_family".
+// The caller becomes the child's primary caregiver. PIN hashing happens
+// server-side in the create-child Edge Function; the client only sends the raw
+// PIN over TLS. Failures throw a ContractError carrying the function's code
+// (invalid_request, pin_already_used_in_family, not_a_caregiver).
+export async function addChild(input: CreateChildInput): Promise<string> {
+  if (!isValidChildBirth(input.birthYear, input.birthMonth)) throw new ContractError("invalid_input");
   const data = await invokeEdge<{ child_id: string }>("create-child", {
-    name: input.name, age: input.age, pin: input.pin, modules: input.modules,
+    name: input.name,
+    birthYear: input.birthYear,
+    birthMonth: input.birthMonth,
+    pin: input.pin,
+    modules: input.modules,
   });
   return data.child_id;
+}
+
+// Name and birth month/year: primary caregiver only (not_primary_caregiver).
+// Theme and low-sensory default: any caregiver. Omitted fields are unchanged;
+// theme null clears it.
+export async function updateChild(
+  childId: string,
+  input: UpdateChildInput & { theme?: ChildTheme | null; lowSensoryDefault?: boolean },
+): Promise<void> {
+  if ((input.birthYear !== undefined || input.birthMonth !== undefined) &&
+      (input.birthYear === undefined || input.birthMonth === undefined || !isValidChildBirth(input.birthYear, input.birthMonth))) {
+    throw new ContractError("invalid_input");
+  }
+  const { error } = await getSafeSpaceClient().rpc("update_child", {
+    p_child_id: childId,
+    p_name: input.name ?? null,
+    p_birth_year: input.birthYear ?? null,
+    p_birth_month: input.birthMonth ?? null,
+    p_theme: input.theme === undefined ? null : input.theme === null ? "" : input.theme,
+    p_low_sensory_default: input.lowSensoryDefault ?? null,
+  });
+  if (error) throw toContractError(error);
+}
+
+// Primary caregiver only, through the reset-child-pin Edge Function (hashing is
+// server-side). Signs the child out everywhere. Errors: invalid_request,
+// not_found, not_primary_caregiver, pin_already_used_in_family.
+export async function resetChildPin(childId: string, pin: string): Promise<void> {
+  if (typeof pin !== "string" || !/^\d{4}$/.test(pin)) throw new ContractError("invalid_input");
+  await invokeEdge<{ ok: true }>("reset-child-pin", { child_id: childId, pin });
+}
+
+// Any caregiver. Replaces the child's whole module list.
+export async function setChildModules(childId: string, modules: ModuleKey[]): Promise<void> {
+  if (!Array.isArray(modules) || modules.some((m) => !(MODULE_KEYS as readonly string[]).includes(m))) {
+    throw new ContractError("invalid_input");
+  }
+  const { error } = await getSafeSpaceClient().rpc("set_child_modules", { p_child_id: childId, p_modules: modules });
+  if (error) throw toContractError(error);
 }
 
 // ----------------------------------------------------------------------------
@@ -59,13 +137,13 @@ export async function addChild(input: {
 // child_session_token instead. See supabase/functions/get-child-profile
 // .
 // ----------------------------------------------------------------------------
+// Errors are ContractErrors with the function's code (invalid_session when the
+// session has ended, e.g. after a PIN reset).
 export async function getMyChildProfile(session: ChildSession): Promise<Child> {
-  const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase.functions.invoke("get-child-profile", {
-    body: { child_session_token: session.childSessionToken },
+  const data = await invokeEdge<{ child: Child }>("get-child-profile", {
+    child_session_token: session.childSessionToken,
   });
-  if (error) throw error;
-  return data.child as Child;
+  return data.child;   // get-child-profile already returns the Child shape
 }
 
 // ----------------------------------------------------------------------------

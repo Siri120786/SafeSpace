@@ -37,11 +37,12 @@ const store: CreateChildStore = {
     return (data ?? []).map((r: { pin_hash: string }) => r.pin_hash);
   },
 
-  async createChild({ caregiverId, name, age, pinHash, modules }) {
+  async createChild({ caregiverId, name, birthYear, birthMonth, pinHash, modules }) {
     const { data, error } = await admin.rpc("create_child", {
       p_caregiver_id: caregiverId,
       p_name: name,
-      p_age: age,
+      p_birth_year: birthYear,
+      p_birth_month: birthMonth,
       p_pin_hash: pinHash,
       p_modules: modules,
     });

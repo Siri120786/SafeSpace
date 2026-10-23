@@ -26,7 +26,7 @@ const store: PinAttemptStore = {
     if (error) throw error;
     if (!caregiver) return [];
     const { data: kids, error: kidsError } = await admin.from("children")
-      .select("id, pin_hash").eq("caregiver_id", caregiver.id);
+      .select("id, pin_hash, session_version").eq("caregiver_id", caregiver.id);
     if (kidsError) throw kidsError;
     return kids ?? [];
   },

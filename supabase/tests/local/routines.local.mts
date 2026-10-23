@@ -31,6 +31,8 @@ const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
   if (!c) process.exitCode = 1;
 };
+// A birth month/year giving this age today (role flow: children have birth dates).
+const born = (years: number) => ({ birthYear: new Date().getUTCFullYear() - years, birthMonth: new Date().getUTCMonth() + 1 });
 const errCode = async (p: Promise<unknown>) => {
   try {
     await p;
@@ -133,7 +135,7 @@ ok("another adult can't tick A's steps",
 // Caregiver + child via PIN
 // ---------------------------------------------------------------------------
 await becomeNew("cg", "caregiver");
-const childId = await addChild({ name: "Routine kid", age: 8, pin: "4719", modules: ["autism"] });
+const childId = await addChild({ name: "Routine kid", ...born(8), pin: "4719", modules: ["autism"] });
 const familyCode = await getMyFamilyCode();
 const cr = await createRoutine({ kind: "child", childId }, {
   title: "After school", moduleKey: "autism", steps: [{ label: "Snack" }, { label: "Homework" }],
@@ -157,7 +159,7 @@ ok("the child can't touch adult A's step (not_found)",
 
 // Another family's child can't tick this child's step.
 await becomeNew("cg2", "caregiver");
-await addChild({ name: "Other kid", age: 9, pin: "8350", modules: [] });
+await addChild({ name: "Other kid", ...born(9), pin: "8350", modules: [] });
 const otherChild = await verifyChildPin(await getMyFamilyCode(), "8350");
 ok("another family's child sees nothing and can't tick this child's step",
   (await listMyRoutines(otherChild, { date: TODAY })).length === 0 &&

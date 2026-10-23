@@ -9,6 +9,7 @@ export type OnboardingState = "pending" | "completed";
 export const MODULE_KEYS = ["autism", "adhd", "anxiety", "depression", "ptsd", "pcos_pcod"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
+/** @deprecated Role flow: replaced by ChildSharingStatus (age 15 rule). Kept only for legacy readers. */
 export type PrivacyTier = "full" | "partial" | "private";
 
 export interface ConditionModule {
@@ -44,11 +45,16 @@ export interface ProfileAccessibilityPreferences {
 }
 export interface Child {
   id: string;
-  caregiverId: string;
+  caregiverId: string;            // the primary caregiver
   name: string;
-  age: number;
-  privacyTier: PrivacyTier;
+  birthYear: number;
+  birthMonth: number;             // 1 to 12
+  ageYears: number;               // calculated from birth month/year
+  sharing: ChildSharingStatus;    // docs/role-flow/CONTRACT.md section 5
+  theme: ChildTheme | null;
+  lowSensoryDefault: boolean;
   assignedModules: ModuleKey[];
+  myRole?: ChildCaregiverRole;    // caregiver views only: the caller's role
 }
 
 export interface Caregiver {
@@ -80,19 +86,51 @@ export interface CreateJournalEntryInput {
   content: string;
   entryType?: JournalEntryType; // default "journal"
   moduleKey?: ModuleKey | null;
-  isPrivateNote?: boolean;      // ignored for adults; rejected unless child tier is 'partial'
 }
 
 // ----------------------------------------------------------------------------
 // Routines (Sprint 3). A routine is an ordered list of steps; completion is
 // recorded per step per local calendar day, so progress and streaks persist.
 // ----------------------------------------------------------------------------
+// Icons a caregiver can give a routine step (role-flow 4c). Stored as the key;
+// the apps draw the emoji. Must match the check in
+// supabase/migrations/20261027300000_routine_step_icons.sql.
+export const ROUTINE_STEP_ICONS = {
+  wake: { emoji: "⏰", label: "Wake up" },
+  toilet: { emoji: "🚽", label: "Toilet" },
+  wash: { emoji: "🧼", label: "Wash" },
+  brush_teeth: { emoji: "🪥", label: "Brush teeth" },
+  dress: { emoji: "👕", label: "Get dressed" },
+  breakfast: { emoji: "🥣", label: "Breakfast" },
+  lunch: { emoji: "🥪", label: "Lunch" },
+  dinner: { emoji: "🍝", label: "Dinner" },
+  snack: { emoji: "🍎", label: "Snack" },
+  water: { emoji: "💧", label: "Water" },
+  medicine: { emoji: "💊", label: "Medicine" },
+  school: { emoji: "🏫", label: "School" },
+  homework: { emoji: "✏️", label: "Homework" },
+  reading: { emoji: "📖", label: "Reading" },
+  play: { emoji: "🧸", label: "Play" },
+  outdoor: { emoji: "🌳", label: "Outside" },
+  exercise: { emoji: "⚽", label: "Exercise" },
+  music: { emoji: "🎵", label: "Music" },
+  screen: { emoji: "📺", label: "Screen time" },
+  tidy: { emoji: "🧺", label: "Tidy up" },
+  bath: { emoji: "🛁", label: "Bath" },
+  calm: { emoji: "🌿", label: "Calm time" },
+  bed: { emoji: "🛏️", label: "Bed" },
+} as const;
+
+export type RoutineStepIcon = keyof typeof ROUTINE_STEP_ICONS;
+export const ROUTINE_STEP_ICON_KEYS = Object.keys(ROUTINE_STEP_ICONS) as RoutineStepIcon[];
+
 export interface RoutineStep {
   id: string;
   routineId: string;
   label: string;
   scheduledTime: string | null; // "HH:MM" (24h), optional
   orderIndex: number;
+  icon: RoutineStepIcon | null; // optional (role-flow 4c)
 }
 
 export interface RoutineStepWithProgress extends RoutineStep {
@@ -119,7 +157,7 @@ export interface CreateRoutineInput {
   title: string;
   moduleKey?: ModuleKey | null;
   daysOfWeek?: number[];
-  steps: { label: string; scheduledTime?: string | null }[];
+  steps: { label: string; scheduledTime?: string | null; icon?: RoutineStepIcon | null }[];
 }
 
 export interface UpdateRoutineInput {
@@ -218,7 +256,6 @@ export interface CreateMoodCheckinInput {
   mood: MoodValue;
   intensity?: number | null;
   note?: string | null;
-  isPrivateNote?: boolean;    // ignored for adults; rejected unless child tier is 'partial'
 }
 
 export interface ListMoodCheckinsOptions {
@@ -269,6 +306,7 @@ export interface AiCompanionSendResult {
 export const REMINDER_KINDS = ["routine", "water", "medication", "wellness", "custom"] as const;
 export type ReminderKind = (typeof REMINDER_KINDS)[number];
 export const REMINDER_TITLE_MAX_LENGTH = 80;
+export const REMINDER_LEAD_MAX_MINUTES = 120;
 
 export interface Reminder {
   id: string;
@@ -281,14 +319,17 @@ export interface Reminder {
   daysOfWeek: number[];         // 0 = Sunday ... 6 = Saturday; empty = every day
   timezone: string;             // IANA name, e.g. "Asia/Kolkata"
   isEnabled: boolean;
+  leadMinutes: number;          // heads-up: due this many minutes before timeOfDay
   createdAt: string;
   updatedAt: string;
 }
 
-// A reminder occurrence that is due (or past due) today.
+// A reminder occurrence that is due: today's from (time - heads-up) on, or
+// tomorrow's when the heads-up crosses midnight.
 export interface DueReminder {
   reminder: Reminder;
-  dueAt: string;                // ISO timestamp of today's occurrence
+  dueAt: string;                // ISO timestamp it becomes due (occursAt minus the heads-up)
+  occursAt: string;             // ISO timestamp of the occurrence itself
   occursOn: string;             // local date "YYYY-MM-DD" in the reminder's timezone
   acknowledged: boolean;        // marked done or dismissed for occursOn
 }
@@ -301,6 +342,7 @@ export interface CreateReminderInput {
   daysOfWeek?: number[];
   timezone: string;
   isEnabled?: boolean;
+  leadMinutes?: number;         // 0 to 120, default 0
 }
 
 export type UpdateReminderInput = Partial<Omit<CreateReminderInput, "kind">> & { isEnabled?: boolean };
@@ -331,9 +373,168 @@ export interface WellnessSummary {
   };
 }
 
-// Caregiver dashboard card for one child.
+// Caregiver dashboard card for one child. When the young person has chosen not
+// to share (activity.visible === false), summary and dueRemindersToday are null.
 export interface ChildOverview {
   child: Child;
-  summary: WellnessSummary;
-  dueRemindersToday: number;
+  activity: ActivityVisibility;
+  summary: WellnessSummary | null;
+  dueRemindersToday: number | null;
+  unreviewedAlerts: number;       // never gated by the sharing choice
+}
+
+// ----------------------------------------------------------------------------
+// Role-based flow (docs/role-flow/CONTRACT.md).
+// ----------------------------------------------------------------------------
+
+// The three roles as the app presents them. Profiles store "user" for an
+// Individual; children have no profile.
+export type AppRole = "individual" | "caregiver" | "child";
+
+export const USER_ROLE_TO_APP_ROLE: Record<UserRole, Exclude<AppRole, "child">> = {
+  user: "individual",
+  caregiver: "caregiver",
+};
+
+// Where each role lands after signing in.
+export const ROLE_HOME_ROUTES: Record<AppRole, string> = {
+  individual: "/dashboard",
+  caregiver: "/caregiver",
+  child: "/child",
+};
+
+// Child accounts cover ages 4 to 17. From 15 the young person decides whether
+// their caregiver sees their activity.
+export const CHILD_MIN_AGE = 4;
+export const CHILD_MAX_AGE = 17;
+export const CAREGIVER_VISIBILITY_AGE = 15;
+
+// Calculated from age and the stored choice, never stored directly:
+//   under_15    caregiver sees activity
+//   not_asked   15+, no choice yet: caregiver sees activity
+//   shared      15+, chose to share
+//   not_shared  15+, chose not to share: caregiver sees no activity
+export type ChildSharingStatus = "under_15" | "not_asked" | "shared" | "not_shared";
+
+export type ActivityVisibility =
+  | { visible: true; reason: "under_15" | "not_asked" | "shared" }
+  | { visible: false; reason: "not_shared" };
+
+// Birth month precision is enough for the age rule; month is 1 to 12.
+export interface CreateChildInput {
+  name: string;
+  birthYear: number;
+  birthMonth: number;
+  pin: string;              // exactly 4 digits; hashed server-side
+  modules: ModuleKey[];
+}
+
+export interface UpdateChildInput {
+  name?: string;
+  birthYear?: number;
+  birthMonth?: number;
+}
+
+// What a signed-in child can read about their own settings.
+export interface ChildSettings {
+  ageYears: number;
+  sharing: ChildSharingStatus;
+  canChangeSharing: boolean;      // true only at 15 or over
+  sharingDecidedAt: string | null;
+}
+
+// Caregiver's detail page for one child. Each activity list is null when the
+// young person has chosen not to share (activity.visible === false).
+export interface CaregiverChildDetail {
+  child: Child;
+  ageYears: number;
+  sharing: ChildSharingStatus;
+  myRole: ChildCaregiverRole;
+  unreviewedAlerts: number;
+  activity: ActivityVisibility;
+  periodDays: WellnessPeriodDays;
+  summary: WellnessSummary | null;
+  recentMoods: MoodCheckin[] | null;
+  recentJournal: JournalEntry[] | null;
+  aiConversations: AiCompanionConversation[] | null;
+  routines: RoutineWithSteps[];   // set up by the caregiver: always visible
+  reminders: Reminder[];          // set up by the caregiver: always visible
+}
+
+// Several caregivers per child. The creator is the primary; others join with a
+// one-time invite code.
+export type ChildCaregiverRole = "primary" | "co_caregiver";
+
+export interface ChildCaregiver {
+  caregiverId: string;
+  displayName: string | null;
+  role: ChildCaregiverRole;
+  addedAt: string;
+}
+
+export const CAREGIVER_INVITE_CODE_LENGTH = 8;
+export const CAREGIVER_INVITE_TTL_HOURS = 48;
+
+export interface CaregiverInvite {
+  code: string;
+  childId: string;
+  expiresAt: string;
+}
+
+// Child appearance and sensory defaults, set by a caregiver.
+export const CHILD_THEMES = ["space", "ocean", "dinosaurs", "trains"] as const;
+export type ChildTheme = (typeof CHILD_THEMES)[number];
+
+// Talk board. Phrases are spoken on the device and not stored, except
+// "I need help", which raises an alert to every caregiver of the child.
+export const TALK_BOARD_PHRASES = [
+  "I need a break",
+  "Too loud",
+  "I'm hungry",
+  "Not right now",
+  "Yes",
+  "No",
+  "I feel happy",
+  "I need help",
+] as const;
+export type TalkBoardPhrase = (typeof TALK_BOARD_PHRASES)[number];
+export const HELP_PHRASE: TalkBoardPhrase = "I need help";
+export const HELP_ALERT_REPEAT_WINDOW_SECONDS = 120;
+
+// An alert as caregivers see it (an emergency_events row). Always visible to
+// every caregiver of the child, whatever the sharing choice.
+export type AlertSource = "aac_tap" | "check_in" | "journal_flag";
+
+export interface CaregiverAlert {
+  id: string;
+  childId: string;
+  childName: string;
+  source: AlertSource;
+  createdAt: string;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+}
+
+export interface ListAlertsOptions {
+  unreviewedOnly?: boolean;
+  limit?: number;
+}
+
+// Stories (only if the team confirms they're ours; docs/role-flow/CONTRACT.md D15).
+export const STORY_TITLE_MAX_LENGTH = 80;
+export const STORY_TEXT_MAX_LENGTH = 4000;
+
+export interface Story {
+  id: string;
+  childId: string;
+  title: string;
+  text: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateStoryInput {
+  title: string;
+  text: string;
 }

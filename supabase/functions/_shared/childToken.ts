@@ -25,9 +25,12 @@ async function hmacKey(): Promise<CryptoKey> {
   return crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
 }
 
-export async function signChildToken(childId: string): Promise<string> {
+// sessionVersion: children.session_version when the token is issued. Each
+// child request checks it (see childSession.ts), so a PIN reset ends sessions.
+export async function signChildToken(childId: string, sessionVersion = 1): Promise<string> {
   const payload = b64url(enc.encode(JSON.stringify({
     child_id: childId,
+    sv: sessionVersion,
     exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
   })));
   const sig = new Uint8Array(await crypto.subtle.sign("HMAC", await hmacKey(), enc.encode(payload)));
@@ -39,7 +42,15 @@ export async function signChildToken(childId: string): Promise<string> {
 // string, wrong shape, bad base64, bad JSON) is null, never a thrown error, so
 // callers answer 401 rather than 500. A missing CHILD_SESSION_SECRET still
 // throws, because that is a server misconfiguration, not a bad token.
+// Signature and expiry only: child functions use childSession.ts, which also
+// checks the session version against the database.
 export async function verifyChildToken(token: unknown): Promise<string | null> {
+  return (await readChildToken(token))?.childId ?? null;
+}
+
+// The verified token contents (same rules as verifyChildToken). Tokens issued
+// before session versions existed carry no `sv` and count as version 1.
+export async function readChildToken(token: unknown): Promise<{ childId: string; sessionVersion: number } | null> {
   if (typeof token !== "string" || !token) return null;
   const parts = token.split(".");
   if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
@@ -53,9 +64,10 @@ export async function verifyChildToken(token: unknown): Promise<string | null> {
   const ok = await crypto.subtle.verify("HMAC", await hmacKey(), sigBytes, enc.encode(payload));
   if (!ok) return null;
   try {
-    const { child_id, exp } = JSON.parse(new TextDecoder().decode(fromB64url(payload)));
+    const { child_id, exp, sv } = JSON.parse(new TextDecoder().decode(fromB64url(payload)));
     if (typeof child_id !== "string" || !child_id || typeof exp !== "number") return null;
-    return exp > Math.floor(Date.now() / 1000) ? child_id : null;
+    if (sv !== undefined && (typeof sv !== "number" || !Number.isInteger(sv) || sv < 1)) return null;
+    return exp > Math.floor(Date.now() / 1000) ? { childId: child_id, sessionVersion: sv ?? 1 } : null;
   } catch {
     return null;
   }

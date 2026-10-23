@@ -37,5 +37,11 @@ verify_jwt = false   # child-only; authenticated by the signed child-session tok
 verify_jwt = false   # child-only; authenticated by the signed child-session token
 [functions.reminders]
 verify_jwt = false   # child-only; authenticated by the signed child-session token
+[functions.child-settings]
+verify_jwt = false   # child-only; authenticated by the signed child-session token
+[functions.child-alerts]
+verify_jwt = false   # child-only; authenticated by the signed child-session token
+[functions.reset-child-pin]
+verify_jwt = true    # caregiver-only; the function also checks the caller is the primary caregiver
 [functions.create-child]
 verify_jwt = true    # caregiver-only

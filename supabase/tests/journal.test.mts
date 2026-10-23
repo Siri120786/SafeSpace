@@ -51,7 +51,10 @@ const otherKid = await kid(cgB, "full");
 await db.query(`insert into caregiver_user_links (caregiver_id, user_id, status) values ($1, $2, 'active')`, [cgA, adultA]);
 
 // Legacy rows shaped like production before Sprint 3 (child-only), including
-// a blank entry the new length rule would reject.
+// a blank entry the new length rule would reject, and a private note from
+// before private notes were removed (role flow M2). Seeded with triggers
+// paused, the way old data already exists.
+await db.exec(`set session_replication_role = replica`);
 await db.query(
   `insert into journal_entries (child_id, module_key, content, is_private_note) values
      ($1, 'autism', 'full-tier entry', false),
@@ -60,6 +63,7 @@ await db.query(
      ($3, 'adhd', 'other family entry', false),
      ($1, 'autism', '   ', false)`,
   [fullKid, partialKid, otherKid]);
+await db.exec(`set session_replication_role = origin`);
 
 for (const f of files.filter((f) => f >= JOURNAL_MIGRATION)) await db.exec(readFileSync(dir + f, "utf8"));
 ok("all migrations including journaling apply cleanly over legacy data (even a blank legacy row)", true);
@@ -90,7 +94,7 @@ ok("legacy rows default to entry_type 'journal'", legacyTypes.length === 1 && le
 const cgSees = (await as<{ content: string }>("authenticated", cgA, `select content from journal_entries`)).map((r) => r.content);
 ok("caregiver still sees full-tier and partial shared entries",
   cgSees.includes("full-tier entry") && cgSees.includes("partial shared entry"));
-ok("caregiver still can't see the partial-tier child's private note", !cgSees.includes("partial PRIVATE note"));
+ok("caregiver still can't see the legacy private note", !cgSees.includes("partial PRIVATE note"));
 ok("caregiver still can't see another family's entries", !cgSees.includes("other family entry"));
 
 // ---------------------------------------------------------------------------
@@ -121,10 +125,9 @@ ok("adult deletes their own entry",
 // ---------------------------------------------------------------------------
 // Children (written by the Edge Function = service role) and caregivers
 // ---------------------------------------------------------------------------
-ok("private note allowed for a partial-tier child",
-  !(await fails("service_role", "", `insert into journal_entries (child_id, content, is_private_note) values ($1, 'secret', true)`, [partialKid])));
-ok("private note rejected for a full-tier child (trigger)",
-  await fails("service_role", "", `insert into journal_entries (child_id, content, is_private_note) values ($1, 'secret', true)`, [fullKid]));
+ok("new private notes are refused for every child (private notes were removed)",
+  (await fails("service_role", "", `insert into journal_entries (child_id, content, is_private_note) values ($1, 'secret', true)`, [partialKid])) &&
+  (await fails("service_role", "", `insert into journal_entries (child_id, content, is_private_note) values ($1, 'secret', true)`, [fullKid])));
 ok("caregiver can't write, edit or delete their child's entries",
   await fails("authenticated", cgA, `insert into journal_entries (child_id, content) values ($1, 'x')`, [fullKid]) &&
   await fails("authenticated", cgA, `update journal_entries set content = 'x' where child_id = $1`, [fullKid]) &&

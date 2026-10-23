@@ -143,9 +143,11 @@ ok("a linked caregiver asking for the adult's summary gets zeros",
   zero(await summary("authenticated", cg, { profile: adultA })));
 
 // ---------------------------------------------------------------------------
-// Caregiver view of a partial-tier child: private notes excluded
+// Caregiver view: legacy private notes (from before private notes were
+// removed in role flow M2) stay excluded. Seeded with triggers paused.
 // ---------------------------------------------------------------------------
 await db.exec(`
+  set session_replication_role = replica;
   insert into mood_checkins (child_id, mood, is_private_note, created_at) values
     ('${child}', 'happy', false, ${at(0, "10:00")}),
     ('${child}', 'neutral', false, ${at(2, "10:00")}),
@@ -153,9 +155,10 @@ await db.exec(`
   insert into journal_entries (child_id, content, is_private_note, created_at) values
     ('${child}', 'shared', false, ${at(0, "11:00")}),
     ('${child}', 'private', true, ${at(0, "12:00")});
+  set session_replication_role = origin;
 `);
 const cgView = await summary("authenticated", cg, { child });
-ok("caregiver's summary of the child excludes the private mood note and private journal entry",
+ok("caregiver's summary of the child excludes the legacy private mood note and journal entry",
   cgView.mood.checkins === 2 && cgView.mood.counts.overwhelmed === 0 && cgView.journal.entries === 1);
 const childView = await summary("service_role", "", { child });
 ok("the child's own summary (Edge Function, service role) includes their private notes",

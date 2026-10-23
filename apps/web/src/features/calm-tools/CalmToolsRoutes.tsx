@@ -5,19 +5,24 @@ import { BreathingExercise } from "./components/BreathingExercise";
 import { GroundingExercise } from "./components/GroundingExercise";
 import { CalmToolsHome } from "./components/CalmToolsHome";
 
-/** Mounted at /calm-tools/* inside a ProtectedRoute. Exit always goes back to the dashboard. */
-export const CalmToolsRoutes: React.FC = () => {
+interface CalmToolsRoutesProps {
+  basePath?: string;   // where this is mounted: /calm-tools (Individual) or /child/calm-tools (Child)
+  homePath?: string;   // where Exit goes: that person's home
+}
+
+/** Mounted inside a RoleRoute. Exit goes back to the home of whoever is using it. */
+export const CalmToolsRoutes: React.FC<CalmToolsRoutesProps> = ({ basePath = "/calm-tools", homePath = "/dashboard" }) => {
   const navigate = useNavigate();
   const { lowSensory, preferenceError } = useLowSensory();
-  const onExit = useCallback(() => navigate("/dashboard"), [navigate]);
+  const onExit = useCallback(() => navigate(homePath), [navigate, homePath]);
   const common = { lowSensory, onExit, notice: preferenceError };
 
   return (
     <Routes>
-      <Route index element={<CalmToolsHome {...common} />} />
+      <Route index element={<CalmToolsHome {...common} basePath={basePath} />} />
       <Route path="breathing" element={<BreathingExercise {...common} />} />
       <Route path="grounding" element={<GroundingExercise {...common} />} />
-      <Route path="*" element={<Navigate to="/calm-tools" replace />} />
+      <Route path="*" element={<Navigate to={basePath} replace />} />
     </Routes>
   );
 };

@@ -59,7 +59,8 @@ ok("timezone validation", R.isValidTimeZone("Asia/Kolkata") && !R.isValidTimeZon
 const zones = ["Asia/Kolkata", "UTC", "America/New_York", "Pacific/Auckland"];
 const times = ["00:00", "06:45", "12:00", "23:59"];
 const days = [[], [0], [1, 2, 3, 4, 5], [6]];
-const reminders = zones.flatMap((tz, i) => times.map((t, j) => rem({ id: `r${i}-${j}`, timezone: tz, timeOfDay: t, daysOfWeek: days[(i + j) % 4] })));
+const leads = [0, 15, 30, 120];
+const reminders = zones.flatMap((tz, i) => times.map((t, j) => rem({ id: `r${i}-${j}`, timezone: tz, timeOfDay: t, daysOfWeek: days[(i + j) % 4], leadMinutes: leads[(i * 3 + j) % 4] })));
 const acks = [{ reminderId: "r0-1", occursOn: "2026-10-24" }, { reminderId: "r2-2", occursOn: "2026-11-01" }];
 let same = true;
 for (let h = 0; h < 24 * 10; h += 7) {
@@ -68,7 +69,37 @@ for (let h = 0; h < 24 * 10; h += 7) {
   const b = JSON.stringify(client.computeDueReminders(reminders as any, acks, at));
   if (a !== b) { same = false; break; }
 }
-ok("computeDueReminders is identical in the Edge Function and the api-client (16 reminders x 35 instants)", same);
+ok("computeDueReminders is identical in the Edge Function and the api-client (16 reminders with heads-ups x 35 instants)", same);
+
+// ---------------------------------------------------------------------------
+// Heads-up (lead minutes, role flow M3)
+// ---------------------------------------------------------------------------
+{
+  // 09:00 IST with a 15-minute heads-up. 03:15Z = 08:45 IST.
+  const r = rem({ leadMinutes: 15 });
+  const at0844 = R.computeDueReminders([r], [], new Date("2026-10-24T03:14:00Z"));
+  const at0845 = R.computeDueReminders([r], [], new Date("2026-10-24T03:15:00Z"));
+  ok("a 15-minute heads-up makes a 09:00 reminder due at 08:45, not 08:44",
+    at0844.length === 0 && at0845.length === 1 && at0845[0].occursOn === "2026-10-24" &&
+    at0845[0].dueAt === "2026-10-24T03:15:00.000Z" && at0845[0].occursAt === "2026-10-24T03:30:00.000Z");
+  ok("without a heads-up, dueAt and occursAt are the same time",
+    R.computeDueReminders([rem()], [], sat0930ist)[0].dueAt === R.computeDueReminders([rem()], [], sat0930ist)[0].occursAt);
+  // 00:05 IST with a 10-minute heads-up: tomorrow's occurrence is due from 23:55 today.
+  const mid = rem({ timeOfDay: "00:05", leadMinutes: 10 });
+  const at2354 = R.computeDueReminders([mid], [], new Date("2026-10-24T18:24:00Z")); // 23:54 IST Sat
+  const at2355 = R.computeDueReminders([mid], [], new Date("2026-10-24T18:25:00Z")); // 23:55 IST Sat
+  const sunday = at2355.find((d) => d.occursOn === "2026-10-25");
+  ok("a heads-up that crosses midnight makes tomorrow's occurrence due late tonight",
+    !at2354.some((d) => d.occursOn === "2026-10-25") && !!sunday && sunday.occursAt === "2026-10-24T18:35:00.000Z");
+  ok("today's occurrence of that reminder is still listed too", at2355.some((d) => d.occursOn === "2026-10-24"));
+  // Weekday filter applies to tomorrow's date: Sunday (0) only.
+  const sundayOnly = rem({ timeOfDay: "00:05", leadMinutes: 10, daysOfWeek: [0] });
+  ok("the weekday filter uses the occurrence's own date (Sunday-only shows only the Sunday one)",
+    R.computeDueReminders([sundayOnly], [], new Date("2026-10-24T18:25:00Z")).map((d) => d.occursOn).join() === "2026-10-25");
+  ok("acknowledging tomorrow's occurrence early is recorded against tomorrow's date",
+    R.computeDueReminders([mid], [{ reminderId: "r1", occursOn: "2026-10-25" }], new Date("2026-10-24T18:25:00Z"))
+      .find((d) => d.occursOn === "2026-10-25")?.acknowledged === true);
+}
 ok("reminder kinds in shared-types match the database list",
   JSON.stringify(shared.REMINDER_KINDS) === JSON.stringify(["routine", "water", "medication", "wellness", "custom"]));
 

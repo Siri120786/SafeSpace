@@ -68,7 +68,9 @@ function normaliseInput(input: CreateMoodCheckinInput) {
   if (note !== null && note.length > MOOD_NOTE_MAX_LENGTH) {
     throw new Error("note_too_long");
   }
-  return { mood: input.mood, intensity, note, isPrivateNote: input.isPrivateNote === true };
+  // Private notes were removed (role flow): refuse callers that still send one.
+  if ((input as { isPrivateNote?: unknown }).isPrivateNote === true) throw new Error("invalid_input");
+  return { mood: input.mood, intensity, note };
 }
 
 async function invokeMoodFunction(body: Record<string, unknown>) {
@@ -101,7 +103,6 @@ export async function createMoodCheckin(
       mood: clean.mood,
       intensity: clean.intensity,
       note: clean.note,
-      is_private_note: clean.isPrivateNote,
     });
     return toMoodCheckin(data.checkin);
   }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../features/auth";
+import { RoleNotice, useAuth } from "../features/auth";
 import { getSupportPreferences, getAccessibilityPreferences } from "@safespace/api-client";
 import type { ModuleKey, ProfileAccessibilityPreferences } from "@safespace/shared-types";
 import { Card } from "../components/ui/Card";
@@ -10,8 +10,8 @@ import { BottomNav, type NavTab } from "../components/ui/BottomNav";
 import { BrainMascot } from "../components/vectors/BrainMascot";
 import { LeafCluster } from "../components/vectors/LeafFrame";
 import { SessionPlayerModal } from "../components/ui/SessionPlayerModal";
-import { LinkedUsersPanel } from "../features/caregiver";
 import { ChatWindow } from "../features/ai-companion";
+import { TodayCard } from "../features/my-tools";
 import { ROUTES } from "../routes";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
@@ -22,6 +22,17 @@ const SUPPORT_LABELS: Record<ModuleKey, string> = {
   ptsd: "PTSD & Safety Grounding",
   pcos_pcod: "PCOS / PCOD Wellbeing",
 };
+
+// Every tool, as tiles on the home tab (the mobile bottom bar only has four tabs).
+const TOOL_TILES = [
+  { to: ROUTES.MOOD_CHECK_IN, label: "Mood check-in", icon: "🌱" },
+  { to: ROUTES.ROUTINES, label: "Routines", icon: "✅" },
+  { to: ROUTES.JOURNAL, label: "Journal", icon: "📓" },
+  { to: ROUTES.REMINDERS, label: "Reminders", icon: "⏰" },
+  { to: ROUTES.CALM_TOOLS, label: "Calm tools", icon: "🍃" },
+  { to: ROUTES.MODULES, label: "Wellness modules", icon: "🌈" },
+  { to: ROUTES.COMPANION, label: "AI Companion", icon: "💬" },
+];
 
 const SESSIONS_RECOMMENDED = [
   { id: "breathe_reset", title: "Breathe & reset", duration: 5, category: "Breathing", icon: "💨" },
@@ -52,13 +63,7 @@ export const DashboardPage: React.FC = () => {
   });
 
   const profileId = session?.kind === "auth_user" ? session.profile.id : null;
-  const isCaregiver = session?.kind === "auth_user" && session.profile.role === "caregiver";
-  const displayName =
-    session?.kind === "auth_user"
-      ? session.profile.displayName || "friend"
-      : session?.kind === "caregiver"
-      ? "Caregiver"
-      : "Child";
+  const displayName = session?.kind === "auth_user" ? session.profile.displayName || "friend" : "friend";
 
   useEffect(() => {
     if (!profileId) return;
@@ -98,23 +103,8 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  if (!session) return null;
-
-  // Child Space Session
-  if (session.kind === "child") {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-cream to-paleLime p-4 sm:p-6 lg:p-8 flex items-center justify-center font-sans">
-        <Card className="max-w-md w-full text-center space-y-6">
-          <BrainMascot stance="happy" size={160} showBubble={true} bubbleText="Welcome to Child Space!" />
-          <h1 className="font-display text-2xl font-medium text-textHeading">Child Space</h1>
-          <p className="text-sm text-textMuted font-light">A safe, gentle space created just for you.</p>
-          <Button variant="ghost" size="md" onClick={logout} className="text-red-500">
-            Exit Space
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  // RoleRoute only lets Individuals in.
+  if (!session || session.kind !== "auth_user") return null;
 
   const openPlayer = (title: string, duration: number, category: string) => {
     setActiveSession({
@@ -149,7 +139,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="font-display text-base font-medium text-textHeading">{displayName}</h2>
-                  <span className="text-xs text-textMuted capitalize">{session.kind} Account</span>
+                  <span className="text-xs text-textMuted">Individual account</span>
                 </div>
               </div>
 
@@ -160,8 +150,10 @@ export const DashboardPage: React.FC = () => {
                   { id: "companion", label: "AI Companion", icon: "💬" },
                   { id: "sessions", label: "Guided Breathing", icon: "🎧" },
                   { id: "mood", label: "Mood Check-in", icon: "🌱", route: ROUTES.MOOD_CHECK_IN },
+                  { id: "routines", label: "Routines", icon: "✅", route: ROUTES.ROUTINES },
+                  { id: "journal", label: "Journal", icon: "📓", route: ROUTES.JOURNAL },
+                  { id: "reminders", label: "Reminders", icon: "⏰", route: ROUTES.REMINDERS },
                   { id: "calm", label: "Calm Tools", icon: "🍃", route: "/calm-tools" },
-                  ...(isCaregiver ? [{ id: "family", label: "Family", icon: "👨‍👩‍👧", route: ROUTES.CAREGIVER_DASHBOARD }] : []),
                   { id: "profile", label: "Profile Settings", icon: "👤", route: "/profile" },
                 ].map((item) => (
                   <button
@@ -202,6 +194,7 @@ export const DashboardPage: React.FC = () => {
 
           {/* MAIN DASHBOARD CONTENT AREA */}
           <main className="lg:col-span-9 space-y-8">
+            <RoleNotice />
             
             {/* Top Bar for Mobile Greeting */}
             <div className="flex items-center justify-between lg:hidden pt-2">
@@ -257,6 +250,22 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 </Card>
 
+                <TodayCard session={session} routinesPath={ROUTES.ROUTINES} remindersPath={ROUTES.REMINDERS} />
+
+                <nav aria-label="Your tools" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {TOOL_TILES.map((t) => (
+                    <button
+                      key={t.to}
+                      type="button"
+                      onClick={() => navigate(t.to)}
+                      className="flex flex-col items-center gap-1 rounded-2xl border border-olive-100 bg-white px-3 py-4 text-sm font-medium text-textHeading hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500"
+                    >
+                      <span aria-hidden="true" className="text-2xl">{t.icon}</span>
+                      {t.label}
+                    </button>
+                  ))}
+                </nav>
+
                 {/* Daily Mood Check-In Entry Card */}
                 <Card className="p-5 border border-olive-100 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -276,25 +285,6 @@ export const DashboardPage: React.FC = () => {
                     Check in
                   </Button>
                 </Card>
-
-                {isCaregiver && (
-                  <Card className="p-5 border border-olive-100 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-olive-50 text-deepGreen flex items-center justify-center text-xl shrink-0">
-                        👨‍👩‍👧
-                      </div>
-                      <div>
-                        <h4 className="font-display text-base font-medium text-textHeading">Your family</h4>
-                        <p className="text-xs text-textMuted font-light">Family code, children and how their week is going.</p>
-                      </div>
-                    </div>
-                    <Button variant="olive" size="sm" onClick={() => navigate(ROUTES.CAREGIVER_DASHBOARD)}>
-                      Open
-                    </Button>
-                  </Card>
-                )}
-
-                {isCaregiver && profileId && (<LinkedUsersPanel caregiverId={profileId} />)}
 
                 {/* Insight Card: Meditating Mascot */}
                 <Card className="p-6 md:p-8 bg-gradient-to-r from-olive-50/80 via-white to-paleLime/40 border border-olive-200/60 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
@@ -418,7 +408,7 @@ export const DashboardPage: React.FC = () => {
                   <div>
                     <h4 className="text-sm font-semibold text-textHeading">Account Details</h4>
                     <p className="text-xs text-textMuted mt-1">Display Name: <span className="font-medium text-textHeading">{displayName}</span></p>
-                    <p className="text-xs text-textMuted mt-0.5">Account Role: <span className="font-medium text-textHeading capitalize">{session.kind}</span></p>
+                    <p className="text-xs text-textMuted mt-0.5">Account Role: <span className="font-medium text-textHeading">Individual</span></p>
                   </div>
 
                   <div className="pt-4 border-t border-olive-100">
