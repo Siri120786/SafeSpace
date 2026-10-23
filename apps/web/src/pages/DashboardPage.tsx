@@ -333,6 +333,9 @@ export const DashboardPage: React.FC = () => {
                     <Button variant="outline" size="sm" onClick={() => navigate("/calm-tools")}>
                       Open calm tools
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => navigate("/modules")}>
+                      Open modules
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

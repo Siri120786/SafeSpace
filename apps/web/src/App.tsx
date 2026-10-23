@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { AuthProvider, ProtectedRoute, GuestRoute } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
 import { CalmToolsRoutes } from "./features/calm-tools";
+import { ModulesRoutes } from "./features/wellness-modules";
+import { StoryWorkflowRoute } from "./features/story-workflow";
 import { ROUTES } from "./routes";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
@@ -116,6 +118,24 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <CalmToolsRoutes />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected wellness modules and story workflow (Sprint 3 prototypes) */}
+          <Route
+            path="/modules/*"
+            element={
+              <ProtectedRoute>
+                <ModulesRoutes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/story-workflow"
+            element={
+              <ProtectedRoute>
+                <StoryWorkflowRoute />
               </ProtectedRoute>
             }
           />
