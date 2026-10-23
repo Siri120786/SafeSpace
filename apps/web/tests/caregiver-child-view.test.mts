@@ -48,6 +48,8 @@ test("no AI chats note when the young person chose not to share", () => {
 test("child detail path encodes the id", () => {
   assert.equal(caregiverChildPath("abc-123"), "/caregiver/children/abc-123");
   assert.equal(caregiverChildPath("a/b"), "/caregiver/children/a%2Fb");
+  assert.equal(caregiverChildPath("abc", "routines"), "/caregiver/children/abc/routines");
+  assert.equal(caregiverChildPath("abc", "reminders"), "/caregiver/children/abc/reminders");
 });
 
 console.log(`${passed} caregiver-child-view checks`);

@@ -92,12 +92,45 @@ export interface CreateJournalEntryInput {
 // Routines (Sprint 3). A routine is an ordered list of steps; completion is
 // recorded per step per local calendar day, so progress and streaks persist.
 // ----------------------------------------------------------------------------
+// Icons a caregiver can give a routine step (role-flow 4c). Stored as the key;
+// the apps draw the emoji. Must match the check in
+// supabase/migrations/20261027300000_routine_step_icons.sql.
+export const ROUTINE_STEP_ICONS = {
+  wake: { emoji: "⏰", label: "Wake up" },
+  toilet: { emoji: "🚽", label: "Toilet" },
+  wash: { emoji: "🧼", label: "Wash" },
+  brush_teeth: { emoji: "🪥", label: "Brush teeth" },
+  dress: { emoji: "👕", label: "Get dressed" },
+  breakfast: { emoji: "🥣", label: "Breakfast" },
+  lunch: { emoji: "🥪", label: "Lunch" },
+  dinner: { emoji: "🍝", label: "Dinner" },
+  snack: { emoji: "🍎", label: "Snack" },
+  water: { emoji: "💧", label: "Water" },
+  medicine: { emoji: "💊", label: "Medicine" },
+  school: { emoji: "🏫", label: "School" },
+  homework: { emoji: "✏️", label: "Homework" },
+  reading: { emoji: "📖", label: "Reading" },
+  play: { emoji: "🧸", label: "Play" },
+  outdoor: { emoji: "🌳", label: "Outside" },
+  exercise: { emoji: "⚽", label: "Exercise" },
+  music: { emoji: "🎵", label: "Music" },
+  screen: { emoji: "📺", label: "Screen time" },
+  tidy: { emoji: "🧺", label: "Tidy up" },
+  bath: { emoji: "🛁", label: "Bath" },
+  calm: { emoji: "🌿", label: "Calm time" },
+  bed: { emoji: "🛏️", label: "Bed" },
+} as const;
+
+export type RoutineStepIcon = keyof typeof ROUTINE_STEP_ICONS;
+export const ROUTINE_STEP_ICON_KEYS = Object.keys(ROUTINE_STEP_ICONS) as RoutineStepIcon[];
+
 export interface RoutineStep {
   id: string;
   routineId: string;
   label: string;
   scheduledTime: string | null; // "HH:MM" (24h), optional
   orderIndex: number;
+  icon: RoutineStepIcon | null; // optional (role-flow 4c)
 }
 
 export interface RoutineStepWithProgress extends RoutineStep {
@@ -124,7 +157,7 @@ export interface CreateRoutineInput {
   title: string;
   moduleKey?: ModuleKey | null;
   daysOfWeek?: number[];
-  steps: { label: string; scheduledTime?: string | null }[];
+  steps: { label: string; scheduledTime?: string | null; icon?: RoutineStepIcon | null }[];
 }
 
 export interface UpdateRoutineInput {

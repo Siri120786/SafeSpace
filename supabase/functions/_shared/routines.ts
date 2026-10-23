@@ -94,6 +94,7 @@ export interface StepRow {
   label: string;
   scheduled_time: string | null;
   order_index: number;
+  icon?: string | null;
   routine_step_completions?: { completed_on: string }[];
 }
 
@@ -125,6 +126,7 @@ export function shapeRoutinesForDate(rows: RoutineRow[], date: string) {
           label: s.label,
           scheduledTime: toHHMM(s.scheduled_time),
           orderIndex: s.order_index,
+          icon: s.icon ?? null,
           completedOnDate: (s.routine_step_completions ?? []).some((c) => c.completed_on === date),
         })),
     }));

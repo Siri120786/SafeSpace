@@ -19,7 +19,7 @@ const store: ChildRoutinesStore = {
   async listRoutines(childId, date) {
     const { data, error } = await admin.from("routines")
       .select("id, profile_id, child_id, module_key, title, days_of_week, is_active, created_at, updated_at, " +
-        "routine_steps(id, routine_id, label, scheduled_time, order_index, routine_step_completions(completed_on))")
+        "routine_steps(id, routine_id, label, scheduled_time, order_index, icon, routine_step_completions(completed_on))")
       .eq("child_id", childId)
       .eq("routine_steps.routine_step_completions.completed_on", date)
       .order("created_at", { ascending: true });

@@ -64,6 +64,7 @@ export {
   reorderRoutineSteps,
   deleteRoutineStep,
   listChildRoutines,
+  listChildRoutineSetup,
   isRoutineScheduledOn,
 } from "./routines";
 export type { RoutineTarget } from "./routines";

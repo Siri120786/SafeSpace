@@ -33,7 +33,7 @@ export function aiChatsNote(name: string, sharing: ChildSharingStatus): string |
   }
 }
 
-// "/caregiver/children/<id>"; the id is URL-encoded.
-export function caregiverChildPath(childId: string): string {
-  return `/caregiver/children/${encodeURIComponent(childId)}`;
+// "/caregiver/children/<id>[/section]"; the id is URL-encoded.
+export function caregiverChildPath(childId: string, section?: "routines" | "reminders" | "settings" | "caregivers"): string {
+  return `/caregiver/children/${encodeURIComponent(childId)}${section ? `/${section}` : ""}`;
 }

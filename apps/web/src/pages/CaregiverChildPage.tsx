@@ -10,7 +10,9 @@ import {
   ROLE_LABELS,
   SHARING_LABELS,
   aiChatsNote,
+  caregiverChildPath,
   hiddenActivityText,
+  iconEmoji,
 } from "../features/caregiver";
 import { ROUTES } from "../routes";
 
@@ -74,7 +76,7 @@ export const CaregiverChildPage: React.FC = () => {
         </div>
       )}
 
-      <Section title="Today's routines">
+      <Section title="Today's routines" action={{ to: caregiverChildPath(child.id, "routines"), label: "Set up routines" }}>
         {detail.routines.length === 0 ? (
           <p className="text-sm text-textMuted">No routines today.</p>
         ) : (
@@ -86,6 +88,7 @@ export const CaregiverChildPage: React.FC = () => {
                   {r.steps.map((s) => (
                     <li key={s.id} className="flex items-center gap-2 text-sm text-textBody">
                       <span aria-hidden="true">{activity.visible ? (s.completedOnDate ? "✅" : "⬜") : "•"}</span>
+                      {iconEmoji(s.icon) && <span aria-hidden="true">{iconEmoji(s.icon)}</span>}
                       <span>{s.scheduledTime ? `${s.scheduledTime} ` : ""}{s.label}</span>
                       {activity.visible && <span className="sr-only">{s.completedOnDate ? "done" : "not done yet"}</span>}
                     </li>
@@ -97,7 +100,7 @@ export const CaregiverChildPage: React.FC = () => {
         )}
       </Section>
 
-      <Section title="Reminders">
+      <Section title="Reminders" action={{ to: caregiverChildPath(child.id, "reminders"), label: "Set up reminders" }}>
         {detail.reminders.length === 0 ? (
           <p className="text-sm text-textMuted">No reminders set up.</p>
         ) : (
@@ -168,9 +171,20 @@ export const CaregiverChildPage: React.FC = () => {
   );
 };
 
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+const Section: React.FC<{ title: string; children: React.ReactNode; action?: { to: string; label: string } }> = ({
+  title,
+  children,
+  action,
+}) => (
   <Card className="p-6 space-y-3 border border-olive-100">
-    <h2 className="font-display text-lg font-medium text-textHeading">{title}</h2>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h2 className="font-display text-lg font-medium text-textHeading">{title}</h2>
+      {action && (
+        <Link to={action.to} className="text-xs font-semibold text-deepGreen underline">
+          {action.label}
+        </Link>
+      )}
+    </div>
     {children}
   </Card>
 );
