@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../features/auth";
+import { homeFor, useAuth } from "../features/auth";
 import type { ModuleKey, UserRole } from "@safespace/shared-types";
 import {
   getSupportPreferences,
@@ -11,6 +11,7 @@ import {
   updateUserProfile,
   addChild,
   isValidChildBirth,
+  acceptCaregiverInvite,
 } from "@safespace/api-client";
 import { Card } from "../components/ui/Card";
 import { InputField } from "../components/ui/InputField";
@@ -29,6 +30,11 @@ const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon:
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
+
+const INVITE_ERRORS: Record<string, string> = {
+  invite_invalid: "That invite code isn't valid or has expired. Ask for a new one.",
+  already_caregiver: "You already help look after this child.",
+};
 
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
@@ -61,6 +67,10 @@ export const OnboardingPage: React.FC = () => {
   const [childBirthYear, setChildBirthYear] = useState<number | "">("");
   const [childPin, setChildPin] = useState<string>("");
   const [childModules, setChildModules] = useState<ModuleKey[]>([]);
+  // Step 2 for caregivers: add a first child, join one with an invite, or skip.
+  const [childSetup, setChildSetup] = useState<"choose" | "add" | "join" | "joined" | "skipped">("choose");
+  const [inviteCode, setInviteCode] = useState<string>("");
+  const [isJoining, setIsJoining] = useState<boolean>(false);
 
   const [isLoadingExisting, setIsLoadingExisting] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -84,7 +94,8 @@ export const OnboardingPage: React.FC = () => {
       if (savedStep) {
         const stepNum = parseInt(savedStep, 10);
         if (stepNum >= 1 && stepNum <= 4) {
-          setCurrentStep(stepNum);
+          // Child details aren't saved between visits, so caregivers resume at the choice.
+          setCurrentStep(isCaregiver ? Math.min(stepNum, 2) : stepNum);
         }
       }
 
@@ -170,6 +181,17 @@ export const OnboardingPage: React.FC = () => {
       console.warn("Intermediate save warning:", e);
     }
 
+    if (isCaregiver && currentStep === 2) {
+      if (!childName.trim()) {
+        setErrorMsg("Please enter your child's name.");
+        return;
+      }
+      if (!isValidChildBirth(childBirthYear, childBirthMonth) || !/^\d{4}$/.test(childPin)) {
+        setErrorMsg("Enter your child's birth month and year (age 4 to 17) and a 4-digit PIN.");
+        return;
+      }
+    }
+
     if (currentStep < 4) {
       updateStep(currentStep + 1);
     } else {
@@ -178,12 +200,35 @@ export const OnboardingPage: React.FC = () => {
   };
 
   const handleBack = () => {
-    if (currentStep > 1) {
+    setErrorMsg(null);
+    if (isCaregiver && currentStep === 2 && childSetup !== "choose") {
+      setChildSetup("choose");
+    } else if (isCaregiver && currentStep === 4 && childSetup !== "add") {
+      // Joined or skipped: there was no modules step.
+      if (childSetup === "skipped") setChildSetup("choose");
+      updateStep(2);
+    } else if (currentStep > 1) {
       updateStep(currentStep - 1);
     }
   };
 
-  const handleCompleteOnboarding = async () => {
+  const handleJoinInvite = async () => {
+    setErrorMsg(null);
+    setIsJoining(true);
+    try {
+      await acceptCaregiverInvite(inviteCode);
+      setChildSetup("joined");
+      updateStep(4);
+    } catch (err: unknown) {
+      const code = err instanceof Error ? err.message : "";
+      setErrorMsg(INVITE_ERRORS[code] ?? "Couldn't join with that code right now. Please try again.");
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  // skipChild: the header "Skip" finishes without adding a child.
+  const handleCompleteOnboarding = async (skipChild = false) => {
     setErrorMsg(null);
     setIsSubmitting(true);
 
@@ -196,7 +241,7 @@ export const OnboardingPage: React.FC = () => {
       if (isCaregiver) {
         // CAREGIVER FLOW: Create child if child details provided.
         // NEVER save child modules to caregiver's adult profile_support_preferences!
-        if (childName.trim()) {
+        if (!skipChild && childSetup === "add" && childName.trim()) {
           if (!isValidChildBirth(childBirthYear, childBirthMonth) || !/^\d{4}$/.test(childPin)) {
             throw new Error("Enter your child's birth month and year (age 4 to 17) and a 4-digit PIN.");
           }
@@ -227,7 +272,7 @@ export const OnboardingPage: React.FC = () => {
         localStorage.removeItem(`safespace_onboarding_step_${profileId}`);
       }
       await refreshSession();
-      navigate("/dashboard", { replace: true });
+      navigate(homeFor(isCaregiver ? "caregiver" : "individual"), { replace: true });
     } catch (err: unknown) {
       console.error("Failed to complete onboarding:", err);
       setErrorMsg(extractErrorMessage(err));
@@ -279,7 +324,7 @@ export const OnboardingPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={handleCompleteOnboarding}
+            onClick={() => handleCompleteOnboarding(true)}
             className="text-xs font-medium text-textMuted hover:text-textHeading transition-colors underline"
           >
             Skip
@@ -441,7 +486,7 @@ export const OnboardingPage: React.FC = () => {
                   <p><strong>Name:</strong> {displayName}</p>
                   <p><strong>Support Areas:</strong> {userSupportAreas.length} selected</p>
                 </div>
-                <Button variant="primary" fullWidth size="lg" onClick={handleCompleteOnboarding} disabled={isSubmitting}>
+                <Button variant="primary" fullWidth size="lg" onClick={() => handleCompleteOnboarding()} disabled={isSubmitting}>
                   {isSubmitting ? "Setting up..." : "Enter SafeSpace"}
                 </Button>
               </Card>
@@ -484,8 +529,89 @@ export const OnboardingPage: React.FC = () => {
               </Card>
             )}
 
-            {/* CAREGIVER STEP 2: Child Setup */}
-            {currentStep === 2 && (
+            {/* CAREGIVER STEP 2a: Add a child, join with an invite, or skip */}
+            {currentStep === 2 && childSetup === "choose" && (
+              <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
+                    Step 2 of 4
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading mt-3">
+                    Who are you looking after?
+                  </h2>
+                  <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
+                    Add a child, or join a child another caregiver already added.
+                  </p>
+                </div>
+                <div className="space-y-3 text-left">
+                  {[
+                    { key: "add" as const, title: "Add your first child", text: "Their name, birth month and year, and a PIN.", icon: "🧒" },
+                    { key: "join" as const, title: "Join with an invite code", text: "Another caregiver gave you an 8-character code.", icon: "🔑" },
+                  ].map((o) => (
+                    <button
+                      key={o.key}
+                      type="button"
+                      onClick={() => { setErrorMsg(null); setChildSetup(o.key); }}
+                      className="w-full flex items-center gap-4 rounded-2xl border border-olive-100 bg-white px-4 py-4 text-left transition-colors hover:bg-olive-50"
+                    >
+                      <span aria-hidden="true" className="text-2xl">{o.icon}</span>
+                      <span className="flex-1">
+                        <span className="block font-display text-base font-medium text-textHeading">{o.title}</span>
+                        <span className="block text-xs text-textMuted font-light">{o.text}</span>
+                      </span>
+                      <span aria-hidden="true" className="text-deepGreen font-semibold">&rarr;</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setChildSetup("skipped"); updateStep(4); }}
+                  className="text-xs font-medium text-textMuted hover:text-textHeading underline"
+                >
+                  Skip for now: I'll add a child later
+                </button>
+              </Card>
+            )}
+
+            {/* CAREGIVER STEP 2b: Join with an invite code */}
+            {currentStep === 2 && childSetup === "join" && (
+              <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
+                    Step 2 of 4
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading mt-3">
+                    Join with an invite code
+                  </h2>
+                  <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
+                    Codes work once and last 48 hours.
+                  </p>
+                </div>
+                <div className="text-left">
+                  <InputField
+                    label="Invite code"
+                    type="text"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. ABCD-2345"
+                    autoComplete="off"
+                    autoFocus
+                  />
+                </div>
+                <Button
+                  variant="primary"
+                  fullWidth
+                  size="lg"
+                  onClick={handleJoinInvite}
+                  disabled={isJoining || inviteCode.replace(/[\s-]/g, "").length !== 8}
+                >
+                  {isJoining ? "Joining..." : "Join"}
+                </Button>
+              </Card>
+            )}
+
+            {/* CAREGIVER STEP 2c: Child Setup */}
+            {currentStep === 2 && childSetup === "add" && (
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
@@ -606,15 +732,17 @@ export const OnboardingPage: React.FC = () => {
                 </div>
                 <div className="bg-olive-50/60 p-4 rounded-2xl border border-olive-100 text-left space-y-2 text-xs text-textBody">
                   <p><strong>Caregiver Lead:</strong> {displayName}</p>
-                  {childName && (
+                  {childSetup === "joined" && <p><strong>Joined:</strong> you can now see the child you were invited to.</p>}
+                  {childSetup === "skipped" && <p>You can add a child or join one with an invite later, from your caregiver home.</p>}
+                  {childSetup === "add" && childName && (
                     <>
                       <p><strong>Child Profile:</strong> {childName}{childBirthMonth && childBirthYear ? ` (born ${MONTH_NAMES[(childBirthMonth as number) - 1]} ${childBirthYear})` : ""}</p>
                       <p><strong>Child Support Modules:</strong> {childModules.length} selected</p>
                     </>
                   )}
                 </div>
-                <Button variant="primary" fullWidth size="lg" onClick={handleCompleteOnboarding} disabled={isSubmitting}>
-                  {isSubmitting ? "Finishing setup..." : "Enter Caregiver Portal"}
+                <Button variant="primary" fullWidth size="lg" onClick={() => handleCompleteOnboarding()} disabled={isSubmitting}>
+                  {isSubmitting ? "Finishing setup..." : "Go to your caregiver home"}
                 </Button>
               </Card>
             )}

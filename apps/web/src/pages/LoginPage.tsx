@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../features/auth";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { chosenRole, landingFor, roleOf, RoleChoice, useAuth } from "../features/auth";
 import { Card } from "../components/ui/Card";
 import { InputField } from "../components/ui/InputField";
 import { Button } from "../components/ui/Button";
@@ -13,13 +13,19 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const { login, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
+  const as = chosenRole(useLocation().search);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
     try {
-      await login(email, password);
-      navigate("/dashboard");
+      const session = await login(email, password);
+      // The account's own role wins; say so if they picked the other choice.
+      const role = roleOf(session);
+      const roleNotice = as && role && role !== as
+        ? `You're signed in as ${role === "caregiver" ? "a caregiver" : "an individual"}.`
+        : undefined;
+      navigate(landingFor(session) ?? "/", roleNotice ? { state: { roleNotice } } : undefined);
     } catch {
       // Error handled via AuthContext state
     }
@@ -45,13 +51,17 @@ export const LoginPage: React.FC = () => {
           {/* Header */}
           <div className="text-center mb-6">
             <h1 className="font-display text-2xl sm:text-3xl font-medium text-textHeading">
-              Welcome back to SafeSpace
+              {as === "caregiver" ? "Caregiver sign in" : as === "individual" ? "Welcome back" : "Welcome back to SafeSpace"}
             </h1>
             <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
               Your calm, gentle space is waiting for you.
             </p>
           </div>
 
+          {!as ? (
+            <RoleChoice mode="login" />
+          ) : (
+          <>
           {/* Friendly Error State */}
           {error && (
             <div className="mb-5 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-center gap-2">
@@ -103,10 +113,16 @@ export const LoginPage: React.FC = () => {
               </Button>
             </div>
           </form>
+          <p className="mt-4 text-center text-xs text-textMuted">
+            Not {as === "caregiver" ? "a caregiver" : "signing in for yourself"}?{" "}
+            <Link to="/login" className="text-deepGreen font-medium hover:underline">Choose again</Link>
+          </p>
+          </>
+          )}
 
           <div className="mt-6 pt-4 border-t border-olive-100 text-center text-xs text-textMuted font-light">
             New to SafeSpace?{" "}
-            <Link to="/signup" className="text-deepGreen font-medium hover:underline">
+            <Link to={as ? `/signup?as=${as}` : "/signup"} className="text-deepGreen font-medium hover:underline">
               Create an account
             </Link>
           </div>

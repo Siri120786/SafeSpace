@@ -19,7 +19,7 @@ export interface AuthContextType {
   loading: boolean;
   refreshSession: () => Promise<void>;
   error: string | null;
-  login: (email: string, pass: string) => Promise<void>;
+  login: (email: string, pass: string) => Promise<AppSession>;
   signup: (
     email: string,
     pass: string,
@@ -118,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await logInUser(email, pass);
       const activeSession = await getExistingSession();
       setSession(activeSession);
+      return activeSession;
     } catch (err: unknown) {
       const msg =
         (err as Error).message ||

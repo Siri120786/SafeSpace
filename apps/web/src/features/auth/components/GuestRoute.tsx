@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { landingFor } from "../roleRouting";
 
 interface GuestRouteProps {
   children: React.ReactNode;
@@ -17,12 +18,9 @@ export const GuestRoute: React.FC<GuestRouteProps> = ({ children }) => {
     );
   }
 
-  if (session) {
-    if (session.kind === "auth_user" && session.profile.onboardingState === "pending") {
-      return <Navigate to="/onboarding" replace />;
-    }
-    return <Navigate to="/dashboard" replace />;
-  }
+  // Already signed in: onboarding if unfinished, otherwise the role's home.
+  const landing = landingFor(session);
+  if (landing) return <Navigate to={landing} replace />;
 
   return <>{children}</>;
 };

@@ -90,7 +90,7 @@ export default function UserViewPage({ onLogOut }: Props) {
             Welcome to your space! Reflection and routine tools will appear here.
           </p>
           <div className="pt-4 space-y-2">
-            <SafeSpaceButton onClick={() => navigate(ROUTES.MOOD_CHECK_IN)} className="w-full">
+            <SafeSpaceButton onClick={() => navigate(ROUTES.CHILD_MOOD)} className="w-full">
               How am I feeling?
             </SafeSpaceButton>
             {child.assignedModules.length > 1 && (
