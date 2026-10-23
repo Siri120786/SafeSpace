@@ -16,4 +16,4 @@ Everything below is **placeholder or unreviewed wording** and must not be treate
 - Story approval is real in the screen's logic (only a caregiver can approve) but is not enforced by the database yet.
 - PCOS/PCOD: **no cycle tracking**, pending privacy review. The screen is shown only to adult `user` accounts, pending a decision on the adult-account path.
 - No reminders are scheduled and no notifications are sent.
-- Mobile (Flutter) screens for these modules are **not built** in this sprint part.
+- Flutter versions of the story workflow and all four modules exist (`apps/mobile/lib/features/story_workflow/`, `wellness_modules/`) with the same not-saved limitation. They pass `flutter analyze` (no new issues) and `flutter test`, but have not been run on a real device or emulator.
