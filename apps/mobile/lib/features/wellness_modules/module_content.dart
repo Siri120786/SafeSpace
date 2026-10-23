@@ -66,6 +66,37 @@ const List<String> sleepStressIdeas = <String>[
   'Write down tomorrow\'s worries so they stay on paper',
 ];
 
+/// General education only. Unreviewed: needs clinician review before release.
+const List<List<String>> pcosMyths = <List<String>>[
+  <String>[
+    'PCOS means you have cysts on your ovaries that must be removed.',
+    'The name can be misleading. The small follicles seen on scans are not usually harmful cysts, and surgery is not the usual treatment. A doctor can explain what is right for you.',
+  ],
+  <String>[
+    'Only people who are overweight get PCOS.',
+    'PCOS can affect people of many body sizes, including people who are slim.',
+  ],
+  <String>[
+    'Everyone with PCOS has the same symptoms.',
+    'Symptoms differ a lot from person to person. Some people have irregular periods, some do not.',
+  ],
+  <String>[
+    'PCOS means you can never have a baby.',
+    'PCOS can make ovulation irregular, and some people need medical support, but many people with PCOS do become pregnant.',
+  ],
+  <String>[
+    'Birth control pills cure PCOS.',
+    'There is no cure. Treatments help manage symptoms, and the right choice is something to talk through with a doctor.',
+  ],
+  <String>[
+    'PCOS is your fault.',
+    'The exact cause is not fully known. Genes and hormones play a part. It is not caused by anything you did wrong.',
+  ],
+];
+
+const String mythsNote =
+    'This is general information, not medical advice. Please talk to a doctor about your own health.';
+
 /// Adult-only module: only adult 'user' accounts may open Cycle Care
 /// (pending the adult-access decision).
 bool canOpenCycleCare(String? role) => role == 'user';

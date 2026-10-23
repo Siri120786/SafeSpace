@@ -135,6 +135,16 @@ void main() {
       }
     });
 
+    testWidgets('cycle care shows PCOS myths and facts', (tester) async {
+      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
+      await tester.pump();
+      await tester.ensureVisible(find.text('PCOS myths and facts'));
+      expect(find.text('PCOS myths and facts'), findsOneWidget);
+      expect(find.textContaining('Myth: PCOS means you have cysts'), findsOneWidget);
+      expect(find.textContaining('not medical advice'), findsWidgets);
+      expect(pcosMyths.length >= 5, true);
+    });
+
     testWidgets('cycle care blocks caregivers', (tester) async {
       await tester.pumpWidget(_wrap(CycleCareScreen(role: 'caregiver', onExit: () {})));
       await tester.pump();

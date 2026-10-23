@@ -357,6 +357,18 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
               ),
             const Text('This checklist does not send reminders. It resets when you leave the screen.'),
           ]),
+          _card(<Widget>[
+            const Text('PCOS myths and facts', style: _heading),
+            const SizedBox(height: 8),
+            for (final List<String> m in pcosMyths)
+              ExpansionTile(
+                title: Text('Myth: ${m[0]}'),
+                childrenPadding: const EdgeInsets.all(12),
+                expandedAlignment: Alignment.centerLeft,
+                children: <Widget>[Text('Fact: ${m[1]}')],
+              ),
+            const Text(mythsNote),
+          ]),
           _card(<Widget>[const Text('Gentle movement', style: _heading), const SizedBox(height: 8), _bullets(movementIdeas)]),
           _card(<Widget>[
             const Text('Sleep and stress', style: _heading),

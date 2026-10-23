@@ -66,6 +66,41 @@ export const SLEEP_STRESS_IDEAS: readonly string[] = [
   "Write down tomorrow's worries so they stay on paper",
 ];
 
+export interface MythFact {
+  myth: string;
+  fact: string;
+}
+
+/** General education only. Unreviewed: needs clinician review before release. */
+export const PCOS_MYTHS: readonly MythFact[] = [
+  {
+    myth: "PCOS means you have cysts on your ovaries that must be removed.",
+    fact: "The name can be misleading. The small follicles seen on scans are not usually harmful cysts, and surgery is not the usual treatment. A doctor can explain what is right for you.",
+  },
+  {
+    myth: "Only people who are overweight get PCOS.",
+    fact: "PCOS can affect people of many body sizes, including people who are slim.",
+  },
+  {
+    myth: "Everyone with PCOS has the same symptoms.",
+    fact: "Symptoms differ a lot from person to person. Some people have irregular periods, some do not.",
+  },
+  {
+    myth: "PCOS means you can never have a baby.",
+    fact: "PCOS can make ovulation irregular, and some people need medical support, but many people with PCOS do become pregnant.",
+  },
+  {
+    myth: "Birth control pills cure PCOS.",
+    fact: "There is no cure. Treatments help manage symptoms, and the right choice is something to talk through with a doctor.",
+  },
+  {
+    myth: "PCOS is your fault.",
+    fact: "The exact cause is not fully known. Genes and hormones play a part. It is not caused by anything you did wrong.",
+  },
+];
+
+export const MYTHS_NOTE = "This is general information, not medical advice. Please talk to a doctor about your own health.";
+
 /** Adult-only module: only adult 'user' accounts may open Cycle Care (pending adult-access decision). */
 export function canOpenCycleCare(role: string | null | undefined): boolean {
   return role === "user";

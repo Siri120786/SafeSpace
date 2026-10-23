@@ -12,7 +12,9 @@ import {
   HOBBY_IDEAS,
   MODULES,
   MOVEMENT_IDEAS,
+  MYTHS_NOTE,
   PCOS_CHECKLIST,
+  PCOS_MYTHS,
   RELAXATION_STEPS,
   REVIEW_NOTICE,
   SLEEP_STRESS_IDEAS,
@@ -265,6 +267,16 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
             ))}
           </ul>
           <p className="text-sm text-textMuted">This checklist does not send reminders. It resets when you leave the page.</p>
+        </Card>
+        <Card className="space-y-3">
+          <h2 className="font-display text-xl text-textHeading">PCOS myths and facts</h2>
+          {PCOS_MYTHS.map((m) => (
+            <details key={m.myth} className="rounded-2xl border border-olive-200 bg-white px-4 py-3">
+              <summary className="cursor-pointer text-base text-textHeading">Myth: {m.myth}</summary>
+              <p className="mt-2 text-base text-textBody">Fact: {m.fact}</p>
+            </details>
+          ))}
+          <p className="text-sm text-textMuted">{MYTHS_NOTE}</p>
         </Card>
         <Card className="space-y-2">
           <h2 className="font-display text-xl text-textHeading">Gentle movement</h2>

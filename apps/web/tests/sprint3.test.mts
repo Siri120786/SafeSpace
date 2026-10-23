@@ -15,7 +15,7 @@ import {
   submitForApproval,
   validateStory,
 } from "../src/features/story-workflow/lib/storyWorkflow.ts";
-import { MODULES, canOpenCycleCare, SUPPORT_TEXT } from "../src/features/wellness-modules/lib/content.ts";
+import { MODULES, PCOS_MYTHS, canOpenCycleCare, SUPPORT_TEXT } from "../src/features/wellness-modules/lib/content.ts";
 import { StoryWorkflow } from "../src/features/story-workflow/components/StoryWorkflow.tsx";
 import { BrightDays, CalmSpace, CycleCare, ModulesHome, SafeHarbor } from "../src/features/wellness-modules/components/ModuleScreens.tsx";
 import { BreathingExercise } from "../src/features/calm-tools/components/BreathingExercise.tsx";
@@ -110,7 +110,11 @@ test("cycle care: caregivers are blocked, adults see the checklist and no cycle 
   const ok = render(React.createElement(CycleCare, { ...common, role: "user" }));
   assert.match(ok, /type="checkbox"/);
   assert.match(ok, /no cycle tracking/i);
-  assert.doesNotMatch(ok, /period|ovulation/i);
+  assert.match(ok, /PCOS myths and facts/);
+  assert.match(ok, /Myth: .*cysts/);
+  assert.match(ok, /not medical advice/);
+  assert.ok(PCOS_MYTHS.length >= 5 && PCOS_MYTHS.every((m) => m.myth && m.fact));
+  assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"/i);
 });
 
 test("every module screen has Exit, the review notice and the not-saved warning", () => {

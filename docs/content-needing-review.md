@@ -6,7 +6,7 @@ Everything below is **placeholder or unreviewed wording** and must not be treate
 | --- | --- | --- | --- |
 | Depression (Bright Days) | `apps/web/src/features/wellness-modules/lib/content.ts` | goal ideas, hobby suggestions, encouragement messages | clinical wording review |
 | PTSD (Safe Harbor) | same | relaxation text steps, care-bridging text | clinician review; no trauma-treatment claims |
-| PCOS/PCOD (Cycle Care) | same | movement, sleep and stress suggestions | clinician review |
+| PCOS/PCOD (Cycle Care) | same | movement, sleep and stress suggestions, and the PCOS myths and facts | clinician review (medical accuracy) |
 | Anxiety (Calm Space) | same | calming tips | wording review |
 | Stories | `apps/web/src/features/story-workflow/lib/storyWorkflow.ts` | the automatic checks are a basic word list only | real content-safety validation, caregiver and clinician review |
 | Support text in every module | same content file | "talk to a trusted adult or local services" | region-correct helplines and clinician review (see `docs/emergency-audit-sprint3.md`) |
