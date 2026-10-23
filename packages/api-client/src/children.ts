@@ -6,6 +6,7 @@
 // signal the policy is incomplete, not that this file should patch around it.
 
 import { getSafeSpaceClient } from "./supabaseClient";
+import { invokeEdge } from "./edge";
 import type { Child, ModuleKey, ChildSession } from "@safespace/shared-types";
 
 export async function listMyChildren(): Promise<Child[]> {
@@ -42,12 +43,12 @@ export async function addChild(input: {
 }): Promise<string> {
   // PIN hashing happens server-side in the create-child Edge Function, never
   // here. The client only ever sends the raw PIN over TLS.
-  const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase.functions.invoke("create-child", {
-    body: { name: input.name, age: input.age, pin: input.pin, modules: input.modules },
+  // Failures throw a ContractError carrying the function's code, e.g.
+  // "invalid_request" or "pin_already_used_in_family".
+  const data = await invokeEdge<{ child_id: string }>("create-child", {
+    name: input.name, age: input.age, pin: input.pin, modules: input.modules,
   });
-  if (error) throw error;
-  return data.child_id as string;
+  return data.child_id;
 }
 
 // ----------------------------------------------------------------------------
@@ -86,6 +87,11 @@ async function callAiOrchestrator(
   return data.result;
 }
 
+/**
+ * @deprecated Calls the ai-orchestrator placeholder and stores nothing.
+ * Use `createJournalEntry` (./journal.ts), which saves the entry and never
+ * sends it to AI (Sprint 3 contract).
+ */
 export function submitJournalEntry(session: ChildSession, text: string) {
   return callAiOrchestrator(session, "journaling", { text });
 }
@@ -95,26 +101,7 @@ export function generateStory(session: ChildSession, context: Record<string, unk
 }
 
 // ----------------------------------------------------------------------------
-// Routines — data only, deliberately implemented with plain table access,
-// NOT via callAiOrchestrator. See docs/Architecture_Specification.md §6:
-// "Routines is the only feature that never touches AI services."
+// Routines moved to ./routines.ts (Sprint 3): routines with ordered steps and
+// per-day completion. Still data only: routines never call AI services
+// (docs/Architecture_Specification.md §6).
 // ----------------------------------------------------------------------------
-export async function listRoutineSteps(childId: string) {
-  const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase
-    .from("routine_steps")
-    .select("*")
-    .eq("child_id", childId)
-    .order("order_index");
-  if (error) throw error;
-  return data;
-}
-
-export async function markRoutineStepComplete(stepId: string, isComplete: boolean) {
-  const supabase = getSafeSpaceClient();
-  const { error } = await supabase
-    .from("routine_steps")
-    .update({ is_complete: isComplete })
-    .eq("id", stepId);
-  if (error) throw error;
-}

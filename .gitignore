@@ -17,3 +17,4 @@ apps/mobile/.dart_tool/
 apps/mobile/build/
 .idea/
 .vscode/
+.env.*.local

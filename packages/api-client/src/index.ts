@@ -27,8 +27,6 @@ export {
   getMyChildProfile,
   submitJournalEntry,
   generateStory,
-  listRoutineSteps,
-  markRoutineStepComplete,
 } from "./children";
 
 export {
@@ -51,3 +49,50 @@ export {
   listMyMoodCheckins,
   listChildMoodCheckins,
 } from "./mood";
+
+export {
+  listMyRoutines,
+  setRoutineStepCompleted,
+  createRoutine,
+  updateRoutine,
+  deleteRoutine,
+  addRoutineStep,
+  updateRoutineStep,
+  reorderRoutineSteps,
+  deleteRoutineStep,
+  listChildRoutines,
+  isRoutineScheduledOn,
+} from "./routines";
+export type { RoutineTarget } from "./routines";
+export { ContractError } from "./edge";
+
+export {
+  createJournalEntry,
+  listMyJournalEntries,
+  deleteJournalEntry,
+  listChildJournalEntries,
+} from "./journal";
+export type { ListJournalOptions } from "./journal";
+
+export { getWellnessSummary, getChildWellnessSummary } from "./wellness";
+export type { WellnessOptions } from "./wellness";
+
+export {
+  listReminders,
+  getDueReminders,
+  acknowledgeReminder,
+  createReminder,
+  updateReminder,
+  deleteReminder,
+  listChildReminders,
+  getChildDueReminders,
+  computeDueReminders,
+  isValidTimeZone,
+} from "./reminders";
+export { getChildOverview } from "./overview";
+
+export {
+  sendAiCompanionMessage,
+  listAiCompanionConversations,
+  getAiCompanionMessages,
+} from "./aiCompanion";

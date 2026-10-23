@@ -11,6 +11,8 @@ import { BrainMascot } from "../components/vectors/BrainMascot";
 import { LeafCluster } from "../components/vectors/LeafFrame";
 import { SessionPlayerModal } from "../components/ui/SessionPlayerModal";
 import { LinkedUsersPanel } from "../features/caregiver";
+import { ChatWindow } from "../features/ai-companion";
+import { ROUTES } from "../routes";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -155,14 +157,18 @@ export const DashboardPage: React.FC = () => {
               <nav className="space-y-1 text-sm font-medium">
                 {[
                   { id: "home", label: "Home", icon: "🏠" },
+                  { id: "companion", label: "AI Companion", icon: "💬" },
                   { id: "sessions", label: "Guided Breathing", icon: "🎧" },
-                  { id: "profile", label: "Profile Settings", icon: "👤" },
+                  { id: "mood", label: "Mood Check-in", icon: "🌱", route: ROUTES.MOOD_CHECK_IN },
+                  { id: "calm", label: "Calm Tools", icon: "🍃", route: "/calm-tools" },
+                  ...(isCaregiver ? [{ id: "family", label: "Family", icon: "👨‍👩‍👧", route: ROUTES.CAREGIVER_DASHBOARD }] : []),
+                  { id: "profile", label: "Profile Settings", icon: "👤", route: "/profile" },
                 ].map((item) => (
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (item.id === "profile") {
-                        navigate("/profile");
+                      if (item.route) {
+                        navigate(item.route);
                       } else {
                         setActiveTab(item.id as NavTab);
                       }
@@ -250,6 +256,43 @@ export const DashboardPage: React.FC = () => {
                     )}
                   </div>
                 </Card>
+
+                {/* Daily Mood Check-In Entry Card */}
+                <Card className="p-5 border border-olive-100 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-olive-50 text-deepGreen flex items-center justify-center text-xl shrink-0">
+                      🌱
+                    </div>
+                    <div>
+                      <h4 className="font-display text-base font-medium text-textHeading">Daily Mood Check-in</h4>
+                      <p className="text-xs text-textMuted font-light">How are you feeling right now?</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => navigate(ROUTES.MOOD_CHECK_IN)}
+                  >
+                    Check in
+                  </Button>
+                </Card>
+
+                {isCaregiver && (
+                  <Card className="p-5 border border-olive-100 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-olive-50 text-deepGreen flex items-center justify-center text-xl shrink-0">
+                        👨‍👩‍👧
+                      </div>
+                      <div>
+                        <h4 className="font-display text-base font-medium text-textHeading">Your family</h4>
+                        <p className="text-xs text-textMuted font-light">Family code, children and how their week is going.</p>
+                      </div>
+                    </div>
+                    <Button variant="olive" size="sm" onClick={() => navigate(ROUTES.CAREGIVER_DASHBOARD)}>
+                      Open
+                    </Button>
+                  </Card>
+                )}
 
                 {isCaregiver && profileId && (<LinkedUsersPanel caregiverId={profileId} />)}
 
@@ -357,6 +400,13 @@ export const DashboardPage: React.FC = () => {
                     </Card>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {/* TAB: COMPANION VIEW */}
+            {activeTab === "companion" && (
+              <section className="space-y-6">
+                <ChatWindow session={session} />
               </section>
             )}
 

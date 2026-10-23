@@ -6,7 +6,8 @@ export type UserRole = "caregiver" | "user";
 
 export type OnboardingState = "pending" | "completed";
 
-export type ModuleKey = "autism" | "adhd" | "anxiety" | "depression" | "ptsd" | "pcos_pcod";
+export const MODULE_KEYS = ["autism", "adhd", "anxiety", "depression", "ptsd", "pcos_pcod"] as const;
+export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 export type PrivacyTier = "full" | "partial" | "private";
 
@@ -55,24 +56,77 @@ export interface Caregiver {
   displayName: string | null;
 }
 
+// ----------------------------------------------------------------------------
+// Journaling (Sprint 3). Owned by exactly one identity: an adult (profileId)
+// or a child (childId), like MoodCheckin. See docs/sprint-3/CONTRACTS.md.
+// ----------------------------------------------------------------------------
+export const JOURNAL_ENTRY_TYPES = ["journal", "gratitude"] as const;
+export type JournalEntryType = (typeof JOURNAL_ENTRY_TYPES)[number];
+export const JOURNAL_CONTENT_MAX_LENGTH = 5000;
+
 export interface JournalEntry {
   id: string;
-  childId: string;
-  moduleKey: ModuleKey;
+  profileId: string | null;    // set for adult auth users
+  childId: string | null;      // set for child sessions
+  moduleKey: ModuleKey | null; // null = shared journal, not tied to a module
+  entryType: JournalEntryType;
   content: string;
-  sentimentFlags: Record<string, unknown> | null;
-  isPrivateNote: boolean;
+  isPrivateNote: boolean;      // child 'partial' tier only: hidden from the caregiver
   createdAt: string;
+  updatedAt: string;
 }
 
+export interface CreateJournalEntryInput {
+  content: string;
+  entryType?: JournalEntryType; // default "journal"
+  moduleKey?: ModuleKey | null;
+  isPrivateNote?: boolean;      // ignored for adults; rejected unless child tier is 'partial'
+}
+
+// ----------------------------------------------------------------------------
+// Routines (Sprint 3). A routine is an ordered list of steps; completion is
+// recorded per step per local calendar day, so progress and streaks persist.
+// ----------------------------------------------------------------------------
 export interface RoutineStep {
   id: string;
-  childId: string;
-  moduleKey: ModuleKey;
+  routineId: string;
   label: string;
-  scheduledTime: string | null;
-  isComplete: boolean;
+  scheduledTime: string | null; // "HH:MM" (24h), optional
   orderIndex: number;
+}
+
+export interface RoutineStepWithProgress extends RoutineStep {
+  completedOnDate: boolean;     // completed on the date the list was requested for
+}
+
+export interface Routine {
+  id: string;
+  profileId: string | null;
+  childId: string | null;
+  moduleKey: ModuleKey | null;  // null = shared routine
+  title: string;
+  daysOfWeek: number[];         // 0 = Sunday ... 6 = Saturday; empty = every day
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoutineWithSteps extends Routine {
+  steps: RoutineStepWithProgress[];
+}
+
+export interface CreateRoutineInput {
+  title: string;
+  moduleKey?: ModuleKey | null;
+  daysOfWeek?: number[];
+  steps: { label: string; scheduledTime?: string | null }[];
+}
+
+export interface UpdateRoutineInput {
+  title?: string;
+  moduleKey?: ModuleKey | null;
+  daysOfWeek?: number[];
+  isActive?: boolean;
 }
 
 export interface EmergencyEvent {
@@ -169,4 +223,117 @@ export interface CreateMoodCheckinInput {
 
 export interface ListMoodCheckinsOptions {
   limit?: number;             // default 30, max 100
+}
+
+// ----------------------------------------------------------------------------
+// AI Companion types. Mirrors ai_companion_conversations / ai_companion_messages
+// (column `language` -> preferredLanguage, `detected_language` -> language).
+// ----------------------------------------------------------------------------
+export type LanguageCode = "en" | "hi" | "te" | "ta" | "kn" | "mr" | "bn" | "ur";
+
+export interface AiCompanionConversation {
+  id: string;
+  profileId: string | null;
+  childId: string | null;
+  preferredLanguage: LanguageCode;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AiCompanionMessage {
+  id: string;
+  conversationId: string;
+  sender: "user" | "assistant";
+  content: string;
+  language: LanguageCode;
+  isSafetyResponse: boolean; // fixed crisis-screen exchange, not model output
+  createdAt: string;
+}
+
+export interface AiCompanionSendResult {
+  conversation: AiCompanionConversation;
+  userMessage: AiCompanionMessage;
+  assistantMessage: AiCompanionMessage;
+  // true when the message matched the crisis screen: the reply is a fixed
+  // safety message, not model output, and the UI should keep it prominent.
+  safetyResponse: boolean;
+}
+
+// ----------------------------------------------------------------------------
+// Reminders (Sprint 3). Delivered IN-APP only this sprint: schedules are
+// stored, and the app works out what is due while it is open. No push, SMS or
+// email. Same owner rule as journals and routines (exactly one of
+// profileId / childId).
+// ----------------------------------------------------------------------------
+export const REMINDER_KINDS = ["routine", "water", "medication", "wellness", "custom"] as const;
+export type ReminderKind = (typeof REMINDER_KINDS)[number];
+export const REMINDER_TITLE_MAX_LENGTH = 80;
+
+export interface Reminder {
+  id: string;
+  profileId: string | null;
+  childId: string | null;
+  kind: ReminderKind;
+  title: string;                // e.g. "Drink a glass of water"; keep medication titles generic
+  routineId: string | null;     // set when kind === "routine"
+  timeOfDay: string;            // "HH:MM" (24h) in `timezone`
+  daysOfWeek: number[];         // 0 = Sunday ... 6 = Saturday; empty = every day
+  timezone: string;             // IANA name, e.g. "Asia/Kolkata"
+  isEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// A reminder occurrence that is due (or past due) today.
+export interface DueReminder {
+  reminder: Reminder;
+  dueAt: string;                // ISO timestamp of today's occurrence
+  occursOn: string;             // local date "YYYY-MM-DD" in the reminder's timezone
+  acknowledged: boolean;        // marked done or dismissed for occursOn
+}
+
+export interface CreateReminderInput {
+  kind: ReminderKind;
+  title: string;
+  routineId?: string | null;
+  timeOfDay: string;
+  daysOfWeek?: number[];
+  timezone: string;
+  isEnabled?: boolean;
+}
+
+export type UpdateReminderInput = Partial<Omit<CreateReminderInput, "kind">> & { isEnabled?: boolean };
+
+// ----------------------------------------------------------------------------
+// Wellness summary (Sprint 3). Counts only: no scores, labels or diagnostic
+// wording. Journal content is never included, only how many entries exist;
+// for a caregiver, a partial-tier child's private notes aren't counted.
+// ----------------------------------------------------------------------------
+export type WellnessPeriodDays = 7 | 30;
+
+export interface WellnessSummary {
+  periodDays: WellnessPeriodDays;
+  from: string;                 // local date "YYYY-MM-DD" (inclusive)
+  to: string;                   // local date "YYYY-MM-DD" (inclusive)
+  mood: {
+    checkins: number;
+    daysWithCheckin: number;
+    counts: Record<MoodValue, number>;
+    latest: { mood: MoodValue; createdAt: string } | null;
+  };
+  routines: {
+    scheduledSteps: number;     // step occurrences due in the period
+    completedSteps: number;
+  };
+  journal: {
+    entries: number;
+  };
+}
+
+// Caregiver dashboard card for one child.
+export interface ChildOverview {
+  child: Child;
+  summary: WellnessSummary;
+  dueRemindersToday: number;
 }
