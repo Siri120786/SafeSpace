@@ -30,6 +30,12 @@ import ChildHomePage from "./pages/ChildHomePage";
 import ChildSettingsPage from "./pages/ChildSettingsPage";
 import ChildTalkPage from "./pages/ChildTalkPage";
 import {
+  IndividualCompanionPage,
+  IndividualJournalPage,
+  IndividualRemindersPage,
+  IndividualRoutinesPage,
+} from "./pages/IndividualToolPages";
+import {
   ChildCompanionPage,
   ChildJournalPage,
   ChildModulesPage,
@@ -91,6 +97,11 @@ export default function App() {
                 </RoleRoute>
               }
             />
+
+            <Route path={ROUTES.ROUTINES} element={<RoleRoute allow={["individual"]}><IndividualRoutinesPage /></RoleRoute>} />
+            <Route path={ROUTES.JOURNAL} element={<RoleRoute allow={["individual"]}><IndividualJournalPage /></RoleRoute>} />
+            <Route path={ROUTES.REMINDERS} element={<RoleRoute allow={["individual"]}><IndividualRemindersPage /></RoleRoute>} />
+            <Route path={ROUTES.COMPANION} element={<RoleRoute allow={["individual"]}><IndividualCompanionPage /></RoleRoute>} />
 
             {/* Caregiver */}
             <Route

@@ -11,6 +11,7 @@ import { BrainMascot } from "../components/vectors/BrainMascot";
 import { LeafCluster } from "../components/vectors/LeafFrame";
 import { SessionPlayerModal } from "../components/ui/SessionPlayerModal";
 import { ChatWindow } from "../features/ai-companion";
+import { TodayCard } from "../features/my-tools";
 import { ROUTES } from "../routes";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
@@ -21,6 +22,17 @@ const SUPPORT_LABELS: Record<ModuleKey, string> = {
   ptsd: "PTSD & Safety Grounding",
   pcos_pcod: "PCOS / PCOD Wellbeing",
 };
+
+// Every tool, as tiles on the home tab (the mobile bottom bar only has four tabs).
+const TOOL_TILES = [
+  { to: ROUTES.MOOD_CHECK_IN, label: "Mood check-in", icon: "🌱" },
+  { to: ROUTES.ROUTINES, label: "Routines", icon: "✅" },
+  { to: ROUTES.JOURNAL, label: "Journal", icon: "📓" },
+  { to: ROUTES.REMINDERS, label: "Reminders", icon: "⏰" },
+  { to: ROUTES.CALM_TOOLS, label: "Calm tools", icon: "🍃" },
+  { to: ROUTES.MODULES, label: "Wellness modules", icon: "🌈" },
+  { to: ROUTES.COMPANION, label: "AI Companion", icon: "💬" },
+];
 
 const SESSIONS_RECOMMENDED = [
   { id: "breathe_reset", title: "Breathe & reset", duration: 5, category: "Breathing", icon: "💨" },
@@ -138,6 +150,9 @@ export const DashboardPage: React.FC = () => {
                   { id: "companion", label: "AI Companion", icon: "💬" },
                   { id: "sessions", label: "Guided Breathing", icon: "🎧" },
                   { id: "mood", label: "Mood Check-in", icon: "🌱", route: ROUTES.MOOD_CHECK_IN },
+                  { id: "routines", label: "Routines", icon: "✅", route: ROUTES.ROUTINES },
+                  { id: "journal", label: "Journal", icon: "📓", route: ROUTES.JOURNAL },
+                  { id: "reminders", label: "Reminders", icon: "⏰", route: ROUTES.REMINDERS },
                   { id: "calm", label: "Calm Tools", icon: "🍃", route: "/calm-tools" },
                   { id: "profile", label: "Profile Settings", icon: "👤", route: "/profile" },
                 ].map((item) => (
@@ -234,6 +249,22 @@ export const DashboardPage: React.FC = () => {
                     )}
                   </div>
                 </Card>
+
+                <TodayCard session={session} routinesPath={ROUTES.ROUTINES} remindersPath={ROUTES.REMINDERS} />
+
+                <nav aria-label="Your tools" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {TOOL_TILES.map((t) => (
+                    <button
+                      key={t.to}
+                      type="button"
+                      onClick={() => navigate(t.to)}
+                      className="flex flex-col items-center gap-1 rounded-2xl border border-olive-100 bg-white px-3 py-4 text-sm font-medium text-textHeading hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500"
+                    >
+                      <span aria-hidden="true" className="text-2xl">{t.icon}</span>
+                      {t.label}
+                    </button>
+                  ))}
+                </nav>
 
                 {/* Daily Mood Check-In Entry Card */}
                 <Card className="p-5 border border-olive-100 flex items-center justify-between gap-4">

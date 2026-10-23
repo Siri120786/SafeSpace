@@ -12,6 +12,11 @@ export const ROUTES = {
   DASHBOARD: "/dashboard",
   MOOD_CHECK_IN: "/mood/check-in",
   CALM_TOOLS: "/calm-tools",
+  ROUTINES: "/routines",
+  JOURNAL: "/journal",
+  REMINDERS: "/reminders",
+  COMPANION: "/companion",
+  MODULES: "/modules",
 
   // Caregiver
   CAREGIVER_HOME: "/caregiver",

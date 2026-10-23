@@ -2,4 +2,6 @@
 export { MyRoutines, type Guard } from "./MyRoutines";
 export { MyJournal } from "./MyJournal";
 export { MyReminders } from "./MyReminders";
+export { MyToolsShell } from "./MyToolsShell";
+export { TodayCard } from "./TodayCard";
 export * from "./toolsLogic";

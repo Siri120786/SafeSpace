@@ -4,11 +4,12 @@
  * tsx apps/web/tests/my-tools.test.mts (part of `pnpm test`).
  */
 import assert from "node:assert/strict";
-import type { DueReminder, Reminder } from "@safespace/shared-types";
+import type { DueReminder, Reminder, RoutineWithSteps } from "@safespace/shared-types";
 import {
   journalVisibilityNote,
   laterToday,
   recentDays,
+  todaySummary,
   validateJournal,
   zonedClock,
 } from "../src/features/my-tools/toolsLogic.ts";
@@ -73,6 +74,26 @@ test("later today: enabled, scheduled today, after now, not already due; earlies
     rem("due", "13:00"),
   ], due, now);
   assert.deepEqual(list.map((r) => r.id), ["soon", "late"]);
+});
+
+const routine = (steps: [string, string | null, boolean][]): RoutineWithSteps => ({
+  id: "r", profileId: "p", childId: null, moduleKey: null, title: "Morning", daysOfWeek: [], isActive: true, createdAt: "", updatedAt: "",
+  steps: steps.map(([label, time, done], i) => ({ id: `s${i}`, routineId: "r", label, scheduledTime: time, orderIndex: i, icon: null, completedOnDate: done })),
+});
+
+test("today summary: the current step, steps left and reminders due", () => {
+  const due = [{ acknowledged: false }, { acknowledged: true }] as DueReminder[];
+  const s = todaySummary([routine([["Stretch", "07:00", true], ["Water", null, false], ["Walk", "18:00", false]])], due, new Date(2026, 9, 23, 9));
+  assert.equal(s.current?.label, "Water");
+  assert.equal(s.stepsLeft, 2);
+  assert.equal(s.remindersDue, 1);
+  assert.equal(s.hasRoutines, true);
+  assert.equal(s.allDone, false);
+});
+
+test("today summary: no routines, and all done", () => {
+  assert.deepEqual(todaySummary([], [], new Date()), { current: null, stepsLeft: 0, allDone: false, hasRoutines: false, remindersDue: 0 });
+  assert.equal(todaySummary([routine([["Stretch", "07:00", true]])], [], new Date(2026, 9, 23, 9)).allDone, true);
 });
 
 console.log(`${passed} my-tools checks`);

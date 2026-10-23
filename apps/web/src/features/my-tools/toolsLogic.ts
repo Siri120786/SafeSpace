@@ -6,7 +6,9 @@ import {
   type ChildSharingStatus,
   type DueReminder,
   type Reminder,
+  type RoutineWithSteps,
 } from "@safespace/shared-types";
+import { nowNext, type DayStep } from "../child-space/childHome";
 
 // The last `count` local days, newest first: completions can be ticked up to 6 days back.
 export function recentDays(now: Date, count = 7): { date: string; label: string }[] {
@@ -55,4 +57,24 @@ export function laterToday(reminders: Reminder[], due: DueReminder[], now: Date)
       return today && r.timeOfDay > time;
     })
     .sort((a, b) => a.timeOfDay.localeCompare(b.timeOfDay));
+}
+
+export interface TodaySummary {
+  current: DayStep | null;  // the step to do now (same rule as the child's Now card)
+  stepsLeft: number;
+  allDone: boolean;
+  hasRoutines: boolean;
+  remindersDue: number;     // due now or in their heads-up, not yet done
+}
+
+// One line of "today" for the Individual dashboard card.
+export function todaySummary(routines: RoutineWithSteps[], due: DueReminder[], now: Date): TodaySummary {
+  const plan = nowNext(routines, now);
+  return {
+    current: plan.now,
+    stepsLeft: plan.steps.filter((s) => !s.done).length,
+    allDone: plan.allDone,
+    hasRoutines: plan.steps.length > 0,
+    remindersDue: due.filter((d) => !d.acknowledged).length,
+  };
 }
