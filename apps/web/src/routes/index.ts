@@ -35,4 +35,5 @@ export const ROUTES = {
   CHILD_REMINDERS: "/child/reminders",
   CHILD_COMPANION: "/child/companion",
   CHILD_MODULES: "/child/modules",
+  CHILD_TALK: "/child/talk",
 };

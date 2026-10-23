@@ -17,6 +17,7 @@ import { ROUTES } from "../routes";
 const REFRESH_MS = 60_000;
 
 const TILES: { to: string; label: string; emoji: string }[] = [
+  { to: ROUTES.CHILD_TALK, label: "Talk board", emoji: "🗣️" },
   { to: ROUTES.CHILD_MOOD, label: "How I feel", emoji: "🌱" },
   { to: ROUTES.CHILD_ROUTINES, label: "My routines", emoji: "✅" },
   { to: ROUTES.CHILD_JOURNAL, label: "My journal", emoji: "📓" },

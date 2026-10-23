@@ -28,6 +28,7 @@ import { MoodCheckInPage } from "./features/mood";
 import { ChildSpaceProvider, SharingQuestionScreen } from "./features/child-space";
 import ChildHomePage from "./pages/ChildHomePage";
 import ChildSettingsPage from "./pages/ChildSettingsPage";
+import ChildTalkPage from "./pages/ChildTalkPage";
 import {
   ChildCompanionPage,
   ChildJournalPage,
@@ -154,6 +155,7 @@ export default function App() {
               <Route path="reminders" element={<ChildRemindersPage />} />
               <Route path="companion" element={<ChildCompanionPage />} />
               <Route path="modules/*" element={<ChildModulesPage />} />
+              <Route path="talk" element={<ChildTalkPage />} />
             </Route>
 
             {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}
