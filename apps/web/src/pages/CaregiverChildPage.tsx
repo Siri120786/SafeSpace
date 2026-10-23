@@ -64,6 +64,17 @@ export const CaregiverChildPage: React.FC = () => {
       subtitle={`Age ${detail.ageYears} · ${SHARING_LABELS[detail.sharing]} · ${ROLE_LABELS[detail.myRole]}`}
       backTo={ROUTES.CAREGIVER_HOME}
     >
+      <nav aria-label={`Manage ${child.name}`} className="flex flex-wrap gap-2">
+        {([["routines", "Routines"], ["reminders", "Reminders"], ["settings", "Settings"], ["caregivers", "Caregivers"]] as const).map(([section, label]) => (
+          <Link
+            key={section}
+            to={caregiverChildPath(child.id, section)}
+            className="rounded-full border border-olive-200 bg-white px-4 py-1.5 text-xs font-semibold text-deepGreen hover:bg-olive-50"
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
       {error && <p role="alert" className="text-sm text-red-700">Couldn't refresh right now; showing what was loaded.</p>}
       {detail.unreviewedAlerts > 0 && (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">

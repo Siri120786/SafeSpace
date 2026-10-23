@@ -15,3 +15,4 @@ export { AiChatList } from "./components/AiChatList";
 export { DayPicker, IconPicker, StepFields, TextField, SelectField, ConfirmButton } from "./components/BuilderFields";
 export { useCaregiverChild } from "./useCaregiverChild";
 export * from "./builders";
+export * from "./manage";

@@ -23,6 +23,8 @@ import CaregiverJoinPage from "./pages/CaregiverJoinPage";
 import CaregiverChildPage from "./pages/CaregiverChildPage";
 import CaregiverRoutinesPage from "./pages/CaregiverRoutinesPage";
 import CaregiverRemindersPage from "./pages/CaregiverRemindersPage";
+import CaregiverChildSettingsPage from "./pages/CaregiverChildSettingsPage";
+import CaregiverChildCaregiversPage from "./pages/CaregiverChildCaregiversPage";
 import { MoodCheckInPage } from "./features/mood";
 
 function MoodCheckInPageWrapper() {
@@ -98,6 +100,14 @@ export default function App() {
             <Route
               path={ROUTES.CAREGIVER_CHILD_REMINDERS}
               element={<RoleRoute allow={["caregiver"]}><CaregiverRemindersPage /></RoleRoute>}
+            />
+            <Route
+              path={ROUTES.CAREGIVER_CHILD_SETTINGS}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverChildSettingsPage /></RoleRoute>}
+            />
+            <Route
+              path={ROUTES.CAREGIVER_CHILD_CAREGIVERS}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverChildCaregiversPage /></RoleRoute>}
             />
             <Route path="/caregiver/dashboard" element={<Navigate to={ROUTES.CAREGIVER_HOME} replace />} />
 
