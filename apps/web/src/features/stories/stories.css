@@ -1,0 +1,73 @@
+/* Story character animations (role-flow 6). Calm and slow on purpose.
+   The stage gets .st-still in low-sensory mode, which stops all of them. */
+
+.st-breathe { animation: st-breathe 3.6s ease-in-out infinite; }
+.st-breathe-deep { animation: st-breathe-deep 5s ease-in-out infinite; }
+.st-blink { transform-box: fill-box; transform-origin: center; animation: st-blink 5s infinite; }
+.st-mouth-shut { animation: st-mouth-shut 0.36s steps(1, end) infinite; }
+.st-mouth-open { animation: st-mouth-open 0.36s steps(1, end) infinite; }
+.st-beak { animation: st-beak 0.36s ease-in-out infinite; }
+.st-wave { animation: st-wave 1.1s ease-in-out infinite; }
+.st-raise { animation: st-raise 2.4s ease-in-out infinite; }
+.st-nod { animation: st-nod 2.2s ease-in-out infinite; }
+.st-hop { animation: st-hop 0.9s ease-in-out infinite; }
+.st-bob { animation: st-bob 3s ease-in-out infinite; }
+.st-flap-l { animation: st-flap-l 0.5s ease-in-out infinite; }
+.st-flap-r { animation: st-flap-r 0.5s ease-in-out infinite; }
+.st-walk-in { animation: st-walk-in 1.8s ease-out both; }
+.st-walk-out { animation: st-walk-out 2s ease-in both; }
+.st-walk-bob { animation: st-walk-bob 0.45s ease-in-out infinite; }
+.st-step-a { animation: st-step 0.9s ease-in-out infinite; }
+.st-step-b { animation: st-step 0.9s ease-in-out infinite reverse; }
+.st-swing-a { animation: st-swing 0.9s ease-in-out infinite reverse; }
+.st-swing-b { animation: st-swing 0.9s ease-in-out infinite; }
+.st-point { animation: st-point 2.6s ease-in-out infinite; }
+.st-hold { transform: rotate(-38deg); }
+.st-scene-in { animation: st-scene-in 0.7s ease-out both; }
+.st-sparkle { transform-box: fill-box; transform-origin: center; animation: st-sparkle 2.4s ease-in-out infinite; }
+.st-breath-circle { transform-box: fill-box; transform-origin: center; animation: st-breath 8s ease-in-out infinite; }
+.st-breath-in { animation: st-breath-in 8s steps(1, end) infinite; }
+.st-breath-out { animation: st-breath-out 8s steps(1, end) infinite; }
+
+@keyframes st-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.008, 1.016); } }
+@keyframes st-breathe-deep { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.02, 1.045); } }
+@keyframes st-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes st-mouth-shut { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes st-mouth-open { 0% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes st-beak { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.6); } }
+@keyframes st-wave { 0%, 100% { transform: rotate(-150deg); } 50% { transform: rotate(-120deg); } }
+@keyframes st-raise { 0%, 100% { transform: rotate(-146deg); } 50% { transform: rotate(-138deg); } }
+@keyframes st-nod { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(6deg); } 60% { transform: rotate(0deg); } }
+@keyframes st-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-22px); } }
+@keyframes st-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes st-flap-l { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-30deg); } }
+@keyframes st-flap-r { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(30deg); } }
+@keyframes st-walk-in { from { transform: translateX(-700px); opacity: 0; } 30% { opacity: 1; } to { transform: translateX(0); opacity: 1; } }
+@keyframes st-walk-out { from { transform: translateX(0); opacity: 1; } 75% { opacity: 1; } to { transform: translateX(900px); opacity: 0; } }
+@keyframes st-walk-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes st-step { 0%, 100% { transform: rotate(16deg); } 50% { transform: rotate(-16deg); } }
+@keyframes st-swing { 0%, 100% { transform: rotate(18deg); } 50% { transform: rotate(-18deg); } }
+@keyframes st-point { 0%, 100% { transform: rotate(-96deg); } 50% { transform: rotate(-90deg); } }
+@keyframes st-scene-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes st-sparkle { 0%, 100% { transform: scale(0.4); opacity: 0.2; } 50% { transform: scale(1); opacity: 1; } }
+@keyframes st-breath { 0%, 100% { transform: scale(0.6); } 50% { transform: scale(1); } }
+@keyframes st-breath-in { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes st-breath-out { 0% { opacity: 0; } 50% { opacity: 1; } }
+
+/* Low-sensory: still pictures; a talking mouth simply stays open. Gestures
+   that carry meaning (a raised hand, a wave) are held as still poses. */
+.st-bell { transform-box: fill-box; transform-origin: 50% 0%; animation: st-bell 1.6s ease-in-out infinite; }
+.st-bell-waves { animation: st-bell-waves 1.6s ease-in-out infinite; }
+@keyframes st-bell { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
+@keyframes st-bell-waves { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+.st-still * { animation: none !important; }
+.st-still .st-raise { transform: rotate(-144deg); }
+.st-still .st-wave { transform: rotate(-138deg); }
+.st-still .st-point { transform: rotate(-93deg); }
+.st-still .st-breath-circle { transform: scale(0.85); }
+.st-still .st-breath-in { opacity: 0; }
+.st-still .st-breath-out { opacity: 0; }
+.st-still .st-breath-still { opacity: 1; }
+.st-breath-still { opacity: 0; }
+.st-still .st-mouth-open { opacity: 1; }
+.st-still .st-mouth-shut { opacity: 0; }

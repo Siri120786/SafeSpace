@@ -115,4 +115,55 @@ export {
   getAiCompanionMessages,
 } from "./aiCompanion";
 
+export {
+  listStories,
+  getStory,
+  saveStory,
+  publishStory,
+  deleteStory,
+  draftStoryWithAi,
+  listMyStories,
+} from "./stories";
+export type { StorySummary, StorySource, StoryAgeBand, SaveStoryInput } from "./stories";
+
+export {
+  listFocusSessions,
+  addFocusSession,
+  clearMyFocusSessions,
+  listFocusTasks,
+  createFocusTask,
+  updateFocusTask,
+  deleteFocusTask,
+  listHabits,
+  addHabit,
+  archiveHabit,
+  setHabitCheck,
+  getStars,
+  awardStars,
+  claimStarGoal,
+  setMyStarGoal,
+  listEmotionChoices,
+  addEmotionChoice,
+  clearMyEmotionChoices,
+  getToolSettings,
+  saveMyToolSettings,
+  starTotalsOf,
+  getChildToolsOverview,
+  getChildToolSetup,
+  setChildStarGoal,
+  setChildToolSettings,
+} from "./focusTools";
+export type {
+  FocusSessionRecordRow,
+  FocusTask,
+  FocusTaskStep,
+  Habit,
+  HabitCheck,
+  StarGoal,
+  StarTotals,
+  EmotionChoice,
+  ToolSettings,
+  ChildToolsOverview,
+} from "./focusTools";
+
 export { getGameState, recordGameRound, saveGamePreferences, getChildGameSummary } from "./games";

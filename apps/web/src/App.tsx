@@ -4,7 +4,6 @@ import { AccessibilityProvider } from "./features/profile";
 import { CalmToolsRoutes } from "./features/calm-tools";
 import { GamesRoutes } from "./features/games";
 import { ModulesRoutes } from "./features/wellness-modules";
-import { StoryWorkflowRoute } from "./features/story-workflow";
 import { ROUTES } from "./routes";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
@@ -30,6 +29,15 @@ import { ChildSpaceProvider, SharingQuestionScreen } from "./features/child-spac
 import ChildHomePage from "./pages/ChildHomePage";
 import ChildSettingsPage from "./pages/ChildSettingsPage";
 import ChildTalkPage from "./pages/ChildTalkPage";
+import { ChildStoriesPage, ChildStoryPage } from "./pages/ChildStoriesPage";
+import { CaregiverStoriesPage, CaregiverStoryEditorPage } from "./pages/CaregiverStoriesPage";
+import CaregiverChildToolsPage from "./pages/CaregiverChildToolsPage";
+import {
+  ChildConditionToolPage,
+  ChildConditionToolsPage,
+  IndividualConditionToolPage,
+  IndividualConditionToolsPage,
+} from "./pages/ConditionToolPages";
 import {
   IndividualCompanionPage,
   IndividualJournalPage,
@@ -112,6 +120,8 @@ export default function App() {
             <Route path={ROUTES.JOURNAL} element={<RoleRoute allow={["individual"]}><IndividualJournalPage /></RoleRoute>} />
             <Route path={ROUTES.REMINDERS} element={<RoleRoute allow={["individual"]}><IndividualRemindersPage /></RoleRoute>} />
             <Route path={ROUTES.COMPANION} element={<RoleRoute allow={["individual"]}><IndividualCompanionPage /></RoleRoute>} />
+            <Route path={ROUTES.TOOLS} element={<RoleRoute allow={["individual"]}><IndividualConditionToolsPage /></RoleRoute>} />
+            <Route path={`${ROUTES.TOOLS}/:toolKey`} element={<RoleRoute allow={["individual"]}><IndividualConditionToolPage /></RoleRoute>} />
 
             {/* Caregiver */}
             <Route
@@ -150,6 +160,22 @@ export default function App() {
               path={ROUTES.CAREGIVER_CHILD_CAREGIVERS}
               element={<RoleRoute allow={["caregiver"]}><CaregiverChildCaregiversPage /></RoleRoute>}
             />
+            <Route
+              path={ROUTES.CAREGIVER_CHILD_TOOLS}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverChildToolsPage /></RoleRoute>}
+            />
+            <Route
+              path={ROUTES.CAREGIVER_STORIES}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverStoriesPage /></RoleRoute>}
+            />
+            <Route
+              path={ROUTES.CAREGIVER_STORY_NEW}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverStoryEditorPage /></RoleRoute>}
+            />
+            <Route
+              path={ROUTES.CAREGIVER_STORY}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverStoryEditorPage /></RoleRoute>}
+            />
             <Route path="/caregiver/dashboard" element={<Navigate to={ROUTES.CAREGIVER_HOME} replace />} />
 
             {/* Child (family code + PIN) */}
@@ -181,6 +207,10 @@ export default function App() {
               <Route path="companion" element={<ChildCompanionPage />} />
               <Route path="modules/*" element={<ChildModulesPage />} />
               <Route path="talk" element={<ChildTalkPage />} />
+              <Route path="tools" element={<ChildConditionToolsPage />} />
+              <Route path="tools/:toolKey" element={<ChildConditionToolPage />} />
+              <Route path="stories" element={<ChildStoriesPage />} />
+              <Route path="stories/:storyId" element={<ChildStoryPage />} />
             </Route>
 
             {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}
@@ -188,10 +218,8 @@ export default function App() {
               path="/modules/*"
               element={<RoleRoute allow={["individual", "caregiver"]}><ModulesRoutes /></RoleRoute>}
             />
-            <Route
-              path="/story-workflow"
-              element={<RoleRoute allow={["individual", "caregiver"]}><StoryWorkflowRoute /></RoleRoute>}
-            />
+            {/* The old text-only story workflow is replaced by caregiver Stories (role-flow 6b). */}
+            <Route path="/story-workflow" element={<Navigate to={ROUTES.CAREGIVER_STORIES} replace />} />
 
             <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Routes>

@@ -13,6 +13,7 @@ import { SessionPlayerModal } from "../components/ui/SessionPlayerModal";
 import { ChatWindow } from "../features/ai-companion";
 import { TodayCard } from "../features/my-tools";
 import { ROUTES } from "../routes";
+import { individualToolPath, splitConditionTools } from "../features/conditions";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -254,7 +255,14 @@ export const DashboardPage: React.FC = () => {
                 <TodayCard session={session} routinesPath={ROUTES.ROUTINES} remindersPath={ROUTES.REMINDERS} />
 
                 <nav aria-label="Your tools" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {TOOL_TILES.map((t) => (
+                  {[
+                    // Tools for their support areas first, the rest under More tools (role-flow 8c).
+                    ...splitConditionTools(supportAreas).mine.map((t) => ({ to: individualToolPath(t.key), label: t.label, icon: t.emoji })),
+                    ...TOOL_TILES,
+                    ...(splitConditionTools(supportAreas).more.length > 0
+                      ? [{ to: ROUTES.TOOLS, label: splitConditionTools(supportAreas).mine.length ? "More tools" : "Focus & feelings", icon: "🧰" }]
+                      : []),
+                  ].map((t) => (
                     <button
                       key={t.to}
                       type="button"

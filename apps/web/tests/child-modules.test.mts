@@ -40,9 +40,9 @@ test("the child's module list links under /child/modules, only for assigned modu
   assert.doesNotMatch(html, /href="\/modules\//);
 });
 
-test("no caregiver story workflow link for a child", () => {
+test("no caregiver stories link for a child", () => {
   const html = render(React.createElement(ModulesHome, { ...child, onlyKeys: ["anxiety"] }));
-  assert.doesNotMatch(html, /story-workflow/);
+  assert.doesNotMatch(html, /story-workflow|caregiver\/stories/);
 });
 
 test("calm tool links stay inside the child's space", () => {

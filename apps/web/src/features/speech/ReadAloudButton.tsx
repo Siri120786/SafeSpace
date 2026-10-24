@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { LANG_TAGS, pickWarmVoice, speakText, type Speaker, type Utterance, type VoiceInfo } from "./speech";
+import {
+  LANG_TAGS,
+  pickProfileVoice,
+  pickWarmVoice,
+  profileTone,
+  speakText,
+  type Speaker,
+  type Utterance,
+  type VoiceInfo,
+  type VoiceProfile,
+} from "./speech";
 
 // One thing speaks at a time across the whole page: starting a new read stops
 // the last one, and every button shows whether it is the one speaking.
@@ -28,15 +38,40 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
   window.speechSynthesis.addEventListener?.("voiceschanged", load);
 }
 
+// Whether the device has any voice for this language (e.g. many have no Telugu
+// voice; reading Telugu text in an English voice would be gibberish).
+export function hasVoiceFor(tag: string): boolean {
+  if (!canReadAloud()) return false;
+  if (voices.length === 0) voices = window.speechSynthesis.getVoices();
+  return pickWarmVoice(voices, tag) !== null;
+}
+
 // Says `text` in the warmest female voice the device has for the language
 // (calm pace, mid pitch). Used by every read-aloud button and the talk board.
-export function speakWarm(text: string, lang?: string, onEnd?: () => void): boolean {
+export function speakWarm(text: string, lang?: string, onEnd?: () => void, onWord?: () => void): boolean {
   if (voices.length === 0 && canReadAloud()) voices = window.speechSynthesis.getVoices();
   const tag = lang ?? LANG_TAGS.en;
   return speakText(text, speaker(), (t) => new SpeechSynthesisUtterance(t) as unknown as Utterance, {
     lang: tag,
     voice: pickWarmVoice(voices, tag),
     onEnd,
+    onWord,
+  });
+}
+
+// Says `text` in a character's voice (story player): the device's voice that
+// best fits the profile, with its pitch and speed.
+export function speakAs(text: string, lang: string, profile: VoiceProfile, onEnd?: () => void, onWord?: () => void): boolean {
+  if (voices.length === 0 && canReadAloud()) voices = window.speechSynthesis.getVoices();
+  const { voice, matched } = pickProfileVoice(voices, lang, profile);
+  const tone = profileTone(profile, matched);
+  return speakText(text, speaker(), (t) => new SpeechSynthesisUtterance(t) as unknown as Utterance, {
+    lang,
+    voice,
+    pitch: tone.pitch,
+    rate: tone.rate,
+    onEnd,
+    onWord,
   });
 }
 

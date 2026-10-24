@@ -8,6 +8,7 @@ import type { AppSession } from "@safespace/shared-types";
 import {
   chosenRole,
   decideRoute,
+  deviceOwnerFor,
   homeFor,
   landingFor,
   roleOf,
@@ -107,6 +108,13 @@ test("?as= accepts only individual or caregiver", () => {
   assert.equal(chosenRole("?as=child"), null);
   assert.equal(chosenRole("?as=admin"), null);
   assert.equal(chosenRole(""), null);
+});
+
+test("on-device tool data belongs to the signed-in person: p: adults, c: children, nobody when signed out", () => {
+  assert.equal(deviceOwnerFor(individual), "p:u1");
+  assert.equal(deviceOwnerFor(caregiver), "p:u1");
+  assert.equal(deviceOwnerFor(child), "c:c1");
+  assert.equal(deviceOwnerFor(null), null);
 });
 
 console.log(`${passed} role-routing checks`);

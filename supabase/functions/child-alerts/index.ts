@@ -15,8 +15,8 @@ const log = (event: string, detail?: string) =>
   console.error(`child-alerts: ${event}${detail ? ` (${detail})` : ""}`);
 
 const store: ChildAlertsStore = {
-  async raiseHelp(childId) {
-    const { data, error } = await admin.rpc("raise_help_alert", { p_child_id: childId });
+  async raiseHelp(childId, source) {
+    const { data, error } = await admin.rpc("raise_help_alert", { p_child_id: childId, p_source: source });
     if (error) throw error;
     return data as string;
   },

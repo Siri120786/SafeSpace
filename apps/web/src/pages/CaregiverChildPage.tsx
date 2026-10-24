@@ -16,6 +16,7 @@ import {
   iconEmoji,
 } from "../features/caregiver";
 import { ROUTES } from "../routes";
+import { ToolsProgressCard } from "../features/conditions";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const days = (d: number[]) => (d.length === 0 || d.length === 7 ? "Every day" : d.map((n) => DAY_NAMES[n]).join(", "));
@@ -66,7 +67,7 @@ export const CaregiverChildPage: React.FC = () => {
       backTo={ROUTES.CAREGIVER_HOME}
     >
       <nav aria-label={`Manage ${child.name}`} className="flex flex-wrap gap-2">
-        {([["routines", "Routines"], ["reminders", "Reminders"], ["settings", "Settings"], ["caregivers", "Caregivers"]] as const).map(([section, label]) => (
+        {([["routines", "Routines"], ["reminders", "Reminders"], ["tools", "Tools"], ["settings", "Settings"], ["caregivers", "Caregivers"]] as const).map(([section, label]) => (
           <Link
             key={section}
             to={caregiverChildPath(child.id, section)}
@@ -170,6 +171,8 @@ export const CaregiverChildPage: React.FC = () => {
               </ul>
             )}
           </Section>
+
+          <ToolsProgressCard childId={child.id} childName={child.name} setupPath={caregiverChildPath(child.id, "tools")} />
 
           <Section title="Games">
             <ChildGamesSummary childId={child.id} childName={child.name} />

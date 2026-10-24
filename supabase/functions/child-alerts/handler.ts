@@ -1,11 +1,13 @@
 // supabase/functions/child-alerts/handler.ts
-// The talk board's "I need help" (docs/role-flow/CONTRACT.md section 7).
+// The talk board's "I need help" (docs/role-flow/CONTRACT.md section 7) and
+// "I want a grown-up" on the feelings cards (role-flow 8e).
 // Verifies the child's session and raises an alert that every caregiver of
 // the child sees, whatever the sharing choice. A second tap within 2 minutes
 // returns the same alert. In-app only: nobody is emailed or texted.
 //
 // Actions:
-//   raise_help { child_session_token }
+//   raise_help { child_session_token, source? }   source: "talk_board" (default)
+//                                                  or "feelings_cards"
 //
 // No Deno or esm.sh imports here; index.ts wires the real dependencies and
 // supabase/tests/child_alerts_handler.test.mts wires fakes.
@@ -13,10 +15,14 @@
 import { json, preflight } from "../_shared/http.ts";
 import { errorSummary } from "../_shared/errors.ts";
 
+export type HelpSource = "aac_tap" | "feelings_card";
+
 export interface ChildAlertsStore {
   // raise_help_alert(): returns the alert id (an existing one within 2 minutes).
-  raiseHelp(childId: string): Promise<string>;
+  raiseHelp(childId: string, source: HelpSource): Promise<string>;
 }
+
+const SOURCES: Record<string, HelpSource> = { talk_board: "aac_tap", feelings_cards: "feelings_card" };
 
 export interface ChildAlertsDeps {
   store: ChildAlertsStore;
@@ -34,20 +40,24 @@ export function createChildAlertsHandler(deps: ChildAlertsDeps) {
     try {
       const text = await req.text();
       if (text.length > MAX_BODY_BYTES) return json({ error: "payload_too_large" }, 413);
-      let body: { action?: unknown; child_session_token?: unknown };
+      let body: { action?: unknown; child_session_token?: unknown; source?: unknown };
       try {
         body = JSON.parse(text) ?? {};
       } catch {
         return json({ error: "invalid_request" }, 400);
       }
       if (body.action !== "raise_help") return json({ error: "invalid_action" }, 400);
+      if (body.source !== undefined && (typeof body.source !== "string" || !Object.hasOwn(SOURCES, body.source))) {
+        return json({ error: "invalid_input" }, 400);
+      }
+      const source: HelpSource = body.source === undefined ? "aac_tap" : SOURCES[body.source as string];
       if (typeof body.child_session_token !== "string" || !body.child_session_token) {
         return json({ error: "invalid_session" }, 401);
       }
       const childId = await deps.verifyChildToken(body.child_session_token);
       if (!childId) return json({ error: "invalid_session" }, 401);
 
-      const alertId = await deps.store.raiseHelp(childId);
+      const alertId = await deps.store.raiseHelp(childId, source);
       return json({ alertId });
     } catch (e) {
       deps.log("unhandled_exception", errorSummary(e));

@@ -33,6 +33,7 @@ export interface Utterance {
   voice?: VoiceInfo | null;
   onend?: (() => void) | null;
   onerror?: (() => void) | null;
+  onboundary?: (() => void) | null; // fires at each word, where the browser supports it
 }
 
 // A warm, calm reading voice: slightly slower than normal, a touch above a
@@ -81,6 +82,77 @@ export function pickWarmVoice<V extends VoiceInfo>(voices: readonly V[], tag: st
   return best;
 }
 
+// A character's voice: which kind of voice to look for, which one of those
+// (so two characters can sound different when the device has several), and
+// pitch and speed. On a device with a single voice, pitch and speed still
+// tell the characters apart.
+export interface VoiceProfile {
+  gender: "female" | "male";
+  pick: number;   // 0 = the best match, 1 = the next one, ...
+  pitch: number;  // 0 to 2; 1 is normal
+  rate: number;   // 0.1 to 10; 1 is normal
+}
+
+const isNatural = (name: string) => name.includes("natural") || name.includes("online") || name.includes("neural");
+const isFemale = (name: string) => FEMALE.some((f) => name.includes(f));
+const isMale = (name: string) => MALE.some((m) => name.includes(m)) || /(^|[^e])male/.test(name);
+
+// The device's voices for a language, best first for the wanted gender:
+// that gender's voices, then unknown ones, then the other gender.
+export function rankVoices<V extends VoiceInfo>(voices: readonly V[], tag: string, gender: "female" | "male"): V[] {
+  const want = tag.toLowerCase();
+  const base = want.split("-")[0];
+  const scored: { v: V; score: number }[] = [];
+  for (const v of voices) {
+    const lang = v.lang.toLowerCase().replace("_", "-");
+    if (lang.split("-")[0] !== base) continue;
+    const name = v.name.toLowerCase();
+    const female = isFemale(name);
+    const male = !female && isMale(name);
+    let score = lang === want ? 30 : 10;
+    if (gender === "female") score += female ? 100 : male ? -200 : 0;
+    else score += male ? 100 : female ? -200 : 0;
+    if (isNatural(name)) score += 50;
+    if (name.includes("google")) score += 15;
+    scored.push({ v, score });
+  }
+  return scored.sort((a, b) => b.score - a.score).map((s) => s.v);
+}
+
+// The voice for a profile, and whether it really is the wanted gender (when
+// it isn't, the caller shifts the pitch instead). Characters keep the story's
+// accent: voices for the exact language (en-IN) come first, and another
+// accent (en-US) is only used when the exact one has none of that gender.
+export function pickProfileVoice<V extends VoiceInfo>(
+  voices: readonly V[],
+  tag: string,
+  profile: VoiceProfile,
+): { voice: V | null; matched: boolean } {
+  const ranked = rankVoices(voices, tag, profile.gender);
+  if (!ranked.length) return { voice: null, matched: false };
+  const same = ranked.filter((v) => {
+    const n = v.name.toLowerCase();
+    return profile.gender === "female" ? isFemale(n) : !isFemale(n) && isMale(n);
+  });
+  const exact = same.filter((v) => v.lang.toLowerCase().replace("_", "-") === tag.toLowerCase());
+  const accent = exact.length ? exact : same;
+  // Don't mix a natural voice with the old robotic ones: when the device has
+  // natural voices (Edge, newer Windows/Android), the characters use only those.
+  const natural = accent.filter((v) => isNatural(v.name.toLowerCase()));
+  const pool = natural.length ? natural : accent;
+  if (pool.length) return { voice: pool[profile.pick % pool.length], matched: true };
+  return { voice: ranked[0], matched: false };
+}
+
+// Pitch and speed for a profile, given whether its voice matched. A male
+// character read by a female voice (or the other way round) moves the pitch
+// further, within what browsers allow.
+export function profileTone(profile: VoiceProfile, matched: boolean): { pitch: number; rate: number } {
+  const shift = matched ? 0 : profile.gender === "male" ? -0.3 : 0.2;
+  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  return { pitch: clamp(profile.pitch + shift, 0.1, 2), rate: clamp(profile.rate, 0.5, 1.5) };
+}
+
 export interface Speaker {
   cancel(): void;
   speak(u: Utterance): void;
@@ -92,7 +164,7 @@ export function speakText(
   text: string,
   speaker: Speaker | null,
   makeUtterance: (t: string) => Utterance,
-  options: { lang?: string; rate?: number; pitch?: number; voice?: VoiceInfo | null; onEnd?: () => void } = {},
+  options: { lang?: string; rate?: number; pitch?: number; voice?: VoiceInfo | null; onEnd?: () => void; onWord?: () => void } = {},
 ): boolean {
   const clean = text.trim();
   if (!speaker || !clean) return false;
@@ -107,6 +179,7 @@ export function speakText(
     u.pitch = options.pitch ?? WARM_PITCH;
     u.onend = options.onEnd ?? null;
     u.onerror = options.onEnd ?? null;
+    u.onboundary = options.onWord ?? null;
     speaker.speak(u);
     return true;
   } catch {
