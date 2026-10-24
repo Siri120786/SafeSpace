@@ -1,72 +1,47 @@
 import React from "react";
+import "../hero/meadowSections.css";
 
-export const TrustStatement: React.FC = () => {
-  return (
-    <section id="trust-section" className="py-16 bg-[#FAF7F2]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header Trust Statement */}
-        <div className="max-w-3xl mx-auto text-center space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-botanical-100/70 text-botanical-800 text-xs font-semibold uppercase tracking-wider">
-            <span>Our Product Promise</span>
-          </div>
+// "Our promise": what SafeSpace is and isn't, in three frosted cards.
+const PILLARS = [
+  {
+    icon: "🌿",
+    title: "Support without stigma",
+    text: "Tools for routines, focus, senses and feelings that fit your rhythm, not a label.",
+  },
+  {
+    icon: "🛡️",
+    title: "Privacy with dignity",
+    text: "Young people's privacy grows with their age, and safety alerts always reach a grown-up when it matters.",
+  },
+  {
+    icon: "🤝",
+    title: "Caregivers, alongside",
+    text: "Caregivers get calm tools and a clear view of what helps, without watching every move.",
+  },
+];
 
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-charcoal tracking-tight">
-            Built around your needs, with your choices in your hands.
-          </h2>
-
-          <p className="text-base text-charcoal/80 max-w-2xl mx-auto leading-relaxed">
-            SafeSpace is designed to support wellbeing, reflection and everyday coping — <strong className="font-semibold text-botanical-800">never to diagnose.</strong>
-          </p>
-        </div>
-
-        {/* 3 Pillars Grid */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-          
-          {/* Pillar 1 */}
-          <div className="p-6 bg-white rounded-3xl border border-botanical-900/5 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-botanical-100 text-botanical-700 flex items-center justify-center font-bold text-lg">
-              🌿
-            </div>
-            <h3 className="font-display text-lg font-bold text-charcoal">
-              Support Without Stigma
-            </h3>
-            <p className="text-xs sm:text-sm text-charcoal/70 leading-relaxed">
-              Personalized tools for routines, executive function, sensory preferences, and mood regulation tailored to your rhythm.
-            </p>
-          </div>
-
-          {/* Pillar 2 */}
-          <div className="p-6 bg-white rounded-3xl border border-botanical-900/5 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-coral-100 text-coral-600 flex items-center justify-center font-bold text-lg">
-              🛡️
-            </div>
-            <h3 className="font-display text-lg font-bold text-charcoal">
-              Dignified Privacy
-            </h3>
-            <p className="text-xs sm:text-sm text-charcoal/70 leading-relaxed">
-              Age-tiered privacy rules protect young individuals&apos; self-expression while maintaining critical safety overrides.
-            </p>
-          </div>
-
-          {/* Pillar 3 */}
-          <div className="p-6 bg-white rounded-3xl border border-botanical-900/5 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-ivory-200 text-botanical-800 flex items-center justify-center font-bold text-lg">
-              🤝
-            </div>
-            <h3 className="font-display text-lg font-bold text-charcoal">
-              Caregiver Collaboration
-            </h3>
-            <p className="text-xs sm:text-sm text-charcoal/70 leading-relaxed">
-              Provides caregivers with actionable insight and calm tools to support family harmony without intrusive surveillance.
-            </p>
-          </div>
-
-        </div>
-
-      </div>
-    </section>
-  );
-};
+export const TrustStatement: React.FC = () => (
+  <section className="ms-section" aria-labelledby="ms-promise">
+    <div className="ms-head">
+      <p className="ms-kicker ms-display">OUR PROMISE</p>
+      <h2 id="ms-promise" className="ms-title ms-display">
+        <span>YOUR SPACE,</span>
+        <span>YOUR CHOICES</span>
+      </h2>
+      <p className="ms-lead">
+        SafeSpace supports wellbeing, reflection and everyday coping. It never diagnoses.
+      </p>
+    </div>
+    <div className="ms-grid">
+      {PILLARS.map((p) => (
+        <article key={p.title} className="ms-card">
+          <div className="ms-badge" aria-hidden="true">{p.icon}</div>
+          <h3 className="ms-display">{p.title}</h3>
+          <p>{p.text}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+);
 
 export default TrustStatement;

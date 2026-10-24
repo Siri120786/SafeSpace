@@ -13,21 +13,25 @@ export const RoleChoice: React.FC<RoleChoiceProps> = ({ mode }) => {
   const options = [
     {
       to: `${base}?as=individual`,
-      title: "Individual",
-      text: mode === "login" ? "Your own wellbeing tools." : "For your own wellbeing.",
+      title: "Just me",
+      text: mode === "login"
+        ? "Your own space: moods, routines, calm tools and more."
+        : "An account for your own wellbeing.",
       icon: "🌱",
     },
     {
       to: `${base}?as=caregiver`,
-      title: "Caregiver",
-      text: mode === "login" ? "Your children's progress and routines." : "To support a child (or several).",
+      title: "A caregiver",
+      text: mode === "login"
+        ? "Help a child with routines, reminders, stories and gentle check-ins."
+        : "To support a child, or several.",
       icon: "🤝",
     },
     {
       to: "/child/pin",
-      title: "Child",
+      title: "A child",
       text: mode === "login"
-        ? "Sign in with your family code and PIN."
+        ? "Use your family code and your secret PIN."
         : "Children don't sign up: a grown-up adds you, then you sign in with your family code and PIN.",
       icon: "🧒",
     },
@@ -36,7 +40,7 @@ export const RoleChoice: React.FC<RoleChoiceProps> = ({ mode }) => {
   return (
     <div className="space-y-3">
       <p className="text-sm text-textMuted text-center">
-        {mode === "login" ? "Who's signing in?" : "Who is this account for?"}
+        {mode === "login" ? "Who's coming in today?" : "Who is this account for?"}
       </p>
       {options.map((o) => (
         <Link

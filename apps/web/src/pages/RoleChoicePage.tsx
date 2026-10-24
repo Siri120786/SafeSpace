@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { LandingNavbar } from "../features/landing/components/LandingNavbar";
-import { LandingHero } from "../features/landing/components/LandingHero";
+import { MeadowHero } from "../features/landing/hero/MeadowHero";
 import { FeatureCardsSection } from "../features/landing/components/FeatureCardsSection";
 import { ShowcaseSection } from "../features/landing/components/ShowcaseSection";
 import { LandingFooter } from "../features/landing/components/LandingFooter";
@@ -24,10 +23,6 @@ export default function RoleChoicePage({ onChooseCaregiver, onChooseChild }: Pro
     }
   };
 
-  const handleSignup = () => {
-    navigate("/signup");
-  };
-
   const handleChild = () => {
     if (onChooseChild) {
       onChooseChild();
@@ -37,46 +32,28 @@ export default function RoleChoicePage({ onChooseCaregiver, onChooseChild }: Pro
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-cream via-[#FAF7F2] to-paleLime/30 text-textHeading font-sans selection:bg-olive-200 selection:text-deepGreen">
-      {/* 1. Sticky Navbar */}
-      <LandingNavbar
-        onLogin={handleLogin}
-        onGetStarted={handleSignup}
-        onChildPin={handleChild}
-      />
-
-      {/* Main Content Area */}
+    <div className="min-h-screen flex flex-col bg-[#3f7d27] font-sans selection:bg-olive-200 selection:text-deepGreen">
       <main className="flex-1">
-        {/* 2. Hero Section */}
-        <LandingHero
-          onBeginJourney={handleSignup}
-          onLogin={handleLogin}
-        />
+        {/* The hillside scene, the welcome and the ways in */}
+        <MeadowHero />
 
-        {/* 3. Feature Cards Section (Understand feelings, build habits, find calm) */}
-        <div id="features">
-          <FeatureCardsSection />
+        {/* Everything below continues the hero's sky, type and glass cards */}
+        <div className="ms">
+          <div id="features">
+            <FeatureCardsSection />
+          </div>
+          <div id="showcase">
+            <ShowcaseSection />
+          </div>
+          <div id="about">
+            <EntryChoiceCard onChooseCaregiver={handleLogin} onChooseChild={handleChild} />
+          </div>
+          <div id="promise">
+            <TrustStatement />
+          </div>
+          <LandingFooter />
         </div>
-
-        {/* 4. Showcase Phone Frame Section */}
-        <div id="showcase">
-          <ShowcaseSection />
-        </div>
-
-        {/* 5. Entry Choice Cards (Preserving Adult vs Child PIN entry) */}
-        <div id="about">
-          <EntryChoiceCard
-            onChooseCaregiver={handleLogin}
-            onChooseChild={handleChild}
-          />
-        </div>
-
-        {/* 6. Product Principles & Trust */}
-        <TrustStatement />
       </main>
-
-      {/* 7. Footer */}
-      <LandingFooter />
     </div>
   );
 }
