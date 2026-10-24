@@ -46,6 +46,7 @@ export const Chip: React.FC<ChipProps> = ({
       type="button"
       onClick={onClick}
       disabled={!onClick}
+      aria-pressed={onClick ? active : undefined}
       className={`${baseClasses} ${sizeClasses[size]} ${
         active ? activeStyles[variant] : inactiveStyles[variant]
       } ${onClick ? "cursor-pointer active:scale-95" : "cursor-default"} ${className}`}

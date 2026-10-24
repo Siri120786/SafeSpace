@@ -30,7 +30,7 @@ export const CalmToolShell: React.FC<CalmToolShellProps> = ({ title, onExit, low
       <div className="mx-auto w-full max-w-xl">
         <header className="flex items-center justify-between gap-3 mb-6">
           <h1 className="font-display text-2xl font-medium text-textHeading">{title}</h1>
-          <Button variant="outline" size="sm" onClick={onExit} aria-label={`Exit ${title} and return to dashboard`}>
+          <Button variant="outline" size="sm" onClick={onExit} aria-label={`Exit ${title} and return home`}>
             Exit
           </Button>
         </header>

@@ -11,7 +11,7 @@
 
 import { getSafeSpaceClient } from "./supabaseClient";
 import { ContractError, invokeEdge, isValidDaysOfWeek, isValidLocalDate, isValidTimeOfDay, toContractError } from "./edge";
-import { REMINDER_KINDS, REMINDER_TITLE_MAX_LENGTH } from "@safespace/shared-types";
+import { REMINDER_KINDS, REMINDER_LEAD_MAX_MINUTES, REMINDER_TITLE_MAX_LENGTH } from "@safespace/shared-types";
 import type {
   AppSession,
   CreateReminderInput,
@@ -22,7 +22,7 @@ import type {
 } from "@safespace/shared-types";
 import type { RoutineTarget } from "./routines";
 
-const COLUMNS = "id, profile_id, child_id, kind, title, routine_id, time_of_day, days_of_week, timezone, is_enabled, created_at, updated_at";
+const COLUMNS = "id, profile_id, child_id, kind, title, routine_id, time_of_day, days_of_week, timezone, is_enabled, lead_minutes, created_at, updated_at";
 
 // ---------------------------------------------------------------------------
 // The due rule (pure)
@@ -79,17 +79,26 @@ export function computeDueReminders(
   for (const r of reminders) {
     if (!r.isEnabled || !isValidTimeZone(r.timezone)) continue;
     const p = localParts(now, r.timezone);
-    const occursOn = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
-    const dow = new Date(Date.UTC(p.year, p.month - 1, p.day)).getUTCDay();
-    if (r.daysOfWeek.length > 0 && !r.daysOfWeek.includes(dow)) continue;
+    const nowMinutes = p.hour * 60 + p.minute;
     const [h, m] = r.timeOfDay.split(":").map(Number);
-    if (p.hour * 60 + p.minute < h * 60 + m) continue;
-    due.push({
-      reminder: r,
-      dueAt: zonedTimeToUtc(occursOn, r.timeOfDay, r.timezone).toISOString(),
-      occursOn,
-      acknowledged: acked.has(`${r.id}|${occursOn}`),
-    });
+    const lead = r.leadMinutes ?? 0;
+    const today = Date.UTC(p.year, p.month - 1, p.day);
+    // An occurrence is due from `lead` minutes before its time. Today's is due
+    // from (time - lead) on; tomorrow's only when the heads-up crosses midnight.
+    for (const [offset, start] of [[0, h * 60 + m - lead], [1, h * 60 + m + 1440 - lead]]) {
+      if (nowMinutes < start) continue;
+      const day = new Date(today + offset * 86_400_000);
+      if (r.daysOfWeek.length > 0 && !r.daysOfWeek.includes(day.getUTCDay())) continue;
+      const occursOn = `${day.getUTCFullYear()}-${pad(day.getUTCMonth() + 1)}-${pad(day.getUTCDate())}`;
+      const at = zonedTimeToUtc(occursOn, r.timeOfDay, r.timezone).getTime();
+      due.push({
+        reminder: r,
+        dueAt: new Date(at - lead * 60_000).toISOString(),
+        occursAt: new Date(at).toISOString(),
+        occursOn,
+        acknowledged: acked.has(`${r.id}|${occursOn}`),
+      });
+    }
   }
   return due.sort((a, b) => a.dueAt.localeCompare(b.dueAt));
 }
@@ -109,6 +118,7 @@ function toReminder(r: any): Reminder {
     daysOfWeek: r.days_of_week ?? [],
     timezone: r.timezone,
     isEnabled: r.is_enabled,
+    leadMinutes: r.lead_minutes ?? 0,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -235,9 +245,16 @@ export async function createReminder(target: RoutineTarget, input: CreateReminde
     days_of_week: [...days].sort(),
     timezone: input.timezone,
     is_enabled: input.isEnabled ?? true,
+    lead_minutes: cleanLead(input.leadMinutes ?? 0),
   }).select(COLUMNS).single();
   if (error) throw toContractError(error);
   return toReminder(data);
+}
+
+// Heads-up before the time, 0 to 120 minutes.
+function cleanLead(v: unknown): number {
+  if (typeof v !== "number" || !Number.isInteger(v) || v < 0 || v > REMINDER_LEAD_MAX_MINUTES) throw new ContractError("invalid_input");
+  return v;
 }
 
 export async function updateReminder(reminderId: string, input: UpdateReminderInput): Promise<Reminder> {
@@ -260,6 +277,7 @@ export async function updateReminder(reminderId: string, input: UpdateReminderIn
     if (typeof input.isEnabled !== "boolean") throw new ContractError("invalid_input");
     patch.is_enabled = input.isEnabled;
   }
+  if (input?.leadMinutes !== undefined) patch.lead_minutes = cleanLead(input.leadMinutes);
   if (Object.keys(patch).length === 0) throw new ContractError("invalid_input");
   const supabase = getSafeSpaceClient();
   const { data, error } = await supabase.from("reminders").update(patch).eq("id", reminderId).select(COLUMNS).maybeSingle();

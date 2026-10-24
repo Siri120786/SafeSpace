@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth";
+import { landingFor, useAuth } from "../../auth";
 import type { ModuleKey } from "@safespace/shared-types";
 import {
   getSupportPreferences,
@@ -176,10 +176,10 @@ export const ProfileScreen: React.FC = () => {
         <div>
           <button
             type="button"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate(landingFor(session) ?? "/")}
             className="text-xs font-semibold text-deepGreen hover:underline mb-2 flex items-center gap-1"
           >
-            &larr; Back to Dashboard
+            &larr; Back to home
           </button>
           <h1 className="font-display text-3xl font-medium text-textHeading">
             Profile &amp; Preferences
@@ -354,7 +354,7 @@ export const ProfileScreen: React.FC = () => {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate(landingFor(session) ?? "/")}
           >
             Cancel
           </Button>

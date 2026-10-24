@@ -147,14 +147,17 @@ if (childToken) {
   ok("child limit does not affect the caregiver adult account",
     (await chat({ token: caregiver.token }, NORMAL)).status === 503);
 
-  // ---- 8. database error fails closed ----
-  // Delete the child (service role) while its signed token is still valid:
-  // take_slot then fails on the foreign key and must refuse, not allow.
+  // ---- 8. a deleted child's session is refused ----
+  // Delete the child (service role) while its signed token is still valid.
+  // Since role flow M3 every child request checks the session against the
+  // database, so the request is refused (401) before the rate limit or the
+  // model. take_slot's own fail-closed path is covered by
+  // ai_companion_handler.test.mts ("rate-limit check failure fails CLOSED").
   await fetch(`${API}/rest/v1/children?id=eq.${created.child_id}`, {
     method: "DELETE",
     headers: { apikey: ANON, Authorization: `Bearer ${SERVICE}` },
   });
   const afterDelete = await chat({ child: childToken }, NORMAL);
-  ok("database error in take_slot fails closed (503 rate_limit_unavailable)",
-    afterDelete.status === 503 && afterDelete.error === "rate_limit_unavailable");
+  ok("a deleted child's still-valid token is refused (401) before the rate limit or the model",
+    afterDelete.status === 401);
 }

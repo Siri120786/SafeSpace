@@ -64,8 +64,10 @@ const AdultsOnly: React.FC<ModuleScreenProps & { title: string }> = ({ title, ..
   </CalmToolShell>
 );
 
-const BackToHub: React.FC = () => (
-  <Link to="/modules/pcos-pcod" className="underline text-deepGreen text-sm">
+const baseOf = (p: ModuleScreenProps) => p.paths?.base ?? "/modules";
+
+const BackToHub: React.FC<{ base: string }> = ({ base }) => (
+  <Link to={`${base}/pcos-pcod`} className="underline text-deepGreen text-sm">
     Back to PCOS / PCOD
   </Link>
 );
@@ -105,7 +107,7 @@ export const PhysicalExercise: React.FC<ModuleScreenProps & { role: string | nul
   return (
     <CalmToolShell title="Physical Exercise" {...p}>
       <div className="space-y-4">
-        <BackToHub />
+        <BackToHub base={baseOf(p)} />
         <Card className="space-y-2">
           <Coach stance={reaction.stance} text={reaction.text} lowSensory={p.lowSensory} />
         </Card>
@@ -281,7 +283,7 @@ export const FoodModule: React.FC<ModuleScreenProps & { role: string | null }> =
   return (
     <CalmToolShell title="Food" {...p}>
       <div className="space-y-4">
-        <BackToHub />
+        <BackToHub base={baseOf(p)} />
         <DietSection lowSensory={p.lowSensory} condition={condition} />
         <WaterTally />
         <Notes extra="Always follow the eating plan your own doctor or dietitian gives you." />
@@ -345,9 +347,9 @@ export const PcosPcodHub: React.FC<ModuleScreenProps & { role: string | null }> 
 
         <h2 className="font-display text-xl text-textHeading">Your care spaces</h2>
         {[
-          { to: "/modules/pcos-pcod/cycle-care", name: "Cycle Care", blurb: "Check-ins, medicine notes and reminders, doctor-visit prep." },
-          { to: "/modules/pcos-pcod/exercise", name: "Physical Exercise", blurb: "Daily minutes, yoga time and a weekly workout plan." },
-          { to: "/modules/pcos-pcod/food", name: "Food", blurb: "Diet plan, rewards, water and meal ideas." },
+          { to: `${baseOf(p)}/pcos-pcod/cycle-care`, name: "Cycle Care", blurb: "Check-ins, medicine notes and reminders, doctor-visit prep." },
+          { to: `${baseOf(p)}/pcos-pcod/exercise`, name: "Physical Exercise", blurb: "Daily minutes, yoga time and a weekly workout plan." },
+          { to: `${baseOf(p)}/pcos-pcod/food`, name: "Food", blurb: "Diet plan, rewards, water and meal ideas." },
         ].map((m) => (
           <Link key={m.to} to={m.to} className={linkClass}>
             <Card hoverable className="space-y-1">

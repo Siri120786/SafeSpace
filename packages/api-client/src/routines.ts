@@ -22,9 +22,11 @@ import type {
   ModuleKey,
   Routine,
   RoutineStep,
+  RoutineStepIcon,
   RoutineWithSteps,
   UpdateRoutineInput,
 } from "@safespace/shared-types";
+import { ROUTINE_STEP_ICONS } from "@safespace/shared-types";
 
 export type RoutineTarget = { kind: "self" } | { kind: "child"; childId: string };
 
@@ -33,7 +35,7 @@ const LABEL_MAX = 120;
 const COMPLETION_WINDOW_DAYS_BACK = 6;
 
 const ROUTINE_COLUMNS = "id, profile_id, child_id, module_key, title, days_of_week, is_active, created_at, updated_at";
-const STEP_COLUMNS = "id, routine_id, label, scheduled_time, order_index";
+const STEP_COLUMNS = "id, routine_id, label, scheduled_time, order_index, icon";
 
 // ---------------------------------------------------------------------------
 // Mapping and validation
@@ -59,6 +61,7 @@ function toStep(s: any): RoutineStep {
     label: s.label,
     scheduledTime: s.scheduled_time ? String(s.scheduled_time).slice(0, 5) : null,
     orderIndex: s.order_index,
+    icon: s.icon ?? null,
   };
 }
 
@@ -96,6 +99,15 @@ function cleanLabel(label: unknown): string {
   const t = typeof label === "string" ? label.trim() : "";
   if (!t || t.length > LABEL_MAX) throw new ContractError(t.length > LABEL_MAX ? "content_too_long" : "invalid_input");
   return t;
+}
+
+// undefined = leave as is (updates); null or "" = no icon; otherwise a known key.
+function cleanIcon(icon: unknown): RoutineStepIcon | null {
+  if (icon === undefined || icon === null || icon === "") return null;
+  if (typeof icon !== "string" || !Object.prototype.hasOwnProperty.call(ROUTINE_STEP_ICONS, icon)) {
+    throw new ContractError("invalid_input");
+  }
+  return icon as RoutineStepIcon;
 }
 
 function cleanTime(time: unknown): string | null {
@@ -217,7 +229,11 @@ export async function createRoutine(target: RoutineTarget, input: CreateRoutineI
   const title = cleanTitle(input?.title);
   const days = cleanDays(input?.daysOfWeek);
   if (!Array.isArray(input?.steps)) throw new ContractError("invalid_input");
-  const steps = input.steps.map((s) => ({ label: cleanLabel(s?.label), scheduled_time: cleanTime(s?.scheduledTime) }));
+  const steps = input.steps.map((s) => ({
+    label: cleanLabel(s?.label),
+    scheduled_time: cleanTime(s?.scheduledTime),
+    icon: cleanIcon(s?.icon),
+  }));
   const childId = target?.kind === "child" ? target.childId : target?.kind === "self" ? null : undefined;
   if (childId === undefined) throw new ContractError("invalid_input");
 
@@ -260,10 +276,11 @@ export async function deleteRoutine(routineId: string): Promise<void> {
 
 export async function addRoutineStep(
   routineId: string,
-  input: { label: string; scheduledTime?: string | null },
+  input: { label: string; scheduledTime?: string | null; icon?: RoutineStepIcon | null },
 ): Promise<RoutineStep> {
   const label = cleanLabel(input?.label);
   const scheduledTime = cleanTime(input?.scheduledTime);
+  const icon = cleanIcon(input?.icon);
   const supabase = getSafeSpaceClient();
   const { data: last, error: lastErr } = await supabase
     .from("routine_steps").select("order_index").eq("routine_id", routineId)
@@ -272,7 +289,7 @@ export async function addRoutineStep(
   const nextIndex = last && last.length ? (last[0] as any).order_index + 1 : 0;
   const { data, error } = await supabase
     .from("routine_steps")
-    .insert({ routine_id: routineId, label, scheduled_time: scheduledTime, order_index: nextIndex })
+    .insert({ routine_id: routineId, label, scheduled_time: scheduledTime, order_index: nextIndex, icon })
     .select(STEP_COLUMNS).single();
   if (error) throw toContractError(error);
   return toStep(data);
@@ -280,11 +297,12 @@ export async function addRoutineStep(
 
 export async function updateRoutineStep(
   stepId: string,
-  input: { label?: string; scheduledTime?: string | null },
+  input: { label?: string; scheduledTime?: string | null; icon?: RoutineStepIcon | null },
 ): Promise<RoutineStep> {
   const patch: Record<string, unknown> = {};
   if (input?.label !== undefined) patch.label = cleanLabel(input.label);
   if (input?.scheduledTime !== undefined) patch.scheduled_time = cleanTime(input.scheduledTime);
+  if (input?.icon !== undefined) patch.icon = cleanIcon(input.icon);
   if (Object.keys(patch).length === 0) throw new ContractError("invalid_input");
   const supabase = getSafeSpaceClient();
   const { data, error } = await supabase.from("routine_steps").update(patch).eq("id", stepId).select(STEP_COLUMNS).maybeSingle();
@@ -313,6 +331,36 @@ export async function deleteRoutineStep(stepId: string): Promise<void> {
 // ---------------------------------------------------------------------------
 // Caregiver view
 // ---------------------------------------------------------------------------
+
+async function selectRoutineSetup(filter: { column: "profile_id" | "child_id"; id: string }): Promise<RoutineWithSteps[]> {
+  const supabase = getSafeSpaceClient();
+  const { data, error } = await supabase
+    .from("routines")
+    .select(`${ROUTINE_COLUMNS}, routine_steps(${STEP_COLUMNS})`)
+    .eq(filter.column, filter.id)
+    .order("created_at", { ascending: true });
+  if (error) throw toContractError(error);
+  return (data ?? []).map((r: any) => ({
+    ...toRoutine(r),
+    steps: [...(r.routine_steps ?? [])]
+      .sort((a: any, b: any) => a.order_index - b.order_index)
+      .map((s: any) => ({ ...toStep(s), completedOnDate: false })),
+  }));
+}
+
+/**
+ * Every routine set up for a child, active or not, whatever the day: what the
+ * routine builder edits. Steps in order; no completions (those are activity).
+ */
+export async function listChildRoutineSetup(childId: string): Promise<RoutineWithSteps[]> {
+  return selectRoutineSetup({ column: "child_id", id: childId });
+}
+
+/** The same for a signed-in adult's own routines (Individuals, role-flow 7b). */
+export async function listMyRoutineSetup(session: AppSession): Promise<RoutineWithSteps[]> {
+  if (session?.kind !== "auth_user") throw new ContractError("unsupported_session");
+  return selectRoutineSetup({ column: "profile_id", id: session.profile.id });
+}
 
 /** A caregiver's view of one child's routines scheduled on `date`. */
 export async function listChildRoutines(childId: string, options: { date: string }): Promise<RoutineWithSteps[]> {

@@ -51,7 +51,8 @@ async function makeDb(mode: "hosted" | "local", opts: { withoutNew?: boolean } =
     `);
   }
   for (const f of allFiles) {
-    if (opts.withoutNew && NEW_MIGRATIONS.includes(f)) continue;
+    // "Before": the database as it was before the hosted-grants fix.
+    if (opts.withoutNew && f >= NEW_MIGRATIONS[0]) break;
     await db.exec(readFileSync(dir + f, "utf8"));
   }
   return db;
@@ -141,8 +142,12 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
   profiles: { authenticated: "SID", service_role: "" },
   profile_support_preferences: { authenticated: "SIUD", service_role: "" },
   profile_accessibility_preferences: { authenticated: "SIUD", service_role: "" },
+  // Several caregivers (20261027000000): functions only, no client access.
+  child_caregivers: { authenticated: "", service_role: "" },
+  caregiver_invites: { authenticated: "", service_role: "" },
   // Not covered yet: no code uses them (see the migration header).
-  emergency_events: { authenticated: "", service_role: "" },
+  // Alerts (20261027200000): caregivers read; writes only through functions.
+  emergency_events: { authenticated: "S", service_role: "" },
   generated_stories: { authenticated: "", service_role: "" },
 };
 {
@@ -163,7 +168,8 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
   const childCol = async (col: string, p: string) =>
     (await db.query<{ h: boolean }>(`select has_column_privilege('authenticated', 'public.children', $1, $2) h`, [col, p])).rows[0].h;
   let readable = true;
-  for (const c of ["id", "caregiver_id", "name", "age", "privacy_tier", "created_at"]) readable &&= await childCol(c, "SELECT");
+  for (const c of ["id", "caregiver_id", "name", "age", "privacy_tier", "created_at", "birth_year", "birth_month",
+    "shares_with_caregiver", "sharing_decided_at", "theme", "low_sensory_default"]) readable &&= await childCol(c, "SELECT");
   ok("children: signed-in users may read every column except pin_hash, and insert none",
     readable && !(await childCol("pin_hash", "SELECT")) && !(await childCol("name", "INSERT")) &&
     !(await childCol("privacy_tier", "INSERT")) && !(await childCol("pin_hash", "INSERT")));
@@ -173,8 +179,10 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
     (await db.query<{ h: boolean }>(`select has_function_privilege($1, $2, 'EXECUTE') h`, [role, sig])).rows[0].h;
   const serverOnly = ["public.pin_attempt_begin(text)", "public.pin_attempt_succeeded(bigint)",
     "public.ai_companion_take_slot(uuid, uuid, integer, integer)",
-    "public.create_child(uuid, text, integer, text, text[])"];
+    "public.create_child(uuid, text, integer, text, text[])",
+    "public.raise_help_alert(uuid)", "public.caregiver_role_for_child(uuid, uuid)", "public.reset_child_pin(uuid, uuid, text)"];
   const userFns = ["public.wellness_summary(uuid, uuid, date, integer, text)",
+    "public.is_caregiver_of(uuid)", "public.is_primary_caregiver_of(uuid)",
     "public.create_routine_with_steps(uuid, text, text, smallint[], jsonb)", "public.reorder_routine_steps(uuid, uuid[])"];
   let good = true;
   for (const f of serverOnly) good &&= (await fn("service_role", f)) && !(await fn("authenticated", f)) && !(await fn("anon", f));
@@ -182,6 +190,14 @@ const EXPECTED: Record<string, { authenticated: Privs; service_role: Privs }> = 
   good = true;
   for (const f of userFns) good &&= (await fn("authenticated", f)) && (await fn("service_role", f)) && !(await fn("anon", f));
   ok("wellness and routine functions: authenticated and service_role, never anon", good);
+  const caregiverFns = ["public.child_family_code(uuid)", "public.list_child_caregivers(uuid)", "public.mark_alert_reviewed(uuid)",
+    "public.create_caregiver_invite(uuid)", "public.accept_caregiver_invite(text)",
+    "public.remove_child_caregiver(uuid, uuid)"];
+  good = true;
+  for (const f of caregiverFns) good &&= (await fn("authenticated", f)) && !(await fn("anon", f));
+  const internalFns = ["public.add_primary_caregiver()", "public.caregiver_invite_hash(text)"];
+  for (const f of internalFns) good &&= !(await fn("authenticated", f)) && !(await fn("anon", f));
+  ok("caregiver functions: signed-in users only; internal helpers: nobody", good);
 }
 
 // Fixtures (as the table owner, like seed data).
@@ -217,8 +233,8 @@ const created = await one<{ name: string; privacy_tier: string; caregiver_id: st
 ok("the approved flow creates a child with modules for the authorised caregiver (name trimmed, modules de-duplicated)",
   !!kidA && created.caregiver_id === cgA && created.name === "A kid" &&
   (await one<{ n: number }>(`select count(*)::int n from child_modules where child_id = $1`, [kidA])).n === 2);
-ok("privacy tier is derived from age, never chosen by the caller",
-  created.privacy_tier === "partial" &&
+ok("the legacy privacy_tier follows the age-15 rule, never chosen by the caller ('full' under 15, 'private' from 15)",
+  created.privacy_tier === "full" &&
   (await one<{ t: string }>(`select privacy_tier t from children where id = $1`,
     [(await createChild(cgA, "Small", 6, await hashPin("1357"), []))[0].id])).t === "full" &&
   (await one<{ t: string }>(`select privacy_tier t from children where id = $1`,
@@ -268,11 +284,15 @@ ok("PIN hashes and attempts stay unreadable to signed-in users",
   (await denied("authenticated", cgA, `select pin_attempt_begin($1)`, [famA])));
 
 // Child data written by Edge Functions (service_role), read back by caregivers.
+// 'secret' is a legacy private note (private notes were removed in role flow
+// M2), seeded with triggers paused the way old data already exists.
+await db.exec(`set session_replication_role = replica`);
 await as("service_role", "", `insert into mood_checkins (child_id, mood, note, is_private_note) values
   ($1, 'happy', 'shared', false), ($1, 'sad', 'secret', true)`, [kidA]);
+await db.exec(`set session_replication_role = origin`);
 await as("service_role", "", `insert into mood_checkins (child_id, mood) values ($1, 'neutral')`, [kidB]);
 const seen = await as<{ note: string | null }>("authenticated", cgA, `select note from mood_checkins`);
-ok("caregiver sees their partial-tier child's shared check-in, not the private one",
+ok("caregiver sees their child's shared check-in, not the legacy private note",
   seen.length === 1 && seen[0].note === "shared");
 ok("caregiver B sees none of caregiver A's family",
   (await as("authenticated", cgB, `select id from children where id = $1`, [kidA])).length === 0 &&
@@ -312,7 +332,7 @@ const sr = <T,>(sql: string, params: unknown[] = []) => as<T>("service_role", ""
   const tier = await sr<{ privacy_tier: string }>(`select privacy_tier from children where id = $1`, [kidA]);
   await sr(`insert into journal_entries (child_id, content) values ($1, 'kid journal')`, [kidA]);
   ok("mood-checkin / journal reads and writes",
-    tier[0].privacy_tier === "partial" &&
+    tier[0].privacy_tier === "full" &&
     (await sr(`select id from mood_checkins where child_id = $1`, [kidA])).length === 2 &&
     (await sr(`select id from journal_entries where child_id = $1`, [kidA])).length === 1);
   // ai-companion

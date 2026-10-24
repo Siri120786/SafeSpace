@@ -2,12 +2,13 @@
 // Child-facing journaling (Sprint 3). Children have no Supabase login, so this
 // function verifies the signed child-session token, derives the child_id, and
 // writes/reads ONLY that child's entries with the service role. Children can
-// create and list their own entries; caregivers read them under RLS (partial-
-// tier private notes hidden). Entries are never sent to AI.
-// Contract: docs/sprint-3/CONTRACTS.md section 2.
+// create and list their own entries; caregivers read them under RLS only while
+// the child's activity is shared (docs/role-flow/CONTRACT.md section 5).
+// Entries are never sent to AI. Contract: docs/sprint-3/CONTRACTS.md section 2.
 //
 // Actions:
-//   create { child_session_token, content, entry_type?, module_key?, is_private_note? }
+//   create { child_session_token, content, entry_type?, module_key? }
+//          (is_private_note: true is refused; private notes were removed)
 //   list   { child_session_token, limit?, entry_type? }
 //
 // No Deno or esm.sh imports; index.ts wires the real dependencies and
@@ -18,7 +19,6 @@ import { errorSummary } from "../_shared/errors.ts";
 import { parseJournalRequest, toJournalEntry, type JournalRow } from "../_shared/journal.ts";
 
 export interface ChildJournalStore {
-  childPrivacyTier(childId: string): Promise<string | null>;
   createEntry(row: {
     child_id: string;
     content: string;
@@ -67,10 +67,8 @@ export function createJournalHandler(deps: JournalDeps) {
       }
 
       // create
-      if (request.isPrivateNote && (await deps.store.childPrivacyTier(childId)) !== "partial") {
-        // Clear error here; the database trigger enforces the same rule.
-        return json({ error: "private_note_not_allowed_for_privacy_tier" }, 400);
-      }
+      // Private notes were removed (role flow); the database trigger refuses them too.
+      if (request.isPrivateNote) return json({ error: "invalid_input" }, 400);
       const row = await deps.store.createEntry({
         child_id: childId,
         content: request.content,

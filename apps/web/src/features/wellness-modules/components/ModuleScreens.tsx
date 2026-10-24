@@ -17,6 +17,7 @@ import {
   SLEEP_STRESS_IDEAS,
   SUPPORT_TEXT,
   canOpenCycleCare,
+  type ModuleInfo,
 } from "../lib/content";
 import { useCondition } from "./useCondition";
 import { visitQuestionsFor } from "../lib/condition";
@@ -28,7 +29,17 @@ export interface ModuleScreenProps {
   lowSensory: boolean;
   onExit: () => void;
   notice?: string | null;
+  // Where these screens are mounted. Defaults are the adult routes; the
+  // child's space passes its own (role-flow 5b).
+  paths?: { base: string; calmTools: string };
+  // Modules to list on the home screen (default: all).
+  onlyKeys?: readonly ModuleInfo["key"][];
+  // The caregiver story workflow link (default: shown).
+  showStoryWorkflow?: boolean;
 }
+
+const modulePath = (p: ModuleScreenProps, m: ModuleInfo) => (p.paths ? `${p.paths.base}${m.path.slice("/modules".length)}` : m.path);
+const calmPath = (p: Pick<ModuleScreenProps, "paths">, tool: "breathing" | "grounding") => `${p.paths?.calmTools ?? "/calm-tools"}/${tool}`;
 
 const linkClass = "block rounded-3xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:ring-offset-2";
 const fieldClass =
@@ -47,20 +58,22 @@ export const Notes: React.FC<{ extra?: string }> = ({ extra }) => (
 export const ModulesHome: React.FC<ModuleScreenProps> = (p) => (
   <CalmToolShell title="Wellness modules" {...p}>
     <div className="space-y-4">
-      {MODULES.map((m) => (
-        <Link key={m.key} to={m.path} className={linkClass}>
+      {MODULES.filter((m) => !p.onlyKeys || p.onlyKeys.includes(m.key)).map((m) => (
+        <Link key={m.key} to={modulePath(p, m)} className={linkClass}>
           <Card hoverable className="space-y-1">
             <h2 className="font-display text-xl text-textHeading">{m.name}</h2>
             <p className="text-sm text-textBody">{m.blurb}</p>
           </Card>
         </Link>
       ))}
-      <Link to="/story-workflow" className={linkClass}>
-        <Card hoverable className="space-y-1">
-          <h2 className="font-display text-xl text-textHeading">Story workflow</h2>
-          <p className="text-sm text-textBody">For caregivers: write, check, approve and read stories.</p>
-        </Card>
-      </Link>
+      {p.showStoryWorkflow !== false && (
+        <Link to="/story-workflow" className={linkClass}>
+          <Card hoverable className="space-y-1">
+            <h2 className="font-display text-xl text-textHeading">Story workflow</h2>
+            <p className="text-sm text-textBody">For caregivers: write, check, approve and read stories.</p>
+          </Card>
+        </Link>
+      )}
     </div>
   </CalmToolShell>
 );
@@ -71,10 +84,10 @@ export const CalmSpace: React.FC<ModuleScreenProps> = (p) => (
       <Card className="space-y-3">
         <h2 className="font-display text-xl text-textHeading">Calming tools</h2>
         <div className="flex flex-wrap gap-3">
-          <Link to="/calm-tools/breathing" className="underline text-deepGreen">
+          <Link to={calmPath(p, "breathing")} className="underline text-deepGreen">
             Breathing exercise
           </Link>
-          <Link to="/calm-tools/grounding" className="underline text-deepGreen">
+          <Link to={calmPath(p, "grounding")} className="underline text-deepGreen">
             5-4-3-2-1 grounding
           </Link>
         </div>
@@ -194,7 +207,7 @@ export const BrightDays: React.FC<ModuleScreenProps> = (p) => {
 };
 
 /** Safe Harbor always runs in low-sensory mode, whatever the other settings say. */
-export const SafeHarbor: React.FC<ModuleScreenProps> = ({ onExit, notice }) => {
+export const SafeHarbor: React.FC<ModuleScreenProps> = ({ onExit, notice, paths }) => {
   const [step, setStep] = useState(0);
   const last = step === RELAXATION_STEPS.length - 1;
   return (
@@ -218,7 +231,7 @@ export const SafeHarbor: React.FC<ModuleScreenProps> = ({ onExit, notice }) => {
           </div>
         </Card>
         <Card className="space-y-2">
-          <Link to="/calm-tools/grounding" className="underline text-deepGreen">
+          <Link to={calmPath({ paths }, "grounding")} className="underline text-deepGreen">
             Try the grounding activity
           </Link>
         </Card>
@@ -251,7 +264,7 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; sess
   return (
     <CalmToolShell title="Cycle Care" {...p}>
       <div className="space-y-4">
-        <Link to="/modules/pcos-pcod" className="underline text-deepGreen text-sm">
+        <Link to={`${p.paths?.base ?? "/modules"}/pcos-pcod`} className="underline text-deepGreen text-sm">
           Back to PCOS / PCOD
         </Link>
         <DailyCheckIn />
@@ -285,7 +298,7 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; sess
               <li key={m}>{m}</li>
             ))}
           </ul>
-          <Link to="/calm-tools/breathing" className="underline text-deepGreen">
+          <Link to={calmPath(p, "breathing")} className="underline text-deepGreen">
             Open the breathing exercise
           </Link>
         </Card>

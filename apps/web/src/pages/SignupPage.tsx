@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../features/auth";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { chosenRole, RoleChoice, useAuth } from "../features/auth";
 import type { UserRole } from "@safespace/shared-types";
 import { Card } from "../components/ui/Card";
 import { InputField } from "../components/ui/InputField";
@@ -13,12 +13,13 @@ export const SignupPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [role, setRole] = useState<UserRole>("user");
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [termsError, setTermsError] = useState(false);
 
   const { signup, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
+  const as = chosenRole(useLocation().search);
+  const role: UserRole = as === "caregiver" ? "caregiver" : "user";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +64,10 @@ export const SignupPage: React.FC = () => {
             </p>
           </div>
 
+          {!as ? (
+            <RoleChoice mode="signup" />
+          ) : (
+          <>
           {/* Error Banner */}
           {(error || termsError) && (
             <div className="mb-5 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-center gap-2">
@@ -74,35 +79,12 @@ export const SignupPage: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Account Role Selector */}
-            <div>
-              <label className="block text-xs font-semibold text-textHeading mb-1.5">
-                Account Type
-              </label>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-olive-50/60 rounded-2xl border border-olive-100">
-                <button
-                  type="button"
-                  onClick={() => setRole("user")}
-                  className={`py-2 px-3 text-xs font-medium rounded-xl transition-all ${
-                    role === "user"
-                      ? "bg-white text-deepGreen shadow-sm font-semibold"
-                      : "text-textMuted hover:text-textHeading"
-                  }`}
-                >
-                  Individual User
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("caregiver")}
-                  className={`py-2 px-3 text-xs font-medium rounded-xl transition-all ${
-                    role === "caregiver"
-                      ? "bg-white text-deepGreen shadow-sm font-semibold"
-                      : "text-textMuted hover:text-textHeading"
-                  }`}
-                >
-                  Caregiver Lead
-                </button>
-              </div>
+            {/* The account type was chosen on the previous screen. */}
+            <div className="flex items-center justify-between rounded-2xl border border-olive-100 bg-olive-50/60 px-4 py-2.5 text-xs">
+              <span className="text-textHeading">
+                Account type: <strong>{role === "caregiver" ? "Caregiver" : "Individual"}</strong>
+              </span>
+              <Link to="/signup" className="text-deepGreen font-medium underline">Change</Link>
             </div>
 
             <InputField
@@ -160,10 +142,12 @@ export const SignupPage: React.FC = () => {
               </Button>
             </div>
           </form>
+          </>
+          )}
 
           <div className="mt-6 pt-4 border-t border-olive-100 text-center text-xs text-textMuted font-light">
             Already have an account?{" "}
-            <Link to="/login" className="text-deepGreen font-medium hover:underline">
+            <Link to={as ? `/login?as=${as}` : "/login"} className="text-deepGreen font-medium hover:underline">
               Log in
             </Link>
           </div>

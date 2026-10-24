@@ -25,6 +25,8 @@ const ok = (n: string, c: boolean) => {
   console.log((c ? "PASS " : "FAIL ") + n);
   if (!c) process.exitCode = 1;
 };
+// A birth month/year giving this age today (role flow: children have birth dates).
+const born = (years: number) => ({ birthYear: new Date().getUTCFullYear() - years, birthMonth: new Date().getUTCMonth() + 1 });
 const errCode = async (p: Promise<unknown>) => {
   try {
     await p;
@@ -69,8 +71,8 @@ ok("adult lists their entries newest first", mine.length === 2 && mine[0].id ===
 ok("adult filters by type and by module",
   (await listMyJournalEntries(a, { entryType: "gratitude" })).length === 1 &&
   (await listMyJournalEntries(a, { moduleKey: "depression" })).length === 1);
-ok("adult can't save a private note (child-tier feature)",
-  (await errCode(createJournalEntry(a, { content: "x", isPrivateNote: true }))) === "private_note_not_allowed_for_privacy_tier");
+ok("adults can't save a private note (private notes were removed)",
+  (await errCode(createJournalEntry(a, { content: "x", isPrivateNote: true } as any))) === "invalid_input");
 ok("blank and over-long content rejected",
   (await errCode(createJournalEntry(a, { content: "   " }))) === "invalid_input" &&
   (await errCode(createJournalEntry(a, { content: "a".repeat(5001) }))) === "content_too_long");
@@ -81,31 +83,31 @@ ok("another adult sees none of A's entries and can't delete them",
   (await errCode(deleteJournalEntry(b, e1.id))) === "not_found");
 
 // ---------------------------------------------------------------------------
-// Caregiver and two children (full tier: age 7, partial tier: age 10)
+// Caregiver and two children under 15 (age 7 and age 10)
 // ---------------------------------------------------------------------------
 await becomeNew("cg", "caregiver");
-const youngId = await addChild({ name: "Young", age: 7, pin: "2741", modules: [] });
-const olderId = await addChild({ name: "Older", age: 10, pin: "5826", modules: [] });
+const youngId = await addChild({ name: "Young", ...born(7), pin: "2741", modules: [] });
+const olderId = await addChild({ name: "Older", ...born(10), pin: "5826", modules: [] });
 const family = await getMyFamilyCode();
 const young = await verifyChildPin(family, "2741");
 const older = await verifyChildPin(family, "5826");
 
 const y1 = await createJournalEntry(young, { content: "I drew a cat" });
-ok("full-tier child saves an entry through the Edge Function", y1.childId === youngId && y1.profileId === null);
-ok("full-tier child can't mark a private note",
-  (await errCode(createJournalEntry(young, { content: "secret", isPrivateNote: true }))) === "private_note_not_allowed_for_privacy_tier");
+ok("a child saves an entry through the Edge Function", y1.childId === youngId && y1.profileId === null);
+ok("children can't mark a private note (private notes were removed)",
+  (await errCode(createJournalEntry(young, { content: "secret", isPrivateNote: true } as any))) === "invalid_input" &&
+  (await errCode(createJournalEntry(older, { content: "secret", isPrivateNote: true } as any))) === "invalid_input");
 await createJournalEntry(older, { content: "Shared: maths test went ok" });
-const priv = await createJournalEntry(older, { content: "PRIVATE: worried about a friend", isPrivateNote: true });
-ok("partial-tier child saves a private note", priv.isPrivateNote === true);
-ok("each child lists only their own entries (the private one included for its author)",
+await createJournalEntry(older, { content: "Worried about a friend" });
+ok("each child lists only their own entries",
   (await listMyJournalEntries(young)).length === 1 && (await listMyJournalEntries(older)).length === 2);
 ok("children can't delete entries this sprint", (await errCode(deleteJournalEntry(young, y1.id))) === "unsupported_session");
 
 await become("cg");
 const cgOlder = (await listChildJournalEntries(olderId)).map((e) => e.content);
-ok("caregiver sees the partial-tier child's shared entry but NOT the private note",
-  cgOlder.includes("Shared: maths test went ok") && !cgOlder.some((c) => c.startsWith("PRIVATE")));
-ok("caregiver sees the full-tier child's entry", (await listChildJournalEntries(youngId)).length === 1);
+ok("caregiver sees all of an under-15 child's entries",
+  cgOlder.includes("Shared: maths test went ok") && cgOlder.includes("Worried about a friend"));
+ok("caregiver sees the younger child's entry too", (await listChildJournalEntries(youngId)).length === 1);
 ok("caregiver can't see adult A's journal", (await listMyJournalEntries(await getExistingSession())).length === 0);
 
 // Another family's caregiver sees nothing of these children.

@@ -58,7 +58,7 @@ export const EntryChoiceCard: React.FC<EntryChoiceCardProps> = ({
                 I&apos;m an adult
               </h3>
               <p className="text-sm text-charcoal/70 mt-2 leading-relaxed">
-                Create your personal space or manage a supported family space.
+                Sign in as an Individual or a Caregiver.
               </p>
             </div>
 
@@ -75,7 +75,7 @@ export const EntryChoiceCard: React.FC<EntryChoiceCardProps> = ({
                 }}
                 className="px-6 py-3 bg-botanical-700 group-hover:bg-botanical-800 text-white font-bold text-sm rounded-full shadow-sm transition-colors"
               >
-                Continue &rarr;
+                Log in &rarr;
               </button>
             </div>
           </div>

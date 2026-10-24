@@ -143,6 +143,9 @@ ok("linked caregiver cannot read the linked user's mood check-ins",
   (await asUser(cgA, `select 1 from mood_checkins where profile_id = '${u1}'`)).length === 0);
 
 // ---- children (written by the Edge Function with the service role) ----
+// 'PRIVATE note' is a legacy row from before private notes were removed (role
+// flow M2), seeded with triggers paused the way old data already exists.
+await db.exec(`set session_replication_role = replica`);
 await db.query(
   `insert into mood_checkins (child_id, mood, note, is_private_note) values
      ($1, 'happy', 'young note', false),
@@ -151,15 +154,16 @@ await db.query(
      ($3, 'neutral', 'other family', false)`,
   [young, mid, otherKid],
 );
-ok("private note rejected for a full-tier child (trigger)",
-  await fails(`insert into mood_checkins (child_id, mood, is_private_note) values ('${young}', 'sad', true)`));
-ok("private note allowed for a partial-tier child", true); // inserted above without error
+await db.exec(`set session_replication_role = origin`);
+ok("new private notes are refused for every child (private notes were removed)",
+  (await fails(`insert into mood_checkins (child_id, mood, is_private_note) values ('${young}', 'sad', true)`)) &&
+  (await fails(`insert into mood_checkins (child_id, mood, is_private_note) values ('${mid}', 'sad', true)`)));
 
 const cgRows = await asUser<{ note: string }>(cgA, `select note from mood_checkins`);
 const cgNotes = cgRows.map((r) => r.note);
 ok("caregiver sees their children's shared check-ins",
   cgNotes.includes("young note") && cgNotes.includes("shared note"));
-ok("caregiver cannot see a partial-tier child's private note",
+ok("caregiver still cannot see a legacy private note",
   !cgNotes.includes("PRIVATE note"));
 ok("caregiver cannot see another family's child check-ins",
   !cgNotes.includes("other family"));

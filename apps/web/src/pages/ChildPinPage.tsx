@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { verifyChildPin } from "@safespace/api-client";
 import type { ChildSession } from "@safespace/shared-types";
 import { storeChildSession, getStoredFamilyCode, storeFamilyCode } from "../lib/childSessionStorage";
@@ -18,6 +19,8 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
   const [checking, setChecking] = useState(false);
   const [familyCode, setFamilyCode] = useState<string | null>(getStoredFamilyCode());
   const [codeInput, setCodeInput] = useState("");
+  // Set when their session ended (e.g. a grown-up reset the PIN).
+  const notice = (useLocation().state as { notice?: string } | null)?.notice;
 
   async function handleDigit(d: string) {
     if (checking) return;
@@ -113,6 +116,11 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
           title="Hi! Enter your PIN"
           subtitle="Ask a grown-up if you forget your code"
         />
+        {notice && (
+          <p role="status" className="mt-3 rounded-2xl bg-botanical-50 px-4 py-2 text-center text-sm text-botanical-800">
+            {notice}
+          </p>
+        )}
 
         {/* PIN Dots */}
         <div className="flex justify-center items-center gap-3.5 my-6">
