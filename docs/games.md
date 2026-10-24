@@ -33,7 +33,7 @@ The brief said to deliver the three MVP games first and add the creative game an
 | Screens | `components/*.tsx`, `GamesRoutes.tsx` | `*_screen.dart`, `games_widgets.dart`, `games_screens.dart` |
 | Routes | `/games` (Individual), `/child/games` (Child) | `/games` |
 | Entry points | Individual dashboard tile, child home tile | user dashboard button, child home tile |
-| Account storage | `packages/api-client/src/games.ts`, migration `20261028000000_game_progress.sql`, Edge Function `games` | Supabase RPC for signed-in adults |
+| Account storage | `packages/api-client/src/games.ts`, migration `20261029100000_game_progress.sql`, Edge Function `games` | Supabase RPC for signed-in adults |
 | Caregiver view | "Games" section on `/caregiver/children/:id` | not built (the mobile caregiver screens are placeholders) |
 
 Content keeps puzzles away from UI code, has localisation keys (`strings.en`; any other language falls back to English and says so), accessibility names for every picture (`symbols.json`), and a version number.

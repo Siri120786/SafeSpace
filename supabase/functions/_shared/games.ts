@@ -2,7 +2,7 @@
 // Request parsing and row shaping for the child `games` Edge Function. Pure,
 // no Deno or network, so supabase/tests/games_handler.test.mts can run it.
 // Ids must match GAME_IDS in packages/shared-types and the migration
-// 20261028000000_game_progress.sql (the games tests check all three).
+// 20261029100000_game_progress.sql (the games tests check all three).
 
 export const GAME_IDS = ["memory-match", "pattern-quest", "feelings-detective", "imagine-create", "maze-explorer"] as const;
 export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
