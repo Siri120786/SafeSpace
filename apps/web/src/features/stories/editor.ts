@@ -179,3 +179,22 @@ export function storyErrorText(err: unknown): string {
   const code = err instanceof Error ? err.message : "";
   return STORY_ERRORS[code] ?? "That didn't save. Please try again.";
 }
+
+// The Gemini draft form (story-writer). Same limits as the function.
+export const AI_PROMPT_MIN = 10;
+export const AI_PROMPT_MAX = 600;
+export const AGE_BAND_LABELS = { young: "About 4 to 7", middle: "About 8 to 11", teen: "About 12 to 17" } as const;
+
+const AI_ERRORS: Record<string, string> = {
+  not_suitable:
+    "SafeSpace can't write a story about that. If you're worried your child might hurt themselves, please talk to a doctor. In India you can call Tele-MANAS on 14416, or 112 in an emergency.",
+  daily_limit_reached: "You've made 10 drafts in the last day. Try again tomorrow, or start from a template.",
+  ai_unavailable: "The story writer isn't available right now. Try again in a little while, or start from a template.",
+  invalid_input: `Describe the situation in ${AI_PROMPT_MIN} to ${AI_PROMPT_MAX} characters.`,
+  unauthorized: "Please sign in again.",
+};
+
+export function aiDraftErrorText(err: unknown): string {
+  const code = err instanceof Error ? err.message : "";
+  return AI_ERRORS[code] ?? AI_ERRORS.ai_unavailable;
+}

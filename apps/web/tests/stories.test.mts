@@ -253,4 +253,11 @@ test("editor: every background, action, prop and effect has a friendly label", (
   assert.equal(E.storyErrorText(new Error("weird")), "That didn't save. Please try again.");
 });
 
+test("AI draft errors read kindly, and anything unknown is 'not available'", () => {
+  assert.match(E.aiDraftErrorText(new Error("not_suitable")), /Tele-MANAS on 14416/);
+  assert.match(E.aiDraftErrorText(new Error("daily_limit_reached")), /10 drafts/);
+  assert.equal(E.aiDraftErrorText(new Error("weird")), E.aiDraftErrorText(new Error("ai_unavailable")));
+  assert.deepEqual(Object.keys(E.AGE_BAND_LABELS), ["young", "middle", "teen"]);
+});
+
 console.log(`${passed} stories checks`);

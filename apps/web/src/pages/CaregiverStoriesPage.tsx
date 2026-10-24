@@ -1,12 +1,26 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { deleteStory, getStory, listMyChildren, listStories, publishStory, saveStory, type StorySummary } from "@safespace/api-client";
+import {
+  deleteStory,
+  draftStoryWithAi,
+  getStory,
+  listMyChildren,
+  listStories,
+  publishStory,
+  saveStory,
+  type StoryAgeBand,
+  type StorySummary,
+} from "@safespace/api-client";
 import type { Child } from "@safespace/shared-types";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { CaregiverPageShell, ConfirmButton } from "../features/caregiver";
 import {
+  AGE_BAND_LABELS,
+  AI_PROMPT_MAX,
+  AI_PROMPT_MIN,
   STORY_TEMPLATES,
+  aiDraftErrorText,
   StoryEditor,
   StoryPlayer,
   estimateStorySeconds,
@@ -77,7 +91,17 @@ export const CaregiverStoriesPage: React.FC = () => {
       <Card>
         <h2 className="font-display text-xl font-medium text-textHeading">Start a new story</h2>
         <p className="mt-1 text-sm text-textBody">Each one has a calm step for hard moments, like slow breathing or raising a hand for a break.</p>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => navigate(`${ROUTES.CAREGIVER_STORY_NEW}?ai=1`)}
+          className="mt-4 w-full text-left rounded-2xl border border-olive-200 bg-paleLime/40 p-4 hover:bg-paleLime/70 focus:outline-none focus:ring-2 focus:ring-olive-500"
+        >
+          <span aria-hidden="true" className="text-2xl">✨</span>
+          <span className="block font-medium text-textHeading">Describe your own</span>
+          <span className="block text-xs text-textMuted">Tell us the situation and the story writer drafts it for you to check and change. Up to 10 drafts a day.</span>
+        </button>
+        <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-textMuted">Or start from a template</p>
+        <ul className="mt-2 grid gap-3 sm:grid-cols-2">
           {STORY_TEMPLATES.map((t) => (
             <li key={t.key}>
               <button
@@ -121,9 +145,11 @@ export const CaregiverStoryEditorPage: React.FC = () => {
   const [preview, setPreview] = useState<{ story: Story; run: number } | null>(null);
   const [previewStill, setPreviewStill] = useState(false);
   const [pick, setPick] = useState<string[]>([]);
+  const aiMode = !storyId && params.get("ai") === "1";
 
   useEffect(() => {
     setLoadError(null);
+    if (aiMode) { setDraft(null); return; }
     if (!storyId) {
       const t = findTemplate(params.get("template"));
       if (!t) { setLoadError("no_template"); return; }
@@ -139,7 +165,7 @@ export const CaregiverStoryEditorPage: React.FC = () => {
         setDirty(false);
       })
       .catch((e) => setLoadError(e instanceof Error ? e.message : "error"));
-  }, [storyId, params]);
+  }, [storyId, params, aiMode]);
 
   const problems = useMemo(() => (draft ? validateStory({ ...draft.script, id: draft.storyId ?? "new" }) : []), [draft]);
 
@@ -151,6 +177,19 @@ export const CaregiverStoryEditorPage: React.FC = () => {
             {loadError === "no_template" ? "Pick a template to start from." : loadError === "not_found" ? "This story isn't one you can see, or it was deleted." : "Couldn't load this story right now."}
           </p>
         </Card>
+      </CaregiverPageShell>
+    );
+  }
+  if (!draft && aiMode) {
+    return (
+      <CaregiverPageShell title="Describe your own story" subtitle="The story writer drafts it; you check and change it before any child sees it." backTo={ROUTES.CAREGIVER_STORIES} backLabel="Back to stories">
+        <AiDraftForm
+          onDraft={(script) => {
+            setDraft({ storyId: null, script, source: "ai", templateKey: null, teluguChecked: false, mine: true, childIds: [] });
+            setPick([]);
+            setDirty(true);
+          }}
+        />
       </CaregiverPageShell>
     );
   }
@@ -294,5 +333,70 @@ export const CaregiverStoryEditorPage: React.FC = () => {
         </div>
       )}
     </CaregiverPageShell>
+  );
+};
+
+// Gemini drafts a script (story-writer); the editor opens with it.
+const AiDraftForm: React.FC<{ onDraft: (s: Story) => void }> = ({ onDraft }) => {
+  const [prompt, setPrompt] = useState("");
+  const [ageBand, setAgeBand] = useState<StoryAgeBand>("young");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const length = prompt.trim().length;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const script = await draftStoryWithAi<Story>(prompt.trim(), ageBand);
+      const problems = validateStory(script);
+      if (problems.length) throw new Error("ai_unavailable");
+      onDraft(script);
+    } catch (err) {
+      setError(aiDraftErrorText(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <form onSubmit={submit} className="space-y-4">
+        <label className="mt-0 block text-sm font-semibold text-charcoal">
+          What's the situation?
+          <textarea
+            className="mt-1.5 w-full min-h-[7rem] rounded-2xl border border-olive-200 bg-white px-3 py-2 text-sm text-textHeading focus:outline-none focus:ring-2 focus:ring-olive-500"
+            value={prompt}
+            maxLength={AI_PROMPT_MAX}
+            placeholder="For example: We're going on a train to visit Grandma. It will be busy and noisy, and the trip takes three hours."
+            onChange={(e) => setPrompt(e.target.value)}
+          />
+        </label>
+        <p className="text-xs text-textMuted">
+          Kai is the hero of every story, so you don't need your child's name. Please leave out names, places and other private details. {length}/{AI_PROMPT_MAX}
+        </p>
+        <label className="mt-0 block max-w-xs text-sm font-semibold text-charcoal">
+          Your child's age
+          <select
+            className="mt-1.5 w-full rounded-2xl border border-olive-200 bg-white px-3 py-2 text-sm text-textHeading"
+            value={ageBand}
+            onChange={(e) => setAgeBand(e.target.value as StoryAgeBand)}
+          >
+            {(Object.keys(AGE_BAND_LABELS) as StoryAgeBand[]).map((b) => <option key={b} value={b}>{AGE_BAND_LABELS[b]}</option>)}
+          </select>
+        </label>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" size="sm" variant="olive" disabled={busy || length < AI_PROMPT_MIN}>
+            {busy ? "Writing a draft…" : "Write a draft"}
+          </Button>
+          {busy && <span role="status" className="text-sm text-textBody">This can take up to a minute.</span>}
+        </div>
+        {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+        <p className="text-xs text-textMuted">
+          The draft is written by AI. Read every line before you publish it, especially the Telugu. You can change anything.
+        </p>
+      </form>
+    </Card>
   );
 };
