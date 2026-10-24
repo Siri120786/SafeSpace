@@ -57,6 +57,7 @@ SafeSpace/
 │
 ├── packages/
 │   ├── shared-types/            # Shared TypeScript interfaces & types
+│   ├── game-content/            # Games Corner puzzles, stories and text shared by web and mobile (docs/games.md)
 │   └── api-client/              # Reusable API & Supabase client abstractions
 │
 ├── supabase/

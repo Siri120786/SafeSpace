@@ -114,3 +114,5 @@ export {
   listAiCompanionConversations,
   getAiCompanionMessages,
 } from "./aiCompanion";
+
+export { getGameState, recordGameRound, saveGamePreferences, getChildGameSummary } from "./games";

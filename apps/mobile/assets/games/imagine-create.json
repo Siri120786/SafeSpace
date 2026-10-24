@@ -1,0 +1,94 @@
+{
+  "gameId": "imagine-create",
+  "version": 1,
+  "modes": ["character", "scene", "story"],
+  "character": {
+    "bodies": ["🦄", "🐲", "🤖", "🧚", "👽", "🐙", "🦊", "🐻"],
+    "colors": [
+      { "id": "sunny", "hex": "#FDE68A", "nameKey": "ic.color.sunny" },
+      { "id": "sky", "hex": "#BFDBFE", "nameKey": "ic.color.sky" },
+      { "id": "mint", "hex": "#BBF7D0", "nameKey": "ic.color.mint" },
+      { "id": "blush", "hex": "#FBCFE8", "nameKey": "ic.color.blush" },
+      { "id": "lilac", "hex": "#DDD6FE", "nameKey": "ic.color.lilac" },
+      { "id": "peach", "hex": "#FED7AA", "nameKey": "ic.color.peach" }
+    ],
+    "accessories": ["🎩", "👑", "🎒", "🕶️", "🎀", "⭐"],
+    "powers": ["ic.power.fly", "ic.power.music", "ic.power.kind", "ic.power.invisible", "ic.power.garden", "ic.power.stories"],
+    "minChoices": 2
+  },
+  "scene": {
+    "backdrops": [
+      { "id": "forest", "emoji": "🌲", "from": "#DCFCE7", "to": "#86EFAC", "nameKey": "ic.bg.forest" },
+      { "id": "ocean", "emoji": "🌊", "from": "#DBEAFE", "to": "#7DD3FC", "nameKey": "ic.bg.ocean" },
+      { "id": "space", "emoji": "🌌", "from": "#C7D2FE", "to": "#6366F1", "nameKey": "ic.bg.space" },
+      { "id": "castle", "emoji": "🏰", "from": "#FEF3C7", "to": "#FCD34D", "nameKey": "ic.bg.castle" },
+      { "id": "meadow", "emoji": "🌻", "from": "#ECFCCB", "to": "#BEF264", "nameKey": "ic.bg.meadow" },
+      { "id": "island", "emoji": "🏝️", "from": "#CFFAFE", "to": "#67E8F9", "nameKey": "ic.bg.island" }
+    ],
+    "stickers": ["🌳", "🌸", "🏠", "🚀", "⭐", "🐟", "🌈", "☁️", "🦋", "🍄", "🐻", "🦊", "🐢", "🌙", "☀️", "🌻"],
+    "grid": { "columns": 6, "rows": 4 },
+    "minStickers": 3
+  },
+  "story": {
+    "starters": [
+      { "id": "s1", "textKey": "ic.story.s1.text", "nextKeys": ["ic.story.s1.n1", "ic.story.s1.n2", "ic.story.s1.n3"], "endKeys": ["ic.story.s1.e1", "ic.story.s1.e2", "ic.story.s1.e3"] },
+      { "id": "s2", "textKey": "ic.story.s2.text", "nextKeys": ["ic.story.s2.n1", "ic.story.s2.n2", "ic.story.s2.n3"], "endKeys": ["ic.story.s2.e1", "ic.story.s2.e2", "ic.story.s2.e3"] },
+      { "id": "s3", "textKey": "ic.story.s3.text", "nextKeys": ["ic.story.s3.n1", "ic.story.s3.n2", "ic.story.s3.n3"], "endKeys": ["ic.story.s3.e1", "ic.story.s3.e2", "ic.story.s3.e3"] },
+      { "id": "s4", "textKey": "ic.story.s4.text", "nextKeys": ["ic.story.s4.n1", "ic.story.s4.n2", "ic.story.s4.n3"], "endKeys": ["ic.story.s4.e1", "ic.story.s4.e2", "ic.story.s4.e3"] }
+    ],
+    "maxOwnTextLength": 240
+  },
+  "strings": {
+    "en": {
+      "ic.how": "There are no right answers here. Make something your own way.",
+      "ic.mode.character": "Invent a character",
+      "ic.mode.scene": "Build a scene",
+      "ic.mode.story": "Finish a story",
+      "ic.character.body": "Pick a body",
+      "ic.character.color": "Pick a colour",
+      "ic.character.accessory": "Add something to wear",
+      "ic.character.power": "What is special about them?",
+      "ic.character.name": "Give them a name (you can leave this blank)",
+      "ic.character.namePlaceholder": "A name",
+      "ic.character.intro": "Meet {name}!",
+      "ic.character.unnamed": "your new friend",
+      "ic.scene.pick": "Pick a place",
+      "ic.scene.stickers": "Tap a sticker, then tap a square to place it. Tap a placed sticker to take it off.",
+      "ic.scene.clear": "Clear scene",
+      "ic.scene.selected": "Sticker chosen",
+      "ic.story.pick": "Pick a story to start",
+      "ic.story.middle": "What happens next?",
+      "ic.story.end": "How does it end?",
+      "ic.story.own": "Or write your own bit (stays on this device)",
+      "ic.story.read": "Read my story",
+      "ic.story.yours": "Your story",
+      "ic.save": "Keep this",
+      "ic.saved": "Kept in My Creations on this device.",
+      "ic.finish": "I'm finished",
+      "ic.gallery": "My creations",
+      "ic.gallery.empty": "Nothing kept yet.",
+      "ic.encourage": "What a creative idea!",
+      "ic.encourage2": "I love what you made.",
+      "ic.encourage3": "Nobody else would make this exact one.",
+      "ic.color.sunny": "sunny yellow", "ic.color.sky": "sky blue", "ic.color.mint": "mint green", "ic.color.blush": "blush pink", "ic.color.lilac": "lilac", "ic.color.peach": "peach",
+      "ic.power.fly": "can fly", "ic.power.music": "loves music", "ic.power.kind": "is very kind", "ic.power.invisible": "can turn invisible", "ic.power.garden": "grows flowers anywhere", "ic.power.stories": "tells the best stories",
+      "ic.bg.forest": "forest", "ic.bg.ocean": "ocean", "ic.bg.space": "outer space", "ic.bg.castle": "castle", "ic.bg.meadow": "meadow", "ic.bg.island": "island",
+
+      "ic.story.s1.text": "One morning, a small paper boat floated into the garden pond. Inside was a tiny map.",
+      "ic.story.s1.n1": "The map led to a hidden door under the old oak tree.", "ic.story.s1.n2": "A friendly frog read the map out loud.", "ic.story.s1.n3": "The map began to glow softly.",
+      "ic.story.s1.e1": "Behind the door was a room full of gentle music.", "ic.story.s1.e2": "They found a new friend and shared a picnic.", "ic.story.s1.e3": "They decided to make their own map for someone else.",
+
+      "ic.story.s2.text": "A little robot woke up in a quiet workshop. It had never seen the sun before.",
+      "ic.story.s2.n1": "It rolled slowly toward the open window.", "ic.story.s2.n2": "A bird landed on the sill and said hello.", "ic.story.s2.n3": "It found a flower in a pot and wondered what it was.",
+      "ic.story.s2.e1": "The robot felt the warm sun and smiled for the first time.", "ic.story.s2.e2": "The bird showed the robot the whole sky.", "ic.story.s2.e3": "The robot took care of the flower every day.",
+
+      "ic.story.s3.text": "On a very rainy day, a dragon who was afraid of puddles sat at the cave door.",
+      "ic.story.s3.n1": "A small hedgehog came by with a bright yellow umbrella.", "ic.story.s3.n2": "The dragon watched the raindrops make tiny circles.", "ic.story.s3.n3": "The dragon tried one slow step toward the rain.",
+      "ic.story.s3.e1": "They splashed together and giggled all afternoon.", "ic.story.s3.e2": "The dragon decided puddles are just small mirrors.", "ic.story.s3.e3": "They stayed cozy inside and invented a rain song.",
+
+      "ic.story.s4.text": "At the edge of the night sky, a little star was feeling very small.",
+      "ic.story.s4.n1": "A comet zoomed past and waved.", "ic.story.s4.n2": "The moon whispered, \"I have an idea.\"", "ic.story.s4.n3": "The star noticed that other tiny stars were nearby.",
+      "ic.story.s4.e1": "Together they made a shape that everyone on Earth could see.", "ic.story.s4.e2": "The star learned that small lights matter.", "ic.story.s4.e3": "The star shone brightly in its own special way."
+    }
+  }
+}

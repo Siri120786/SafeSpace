@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from "rea
 import { AuthProvider, RoleRoute, GuestRoute } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
 import { CalmToolsRoutes } from "./features/calm-tools";
+import { GamesRoutes } from "./features/games";
 import { ModulesRoutes } from "./features/wellness-modules";
 import { StoryWorkflowRoute } from "./features/story-workflow";
 import { ROUTES } from "./routes";
@@ -98,6 +99,15 @@ export default function App() {
               }
             />
 
+            <Route
+              path={`${ROUTES.GAMES}/*`}
+              element={
+                <RoleRoute allow={["individual"]}>
+                  <GamesRoutes basePath={ROUTES.GAMES} homePath={ROUTES.DASHBOARD} moodPath={ROUTES.MOOD_CHECK_IN} />
+                </RoleRoute>
+              }
+            />
+
             <Route path={ROUTES.ROUTINES} element={<RoleRoute allow={["individual"]}><IndividualRoutinesPage /></RoleRoute>} />
             <Route path={ROUTES.JOURNAL} element={<RoleRoute allow={["individual"]}><IndividualJournalPage /></RoleRoute>} />
             <Route path={ROUTES.REMINDERS} element={<RoleRoute allow={["individual"]}><IndividualRemindersPage /></RoleRoute>} />
@@ -159,6 +169,10 @@ export default function App() {
               <Route
                 path="calm-tools/*"
                 element={<CalmToolsRoutes basePath={ROUTES.CHILD_CALM_TOOLS} homePath={ROUTES.CHILD_HOME} />}
+              />
+              <Route
+                path="games/*"
+                element={<GamesRoutes basePath={ROUTES.CHILD_GAMES} homePath={ROUTES.CHILD_HOME} moodPath={ROUTES.CHILD_MOOD} />}
               />
               <Route path="settings" element={<ChildSettingsPage />} />
               <Route path="routines" element={<ChildRoutinesPage />} />

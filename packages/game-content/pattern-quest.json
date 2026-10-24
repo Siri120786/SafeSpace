@@ -1,0 +1,58 @@
+{
+  "gameId": "pattern-quest",
+  "version": 1,
+  "roundsPerGame": 5,
+  "rounds": {
+    "easy": [
+      { "id": "pq-e1", "kind": "shape", "items": ["🔴", "🔵", "🔴", "🔵"], "options": ["🔴", "🔵", "🟢"], "answer": "🔴", "hintKey": "pq.hint.repeat" },
+      { "id": "pq-e2", "kind": "object", "items": ["⭐", "🌙", "⭐", "🌙", "⭐"], "options": ["⭐", "🌙", "☀️"], "answer": "🌙", "hintKey": "pq.hint.repeat" },
+      { "id": "pq-e3", "kind": "object", "items": ["🍎", "🍌", "🍎", "🍌"], "options": ["🍎", "🍌", "🍇"], "answer": "🍎", "hintKey": "pq.hint.repeat" },
+      { "id": "pq-e4", "kind": "number", "items": ["1", "2", "1", "2", "1"], "options": ["1", "2", "3"], "answer": "2", "hintKey": "pq.hint.repeat" },
+      { "id": "pq-e5", "kind": "object", "items": ["🐶", "🐱", "🐶", "🐱", "🐶"], "options": ["🐱", "🐶", "🐰"], "answer": "🐱", "hintKey": "pq.hint.repeat" },
+      { "id": "pq-e6", "kind": "color", "items": ["🟥", "🟦", "🟥", "🟦"], "options": ["🟥", "🟦", "🟩"], "answer": "🟥", "hintKey": "pq.hint.repeat" }
+    ],
+    "medium": [
+      { "id": "pq-m1", "kind": "color", "items": ["🔴", "🔵", "🟢", "🔴", "🔵"], "options": ["🔴", "🟢", "🟡"], "answer": "🟢", "hintKey": "pq.hint.abc" },
+      { "id": "pq-m2", "kind": "object", "items": ["⭐", "⭐", "🌙", "⭐", "⭐"], "options": ["⭐", "🌙", "☀️"], "answer": "🌙", "hintKey": "pq.hint.aab" },
+      { "id": "pq-m3", "kind": "number", "items": ["2", "4", "6", "8"], "options": ["9", "10", "12"], "answer": "10", "rule": { "type": "add", "by": 2 }, "hintKey": "pq.hint.add" },
+      { "id": "pq-m4", "kind": "object", "items": ["🍎", "🍌", "🍇", "🍎", "🍌"], "options": ["🍇", "🍎", "🍓"], "answer": "🍇", "hintKey": "pq.hint.abc" },
+      { "id": "pq-m5", "kind": "number", "items": ["3", "6", "9", "12"], "options": ["14", "15", "16"], "answer": "15", "rule": { "type": "add", "by": 3 }, "hintKey": "pq.hint.add" },
+      { "id": "pq-m6", "kind": "color", "items": ["🟢", "🟡", "🟢", "?", "🟢", "🟡"], "options": ["🟡", "🟢", "🔵"], "answer": "🟡", "hintKey": "pq.hint.gap" }
+    ],
+    "hard": [
+      { "id": "pq-h1", "kind": "shape", "items": ["🔴", "🔵", "🔵", "🔴", "🔵", "🔵", "🔴"], "options": ["🔴", "🔵", "🟢"], "answer": "🔵", "hintKey": "pq.hint.abb" },
+      { "id": "pq-h2", "kind": "number", "items": ["1", "2", "4", "8"], "options": ["12", "14", "16"], "answer": "16", "rule": { "type": "double" }, "hintKey": "pq.hint.double" },
+      { "id": "pq-h3", "kind": "shape", "items": ["🔴", "🔵", "🔵", "🟢", "🟢", "🟢", "🔴", "🔵", "🔵", "🟢", "🟢", "?"], "options": ["🟢", "🔵", "🔴"], "answer": "🟢", "hintKey": "pq.hint.growth" },
+      { "id": "pq-h4", "kind": "number", "items": ["10", "8", "6", "4"], "options": ["1", "2", "3"], "answer": "2", "rule": { "type": "add", "by": -2 }, "hintKey": "pq.hint.subtract" },
+      { "id": "pq-h5", "kind": "number", "items": ["1", "1", "2", "3", "5"], "options": ["6", "7", "8"], "answer": "8", "rule": { "type": "fibonacci" }, "hintKey": "pq.hint.fib" },
+      { "id": "pq-h6", "kind": "object", "items": ["🍎", "🍎", "🍌", "🍎", "🍎", "?", "🍎", "🍎", "🍌"], "options": ["🍌", "🍎", "🍇"], "answer": "🍌", "hintKey": "pq.hint.gap" }
+    ]
+  },
+  "feedbackKeys": {
+    "correct": ["pq.fb.correct1", "pq.fb.correct2", "pq.fb.correct3"],
+    "retry": ["pq.fb.retry1", "pq.fb.retry2"]
+  },
+  "strings": {
+    "en": {
+      "pq.prompt": "What comes next?",
+      "pq.promptGap": "Which one fits in the gap?",
+      "pq.how": "Look at the row. It follows a pattern. Tap the picture that comes next, or fits the gap. You can press Hear it to listen to the pattern.",
+      "pq.hear": "Hear the pattern",
+      "pq.hint.repeat": "Two things take turns. Say them out loud: first, second, first, second...",
+      "pq.hint.abc": "Three things take turns, then the row starts again from the beginning.",
+      "pq.hint.aab": "One picture shows up twice, then a different one. Then it begins again.",
+      "pq.hint.abb": "One picture, then a different one twice. The same set repeats.",
+      "pq.hint.add": "Each number goes up (or down) by the same amount. Find the jump between two numbers.",
+      "pq.hint.subtract": "Each number goes down by the same amount. How much smaller is each one?",
+      "pq.hint.double": "Each number is two times the one before it.",
+      "pq.hint.growth": "The same group of pictures repeats. Find where the group starts again.",
+      "pq.hint.gap": "Look at the pictures on both sides of the gap. The pattern repeats.",
+      "pq.hint.fib": "Add the two numbers before to get the next one.",
+      "pq.fb.correct1": "You spotted the pattern!",
+      "pq.fb.correct2": "That fits perfectly.",
+      "pq.fb.correct3": "Great noticing!",
+      "pq.fb.retry1": "Let's look at the pattern together.",
+      "pq.fb.retry2": "Not that one this time. Look at the row again."
+    }
+  }
+}

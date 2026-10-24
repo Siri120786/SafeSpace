@@ -1,6 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+class _GamesTile extends StatelessWidget {
+  const _GamesTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: const Text('🎲', style: TextStyle(fontSize: 26)),
+        title: const Text('Games'),
+        subtitle: const Text('Memory, patterns, feelings, creating and mazes.'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => context.push('/games'),
+      ),
+    );
+  }
+}
+
 class ChildHomeScreen extends StatelessWidget {
   const ChildHomeScreen({super.key});
 
@@ -39,6 +56,7 @@ class ChildHomeScreen extends StatelessWidget {
                   subtitle: Text('Sensory preferences & calming activities.'),
                 ),
               ),
+              _GamesTile(),
             ],
           ),
         ),

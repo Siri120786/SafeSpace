@@ -1,0 +1,41 @@
+{
+  "gameId": "memory-match",
+  "version": 1,
+  "difficulty": {
+    "easy": { "pairs": 3, "columns": 3 },
+    "medium": { "pairs": 6, "columns": 4 },
+    "hard": { "pairs": 8, "columns": 4 }
+  },
+  "themes": [
+    { "id": "friends", "titleKey": "mm.theme.friends", "cards": ["🦉", "🐻", "🦊", "🐢", "🦋", "🐙", "🐼", "🌱"] },
+    { "id": "animals", "titleKey": "mm.theme.animals", "cards": ["🐶", "🐱", "🐰", "🐸", "🐠", "🦁", "🐘", "🐧"] },
+    { "id": "sky", "titleKey": "mm.theme.sky", "cards": ["⭐", "🌙", "☀️", "☁️", "🌈", "🚀", "🪐", "❄️"] },
+    { "id": "vehicles", "titleKey": "mm.theme.vehicles", "cards": ["🚗", "🚂", "🚲", "✈️", "🚌", "🚁", "⛵", "🚜"] }
+  ],
+  "timing": { "flipBackMs": 1100, "flipBackCalmMs": 1600 },
+  "feedbackKeys": {
+    "match": ["mm.fb.match1", "mm.fb.match2", "mm.fb.match3"],
+    "miss": ["mm.fb.miss1", "mm.fb.miss2"],
+    "done": ["mm.fb.done1", "mm.fb.done2"]
+  },
+  "strings": {
+    "en": {
+      "mm.theme.friends": "SafeSpace friends",
+      "mm.theme.animals": "Animals",
+      "mm.theme.sky": "Sky and stars",
+      "mm.theme.vehicles": "Vehicles",
+      "mm.prompt": "Find the pairs that match.",
+      "mm.how": "Tap a card to flip it. Tap another. If they match, they stay. If not, they flip back and you can look again.",
+      "mm.hint.text": "Here is one pair to try.",
+      "mm.fb.match1": "A match!",
+      "mm.fb.match2": "You found a pair!",
+      "mm.fb.match3": "Good eyes!",
+      "mm.fb.miss1": "Not this time. Now you know where they are.",
+      "mm.fb.miss2": "Close! Look again.",
+      "mm.fb.done1": "You found every pair!",
+      "mm.fb.done2": "All the pairs are together!",
+      "mm.pairsLeft": "pairs left",
+      "mm.theme": "Cards"
+    }
+  }
+}
