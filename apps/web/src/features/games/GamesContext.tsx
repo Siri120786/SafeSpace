@@ -1,17 +1,21 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { getGameState, recordGameRound, saveGamePreferences } from "@safespace/api-client";
+import { getGameState, listGameCreations, recordGameRound, saveGameCreation, saveGamePreferences } from "@safespace/api-client";
 import type { AppSession } from "@safespace/shared-types";
+import { deviceOwnerFor } from "../auth/roleRouting";
+import { runBeforeSignOut } from "../auth/beforeSignOut";
 import { GameAudio } from "./lib/audio";
 import { resolveLanguage, text, usesFallbackLanguage, type GameId } from "./lib/content";
 import { keepCreation, type Creation } from "./lib/imagine";
 import {
   applyRound,
+  creationContent,
   defaultPrefs,
   deviceStorage,
-  emptyState,
   flushPending,
+  flushPendingCreations,
   loadState,
   mergeRemote,
+  moveLegacyState,
   saveState,
   type GameBackend,
   type LocalGameState,
@@ -30,6 +34,8 @@ interface GamesApi {
   /** Calm mode: no animation, longer pauses. Either the player's choice or the device/caregiver setting. */
   calm: boolean;
   state: LocalGameState;
+  /** Kept creations, newest first: the account's, plus any still waiting to be saved. */
+  creations: Creation[];
   audio: GameAudio;
   saveStatus: SaveStatus;
   setPrefs: (patch: Partial<Prefs>) => void;
@@ -55,8 +61,16 @@ function backendFor(session: AppSession, guard: <T>(p: Promise<T>) => Promise<T>
     },
     record: (r) => guard(recordGameRound(session, r)),
     savePrefs: (p) => guard(saveGamePreferences(session, p)),
+    listCreations: async () => (await guard(listGameCreations(session))) as Creation[],
+    saveCreation: (c) => guard(saveGameCreation(session, { id: c.id, kind: c.kind, content: creationContent(c) })),
   };
 }
+
+// Sign-out clears the device copy, so whatever is waiting is sent first.
+let flushBeforeSignOut: (() => Promise<void>) | null = null;
+runBeforeSignOut(async () => {
+  await flushBeforeSignOut?.();
+});
 
 interface ProviderProps {
   session: AppSession;
@@ -74,10 +88,16 @@ const identity = <T,>(p: Promise<T>) => p;
  */
 export const GamesProvider: React.FC<ProviderProps> = ({ session, lowSensory, guard = identity, children }) => {
   const ownerId = session?.kind === "auth_user" ? session.profile.id : session?.kind === "child" ? session.childId : "";
+  // The device copy's owner key ("p:<id>" or "c:<id>"), cleared on sign-out.
+  const deviceOwner = deviceOwnerFor(session) ?? "";
   const wantedLang = typeof navigator !== "undefined" ? navigator.language : "en";
   const lang = resolveLanguage(wantedLang);
 
-  const [state, setState] = useState<LocalGameState>(() => loadState(ownerId, deviceStorage()));
+  const [state, setState] = useState<LocalGameState>(() => {
+    moveLegacyState(ownerId, deviceOwner, deviceStorage());
+    return loadState(deviceOwner, deviceStorage());
+  });
+  const [accountCreations, setAccountCreations] = useState<Creation[]>([]);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("device");
   const stateRef = useRef(state);
   const audio = useMemo(() => new GameAudio(), []);
@@ -87,11 +107,11 @@ export const GamesProvider: React.FC<ProviderProps> = ({ session, lowSensory, gu
     (fn: (s: LocalGameState) => LocalGameState) => {
       const next = fn(stateRef.current);
       stateRef.current = next;
-      saveState(ownerId, next, deviceStorage());
+      saveState(deviceOwner, next, deviceStorage());
       setState(next);
       return next;
     },
-    [ownerId],
+    [deviceOwner],
   );
 
   const syncing = useRef(false);
@@ -111,24 +131,43 @@ export const GamesProvider: React.FC<ProviderProps> = ({ session, lowSensory, gu
         }
         if (stateRef.current.pending.length === 0) break;
       }
+      const waiting = stateRef.current;
+      if (waiting.pendingCreations.length > 0) {
+        const { state: after, ok } = await flushPendingCreations(waiting, backend);
+        const kept = waiting.pendingCreations.length - after.pendingCreations.length;
+        if (kept > 0) {
+          commit((s) => ({ ...s, pendingCreations: s.pendingCreations.slice(kept) }));
+          setAccountCreations(await backend.listCreations().catch(() => accountCreationsRef.current));
+        }
+        if (!ok) {
+          setSaveStatus("later");
+          return;
+        }
+      }
       setSaveStatus("account");
     } finally {
       syncing.current = false;
     }
   }, [backend, commit]);
 
+  const accountCreationsRef = useRef(accountCreations);
+  accountCreationsRef.current = accountCreations;
+
   // First load: show device data at once, then fold in the account copy.
   useEffect(() => {
     let active = true;
-    const local = loadState(ownerId, deviceStorage());
+    moveLegacyState(ownerId, deviceOwner, deviceStorage());
+    const local = loadState(deviceOwner, deviceStorage());
     stateRef.current = local;
     setState(local);
+    setAccountCreations([]);
     if (!backend) return;
     (async () => {
       try {
-        const remote = await backend.fetch();
+        const [remote, kept] = await Promise.all([backend.fetch(), backend.listCreations()]);
         if (!active) return;
         commit((s) => mergeRemote(s, remote));
+        setAccountCreations(kept);
         await sync();
       } catch {
         if (active) setSaveStatus("later");
@@ -137,7 +176,15 @@ export const GamesProvider: React.FC<ProviderProps> = ({ session, lowSensory, gu
     return () => {
       active = false;
     };
-  }, [ownerId, backend, commit, sync]);
+  }, [ownerId, deviceOwner, backend, commit, sync]);
+
+  // Anything waiting goes to the account before sign-out clears this device.
+  useEffect(() => {
+    flushBeforeSignOut = sync;
+    return () => {
+      if (flushBeforeSignOut === sync) flushBeforeSignOut = null;
+    };
+  }, [sync]);
 
   const prefs = state.prefs ?? defaultPrefs(lowSensory);
   const calm = prefs.reducedMotion || lowSensory;
@@ -168,7 +215,19 @@ export const GamesProvider: React.FC<ProviderProps> = ({ session, lowSensory, gu
     [commit, sync],
   );
 
-  const addCreation = useCallback((c: Creation) => commit((s) => ({ ...s, creations: keepCreation(s.creations, c) })), [commit]);
+  const addCreation = useCallback(
+    (c: Creation) => {
+      commit((s) => ({ ...s, pendingCreations: [...s.pendingCreations.filter((x) => x.id !== c.id), c] }));
+      void sync();
+    },
+    [commit, sync],
+  );
+
+  // Newest first, at most 12: those waiting to be saved, then the account's.
+  const creations = useMemo(
+    () => [...state.pendingCreations, ...accountCreations].reduceRight<Creation[]>((list, c) => keepCreation(list, c), []),
+    [state.pendingCreations, accountCreations],
+  );
 
   const suggestionFor = useCallback(
     (gameId: GameId) => suggestDifficulty(prefs.difficulty, state.recent[gameId] ?? []),
@@ -184,6 +243,7 @@ export const GamesProvider: React.FC<ProviderProps> = ({ session, lowSensory, gu
     prefs,
     calm,
     state,
+    creations,
     audio,
     saveStatus,
     setPrefs,

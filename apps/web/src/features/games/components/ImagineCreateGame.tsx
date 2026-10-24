@@ -36,7 +36,7 @@ const ghost =
   "rounded-full border border-olive-200 bg-white px-5 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-olive-500";
 
 export const ImagineCreateGame: React.FC<Props> = ({ onExit, onAgain }) => {
-  const { prefs, audio, finishRound, addCreation, state, t, lang } = useGames();
+  const { prefs, audio, finishRound, addCreation, creations, t, lang } = useGames();
   const [mode, setMode] = useState<Mode>("menu");
   const [character, setCharacter] = useState<CharacterDraft>(emptyCharacter);
   const [scene, setScene] = useState<SceneDraft>(emptyScene);
@@ -61,7 +61,7 @@ export const ImagineCreateGame: React.FC<Props> = ({ onExit, onAgain }) => {
   }
 
   function keep(kind: Creation["kind"]) {
-    // Kept on this device only: anything typed never goes to the account.
+    // Saved to the player's own account, where only they can see it.
     addCreation({
       id: `${kind}-${Date.now()}`,
       kind,
@@ -139,11 +139,11 @@ export const ImagineCreateGame: React.FC<Props> = ({ onExit, onAgain }) => {
                   </button>
                 ))}
               </div>
-              {state.creations.length > 0 && (
+              {creations.length > 0 && (
                 <section aria-label={t("ic.gallery")} className="space-y-2 rounded-3xl bg-white p-4 shadow-card">
                   <h2 className="font-display text-lg text-textHeading">{t("ic.gallery")}</h2>
                   <ul className="flex flex-wrap gap-2">
-                    {state.creations.map((c) => (
+                    {creations.map((c) => (
                       <li key={c.id} className="rounded-2xl border border-olive-200 bg-olive-50 px-3 py-2 text-3xl">
                         <span role="img" aria-label={t(`ic.mode.${c.kind}`)}>
                           {c.kind === "character" ? c.character?.body ?? "🦄" : c.kind === "scene" ? imagineContent.scene.backdrops.find((b) => b.id === c.scene?.backdropId)?.emoji ?? "🏝️" : "📖"}
@@ -151,7 +151,7 @@ export const ImagineCreateGame: React.FC<Props> = ({ onExit, onAgain }) => {
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs text-textMuted">{t("ui.savedHere")}</p>
+                  <p className="text-xs text-textMuted">{t("ic.gallery.saved")}</p>
                 </section>
               )}
             </div>

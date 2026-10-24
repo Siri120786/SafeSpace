@@ -14,6 +14,7 @@ import {
   clearStoredChildSession,
 } from "../../../lib/childSessionStorage";
 import { clearDeviceStore, setDeviceStoreOwner } from "../../wellness-ui/store/LocalDeviceStore";
+import { beforeSignOut } from "../beforeSignOut";
 import { deviceOwnerFor } from "../roleRouting";
 import { setToolsSession } from "../../conditions/toolsSession";
 
@@ -168,6 +169,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     setLoading(true);
+    // Saves anything a feature still has waiting (Cycle Care), while signed in.
+    await beforeSignOut();
 
     // Cleared first, so a failed sign-out call can't leave tool data behind.
     clearDeviceStore();

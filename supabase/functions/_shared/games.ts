@@ -1,6 +1,6 @@
 // supabase/functions/_shared/games.ts
 // Request parsing and row shaping for the child `games` Edge Function. Pure,
-// no Deno or network, so supabase/tests/games_handler.test.mts can run it.
+// no Deno or network, so supabase/tests/games.test.mts can run it.
 // Ids must match GAME_IDS in packages/shared-types and the migration
 // 20261029100000_game_progress.sql (the games tests check all three).
 
@@ -17,10 +17,44 @@ export interface PreferencesInput {
   voiceEnabled: boolean;
 }
 
+export const CREATION_KINDS = ["character", "scene", "story"] as const;
+export type CreationKind = (typeof CREATION_KINDS)[number];
+export const MAX_CREATION_BYTES = 4096;
+const CREATION_ID = /^[a-z]{1,12}-[0-9]{1,16}$/;
+
+// A kept Imagine & Create creation. The content holds the choices under the
+// kind's own key ({ story: {...} }), with a name of up to 24 characters and
+// the player's own story text of up to 240 (migration 20261029400000).
+export interface CreationInput {
+  id: string;
+  kind: CreationKind;
+  content: Record<string, unknown>;
+}
+
+export function parseCreation(v: unknown): CreationInput | null {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const c = v as Record<string, unknown>;
+  if (typeof c.id !== "string" || !CREATION_ID.test(c.id)) return null;
+  if (!(CREATION_KINDS as readonly unknown[]).includes(c.kind)) return null;
+  const kind = c.kind as CreationKind;
+  const content = c.content;
+  if (!content || typeof content !== "object" || Array.isArray(content)) return null;
+  const inner = (content as Record<string, unknown>)[kind];
+  if (!inner || typeof inner !== "object" || Array.isArray(inner)) return null;
+  const draft = inner as Record<string, unknown>;
+  if (draft.name !== undefined && (typeof draft.name !== "string" || [...draft.name].length > 24)) return null;
+  if (draft.ownText !== undefined && (typeof draft.ownText !== "string" || [...draft.ownText].length > 240)) return null;
+  if (new TextEncoder().encode(JSON.stringify(content)).length > MAX_CREATION_BYTES) return null;
+  return { id: c.id, kind, content: content as Record<string, unknown> };
+}
+
 export type GamesRequest =
   | { action: "get_state" }
   | { action: "record_round"; gameId: string; difficulty: string; score: number | null }
-  | { action: "save_preferences"; preferences: PreferencesInput };
+  | { action: "save_preferences"; preferences: PreferencesInput }
+  | { action: "list_creations" }
+  | { action: "save_creation"; creation: CreationInput }
+  | { action: "delete_creation"; id: string };
 
 export type GamesParse =
   | { ok: true; value: GamesRequest; childSessionToken: string }
@@ -37,6 +71,19 @@ export function parseGamesRequest(raw: unknown): GamesParse {
   const token = b.child_session_token;
 
   if (b.action === "get_state") return { ok: true, value: { action: "get_state" }, childSessionToken: token };
+  if (b.action === "list_creations") return { ok: true, value: { action: "list_creations" }, childSessionToken: token };
+
+  if (b.action === "save_creation") {
+    const creation = parseCreation(b.creation);
+    return creation
+      ? { ok: true, value: { action: "save_creation", creation }, childSessionToken: token }
+      : { ok: false, status: 400, error: "invalid_input" };
+  }
+  if (b.action === "delete_creation") {
+    return typeof b.id === "string" && CREATION_ID.test(b.id)
+      ? { ok: true, value: { action: "delete_creation", id: b.id }, childSessionToken: token }
+      : { ok: false, status: 400, error: "invalid_input" };
+  }
 
   if (b.action === "record_round") {
     if (!isGameId(b.game_id) || !isDifficulty(b.difficulty)) return { ok: false, status: 400, error: "invalid_input" };
@@ -94,6 +141,19 @@ export const shapeProgress = (rows: ProgressRow[]) =>
       bestScore: r.best_score,
       lastPlayedAt: r.last_played_at,
     }));
+
+export interface CreationRow {
+  id: string;
+  kind: string;
+  content: Record<string, unknown>;
+  created_at: string;
+}
+
+// Newest first, in the app's own shape.
+export const shapeCreations = (rows: CreationRow[]) =>
+  rows
+    .filter((r) => (CREATION_KINDS as readonly string[]).includes(r.kind))
+    .map((r) => ({ id: r.id, kind: r.kind as CreationKind, createdAt: r.created_at, ...r.content }));
 
 export const shapePreferences = (row: PreferencesRow | null) =>
   row && isDifficulty(row.difficulty)

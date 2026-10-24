@@ -1,6 +1,11 @@
 // Local-first progress. Everything a player does is saved on this device
 // first; the account copy (Supabase) is best-effort and catches up later. A
 // failed save never stops play (docs/games.md).
+//
+// The device copy is kept per person under the shared device-store prefix,
+// so signing out clears it (step 10b). Kept creations live in the account
+// (migration 20261029400000); one not yet saved waits here with the rounds.
+import { STORAGE_PREFIX } from "../../wellness-ui/store/LocalDeviceStore";
 import type { Difficulty, GameId } from "./content";
 import type { Creation } from "./imagine";
 import type { RecentRound, RoundResult } from "./scoring";
@@ -35,14 +40,14 @@ export interface LocalGameState {
   recent: Partial<Record<GameId, RecentRound[]>>;
   /** Rounds not yet saved to the account. */
   pending: PendingRound[];
-  /** Characters, scenes and stories the player chose to keep. Never leaves the device. */
-  creations: Creation[];
+  /** Creations kept but not yet saved to the account. */
+  pendingCreations: Creation[];
 }
 
 export const MAX_RECENT = 5;
 export const MAX_PENDING = 50;
 
-export const emptyState = (): LocalGameState => ({ v: 1, progress: [], prefs: null, recent: {}, pending: [], creations: [] });
+export const emptyState = (): LocalGameState => ({ v: 1, progress: [], prefs: null, recent: {}, pending: [], pendingCreations: [] });
 
 export function defaultPrefs(lowSensory: boolean): Prefs {
   return { difficulty: "easy", reducedMotion: lowSensory, soundEnabled: !lowSensory, voiceEnabled: false };
@@ -109,6 +114,27 @@ export interface GameBackend {
   fetch(): Promise<{ progress: ProgressRow[]; prefs: Prefs | null }>;
   record(round: PendingRound): Promise<void>;
   savePrefs(prefs: Prefs): Promise<void>;
+  listCreations(): Promise<Creation[]>;
+  saveCreation(c: Creation): Promise<void>;
+}
+
+/** A creation as the account keeps it: its choices under the kind's own key. */
+export function creationContent(c: Creation): Record<string, unknown> {
+  return { [c.kind]: c[c.kind] ?? {} };
+}
+
+/** Sends waiting creations in order. Stops at the first failure and keeps the rest. */
+export async function flushPendingCreations(state: LocalGameState, backend: GameBackend): Promise<{ state: LocalGameState; ok: boolean }> {
+  let waiting = state.pendingCreations;
+  while (waiting.length > 0) {
+    try {
+      await backend.saveCreation(waiting[0]);
+    } catch {
+      return { state: { ...state, pendingCreations: waiting }, ok: false };
+    }
+    waiting = waiting.slice(1);
+  }
+  return { state: { ...state, pendingCreations: waiting }, ok: true };
 }
 
 /** Sends waiting rounds in order. Stops at the first failure and keeps the rest. */
@@ -127,9 +153,14 @@ export async function flushPending(state: LocalGameState, backend: GameBackend):
 
 // ---- Device storage -------------------------------------------------------
 
-export const storageKey = (ownerId: string) => `safespace_games_v1_${ownerId}`;
+/** Where a person's games are kept on this device; `owner` is the device-store owner ("p:<id>" or "c:<id>"). */
+export const storageKey = (owner: string) => `${STORAGE_PREFIX}${owner}.games`;
+
+/** Where they were kept before step 10b (never cleared on sign-out). */
+export const legacyStorageKey = (id: string) => `safespace_games_v1_${id}`;
 
 type StorageLike = Pick<Storage, "getItem" | "setItem">;
+type RemovableStorage = StorageLike & Pick<Storage, "removeItem">;
 
 const isRows = (v: unknown): v is ProgressRow[] => Array.isArray(v);
 
@@ -147,7 +178,7 @@ export function loadState(ownerId: string, storage: StorageLike | null): LocalGa
       prefs: v.prefs ?? null,
       recent: v.recent && typeof v.recent === "object" ? v.recent : {},
       pending: Array.isArray(v.pending) ? v.pending : [],
-      creations: Array.isArray(v.creations) ? v.creations : [],
+      pendingCreations: Array.isArray(v.pendingCreations) ? v.pendingCreations : [],
     };
   } catch {
     return emptyState();
@@ -165,7 +196,50 @@ export function saveState(ownerId: string, state: LocalGameState, storage: Stora
   }
 }
 
-export function deviceStorage(): StorageLike | null {
+/**
+ * Moves a person's games from the old key (`safespace_games_v1_<id>`) to the
+ * new one, once: progress, settings and waiting rounds come across (unless the
+ * new key already has some), and creations kept on the device become
+ * creations waiting to be saved to the account. The old key is removed.
+ */
+export function moveLegacyState(id: string, owner: string, storage: RemovableStorage | null): void {
+  if (!storage) return;
+  let raw: string | null = null;
+  try {
+    raw = storage.getItem(legacyStorageKey(id));
+  } catch {
+    return;
+  }
+  if (raw === null) return;
+  try {
+    const old = JSON.parse(raw) as Partial<LocalGameState> & { creations?: unknown };
+    if (old && old.v === 1) {
+      const current = loadState(owner, storage);
+      const fresh = current.progress.length === 0 && current.pending.length === 0 && current.prefs === null;
+      const base: LocalGameState = fresh
+        ? {
+            v: 1,
+            progress: Array.isArray(old.progress) ? old.progress : [],
+            prefs: old.prefs ?? null,
+            recent: old.recent && typeof old.recent === "object" ? old.recent : {},
+            pending: Array.isArray(old.pending) ? old.pending : [],
+            pendingCreations: [],
+          }
+        : current;
+      const kept = Array.isArray(old.creations) ? (old.creations as Creation[]) : [];
+      saveState(owner, { ...base, pendingCreations: [...base.pendingCreations, ...kept].slice(0, 12) }, storage);
+    }
+  } catch {
+    // Damaged: nothing worth moving.
+  }
+  try {
+    storage.removeItem(legacyStorageKey(id));
+  } catch {
+    // Storage unavailable.
+  }
+}
+
+export function deviceStorage(): RemovableStorage | null {
   try {
     return typeof localStorage === "undefined" ? null : localStorage;
   } catch {

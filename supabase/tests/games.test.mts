@@ -205,6 +205,7 @@ const CHILD_B = "22222222-2222-4222-8222-222222222222";
 function world() {
   const progress: Record<string, G.ProgressRow[]> = {};
   const prefs: Record<string, G.PreferencesRow> = {};
+  const creations: Record<string, G.CreationRow[]> = {};
   const logs: string[] = [];
   const calls: string[] = [];
   const cfg = { fail: false };
@@ -222,6 +223,16 @@ function world() {
       calls.push("save");
       prefs[id] = { difficulty: pr.difficulty, reduced_motion: pr.reducedMotion, sound_enabled: pr.soundEnabled, voice_enabled: pr.voiceEnabled };
     },
+    async listCreations(id: string) { calls.push("creations"); return [...(creations[id] ?? [])].reverse(); },
+    async saveCreation(id: string, c: G.CreationInput) {
+      calls.push("keep");
+      const rows = (creations[id] ??= []);
+      if (!rows.some((r) => r.id === c.id)) rows.push({ id: c.id, kind: c.kind, content: c.content, created_at: `2026-10-24T10:00:0${rows.length}Z` });
+    },
+    async deleteCreation(id: string, cid: string) {
+      calls.push("forget");
+      creations[id] = (creations[id] ?? []).filter((r) => r.id !== cid);
+    },
   };
   const handler = createGamesHandler({ store, verifyChildToken, log: (e: string, d?: string) => logs.push(`${e} ${d ?? ""}`) });
   const call = async (body: unknown, opts: { raw?: string; method?: string } = {}) => {
@@ -235,7 +246,7 @@ function world() {
     try { j = JSON.parse(t); } catch { /* preflight */ }
     return { status: res.status, json: j, text: t, cors: res.headers.get("Access-Control-Allow-Origin") };
   };
-  return { call, calls, logs, cfg, progress };
+  return { call, calls, logs, cfg, progress, creations };
 }
 
 const tokenA = await signChildToken(CHILD_A);
@@ -247,7 +258,7 @@ const tokenB = await signChildToken(CHILD_B);
     pre.status === 200 && pre.cors === "*" && w.calls.length === 0 && (await w.call(null, { method: "GET" })).status === 405);
   const [payload] = tokenA.split(".");
   const bad = await w.call(null, { raw: "{oops" });
-  const big = await w.call(null, { raw: JSON.stringify({ pad: "x".repeat(3000) }) });
+  const big = await w.call(null, { raw: JSON.stringify({ pad: "x".repeat(9000) }) });
   const tampered = await w.call({ action: "get_state", child_session_token: `${payload}.AAAA` });
   const none = await w.call({ action: "get_state" });
   ok("handler: bad JSON 400, oversized 413, tampered or missing token 401, no store work",
@@ -282,4 +293,38 @@ const tokenB = await signChildToken(CHILD_B);
   w.cfg.fail = false;
   await Promise.all([1, 2, 3].map(() => w.call({ action: "record_round", child_session_token: tokenA, game_id: "pattern-quest", difficulty: "hard", score: 40 })));
   ok("handler: concurrent saves all count", w.progress[CHILD_A][0].rounds_completed === 3);
+}
+
+// ---------------------------------------------------------------------------
+// Creations (Imagine & Create), private to the child (migration 20261029400000)
+// ---------------------------------------------------------------------------
+{
+  const w = world();
+  const story = (id: string, ownText: string) => ({
+    id, kind: "story", content: { story: { starterId: "s1", nextKey: "ic.story.s1.n1", endKey: "ic.story.s1.e1", ownText } },
+  });
+  const keep = (token: string, creation: unknown) => w.call({ action: "save_creation", child_session_token: token, creation });
+  const list = (token: string) => w.call({ action: "list_creations", child_session_token: token });
+
+  ok("handler: a child keeps a creation and gets it back, newest first",
+    (await keep(tokenA, story("story-1", "The fox found a friend."))).status === 200 &&
+    (await keep(tokenA, { id: "character-2", kind: "character", content: { character: { body: "🦊", colorId: "mint", accessory: null, powerKey: null, name: "Pip" } } })).status === 200 &&
+    (await (async () => {
+      const r = await list(tokenA);
+      return r.json.creations.map((c: { id: string }) => c.id).join() === "character-2,story-1" && r.json.creations[1].story.ownText === "The fox found a friend.";
+    })()));
+  ok("handler: keeping the same one twice changes nothing",
+    (await keep(tokenA, story("story-1", "changed"))).status === 200 && w.creations[CHILD_A].length === 2 && w.creations[CHILD_A][0].content.story);
+  ok("handler: another child sees none of them", (await list(tokenB)).json.creations.length === 0);
+  ok("handler: a child removes their own", (await w.call({ action: "delete_creation", child_session_token: tokenA, id: "story-1" })).status === 200 &&
+    (await list(tokenA)).json.creations.length === 1);
+  ok("handler: names up to 24, own text up to 240, ids and kinds the game's own",
+    (await keep(tokenA, { id: "character-3", kind: "character", content: { character: { name: "x".repeat(25) } } })).status === 400 &&
+    (await keep(tokenA, story("story-4", "x".repeat(241)))).status === 400 &&
+    (await keep(tokenA, story("Story 5!", "ok"))).status === 400 &&
+    (await keep(tokenA, { id: "scene-1", kind: "scene", content: { story: {} } })).status === 400 &&
+    (await keep(tokenA, { id: "poem-1", kind: "poem", content: { poem: {} } })).status === 400 &&
+    (await w.call({ action: "delete_creation", child_session_token: tokenA, id: "../x" })).status === 400);
+  ok("handler: a creation over 4 KB is refused",
+    (await keep(tokenA, { id: "scene-2", kind: "scene", content: { scene: { backdropId: "forest", cells: Array(400).fill("🌳🌳") } } })).status === 400);
 }

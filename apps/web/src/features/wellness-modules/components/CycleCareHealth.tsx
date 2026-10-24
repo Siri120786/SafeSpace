@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useStoredState } from "./useStoredState";
+import { useCycleCarePart } from "./useCycleCarePart";
 import { FOOD_SHARED_NOTE, foodFocusFor, type Condition } from "../lib/condition";
 import { BrainMascot } from "../../../components/vectors/BrainMascot";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
-import { DIET_KEY, PROFILE_KEY } from "../lib/deviceStore";
 import {
   EMPTY_STATE,
   GENERAL_GUIDANCE,
@@ -86,14 +85,14 @@ export const Coach: React.FC<{ stance: React.ComponentProps<typeof BrainMascot>[
 
 /** Food module body: the diet plan, rewards and character. Reads the food preference from the health profile. */
 export const DietSection: React.FC<{ lowSensory: boolean; condition: Condition | null }> = ({ lowSensory, condition }) => {
-  const [diet, setDiet, saveFailed] = useStoredState<DietState>(DIET_KEY, EMPTY_STATE, sanitizeState);
-  const [profile] = useStoredState<Assessment>(PROFILE_KEY, EMPTY_ASSESSMENT, sanitizeAssessment);
+  const [diet, setDiet, saveFailed] = useCycleCarePart<DietState>("diet", EMPTY_STATE, sanitizeState);
+  const [profile] = useCycleCarePart<Assessment>("profile", EMPTY_ASSESSMENT, sanitizeAssessment);
   return (
     <>
       <DietCard diet={diet} setDiet={setDiet} today={dateKey()} preference={profile.preference} lowSensory={lowSensory} condition={condition} />
       <p className="text-sm text-textMuted">
-        The diet plan and rewards are kept on this device only, not in your account.
-        {saveFailed ? " This browser is not allowing saving, so they will be lost when you leave." : ""}
+        The diet plan and rewards are saved to your account, so you can come back to them on any device. Only you can see them.
+        {saveFailed ? " Your last change didn't save. It will try again with your next change." : ""}
       </p>
     </>
   );

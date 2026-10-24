@@ -50,6 +50,27 @@ const store: ChildGamesStore = {
     });
     if (error) throw error;
   },
+
+  async listCreations(childId) {
+    const { data, error } = await admin.from("game_creations")
+      .select("id, kind, content, created_at")
+      .eq("child_id", childId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  async saveCreation(childId, creation) {
+    const { error } = await admin.from("game_creations")
+      .upsert({ child_id: childId, id: creation.id, kind: creation.kind, content: creation.content },
+        { onConflict: "child_id,id", ignoreDuplicates: true });
+    if (error) throw error;
+  },
+
+  async deleteCreation(childId, id) {
+    const { error } = await admin.from("game_creations").delete().eq("child_id", childId).eq("id", id);
+    if (error) throw error;
+  },
 };
 
 serve(createGamesHandler({ store, verifyChildToken, log }));

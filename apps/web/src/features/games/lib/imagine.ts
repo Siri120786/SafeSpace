@@ -1,7 +1,7 @@
 // Imagine & Create helpers. There is no single correct answer, so the only
-// rules are "enough was chosen to count as finished". What the player makes
-// (including any text they type) stays on this device; only "one round
-// finished" is ever saved to the account.
+// rules are "enough was chosen to count as finished". What the player keeps
+// (including any text they type) is saved to their own account, where only
+// they can see it (migration 20261029400000); caregivers see rounds only.
 import { imagineContent, text } from "./content";
 
 export interface CharacterDraft {

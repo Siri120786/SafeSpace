@@ -13,6 +13,7 @@ import * as F from "../src/features/games/lib/feelings.ts";
 import * as Z from "../src/features/games/lib/maze.ts";
 import * as I from "../src/features/games/lib/imagine.ts";
 import * as G from "../src/features/games/lib/progress.ts";
+import { STORAGE_PREFIX, clearDeviceStore } from "../src/features/wellness-ui/store/LocalDeviceStore.ts";
 import * as N from "../src/features/games/lib/soundScript.ts";
 import { summarizeGameProgress } from "../src/features/games/lib/summary.ts";
 import { GAME_IDS as SHARED_IDS, GAME_DIFFICULTIES } from "../../../packages/shared-types/src/index.ts";
@@ -295,6 +296,49 @@ for (const d of C.DIFFICULTIES) {
   ok("storage: an unknown version is ignored", G.loadState("old", store).progress.length === 0);
   ok("storage: a blocked device reports failure instead of throwing",
     G.saveState("k", st, { getItem: () => null, setItem: () => { throw new Error("quota"); } }) === false && G.saveState("k", st, null) === false);
+
+  // Step 10b: the device copy is per person under the device-store prefix,
+  // so signing out (clearDeviceStore) removes it; old keys move across once.
+  ok("storage: kept per person under the prefix sign-out clears",
+    G.storageKey("c:kid-1") === `${STORAGE_PREFIX}c:kid-1.games` && G.storageKey("p:adult-1").startsWith(STORAGE_PREFIX));
+  const shared = new Map<string, string>();
+  const removable = {
+    getItem: (k: string) => shared.get(k) ?? null,
+    setItem: (k: string, v: string) => void shared.set(k, v),
+    removeItem: (k: string) => void shared.delete(k),
+  };
+  const oldCreation = { id: "story-1", kind: "story" as const, createdAt: "2026-10-01T00:00:00Z", story: { starterId: "s1", nextKey: null, endKey: null, ownText: "Mine" } };
+  shared.set(G.legacyStorageKey("kid-1"), JSON.stringify({ ...st, v: 1, creations: [oldCreation] }));
+  shared.set(G.legacyStorageKey("kid-2"), JSON.stringify({ v: 1, progress: [], prefs: null, recent: {}, pending: [], creations: [] }));
+  G.moveLegacyState("kid-1", "c:kid-1", removable);
+  const moved = G.loadState("c:kid-1", removable);
+  ok("legacy: a person's old progress moves to the new key and the old key goes",
+    moved.progress.length === st.progress.length && !shared.has(G.legacyStorageKey("kid-1")));
+  ok("legacy: their old creations wait to be saved to the account", moved.pendingCreations.length === 1 && moved.pendingCreations[0].id === "story-1");
+  ok("legacy: someone else's old key is left for them", shared.has(G.legacyStorageKey("kid-2")));
+  G.moveLegacyState("kid-1", "c:kid-1", removable);
+  ok("legacy: moving twice changes nothing", G.loadState("c:kid-1", removable).pendingCreations.length === 1);
+  try {
+    (globalThis as { window?: unknown }).window = { localStorage: Object.assign(removable, { get length() { return shared.size; }, key: (i: number) => [...shared.keys()][i] ?? null }) };
+    clearDeviceStore();
+  } finally {
+    delete (globalThis as { window?: unknown }).window;
+  }
+  ok("sign-out: the device copy is cleared", G.loadState("c:kid-1", removable).progress.length === 0 && !shared.has(G.storageKey("c:kid-1")));
+
+  // Creations wait here only until the account has them.
+  const saved: string[] = [];
+  let offline = true;
+  const kept = { ...G.emptyState(), pendingCreations: [oldCreation, { ...oldCreation, id: "story-2" }] };
+  const keeper = {
+    fetch: async () => ({ progress: [], prefs: null }), record: async () => {}, savePrefs: async () => {}, listCreations: async () => [],
+    saveCreation: async (c: { id: string }) => { if (c.id === "story-2" && offline) { offline = false; throw new Error("offline"); } saved.push(c.id); },
+  };
+  const firstTry = await G.flushPendingCreations(kept, keeper);
+  ok("creations: one that couldn't save keeps waiting", !firstTry.ok && firstTry.state.pendingCreations.map((c) => c.id).join() === "story-2");
+  const secondTry = await G.flushPendingCreations(firstTry.state, keeper);
+  ok("creations: and goes once the network is back", secondTry.ok && secondTry.state.pendingCreations.length === 0 && saved.join() === "story-1,story-2");
+  ok("creations: the account keeps the choices under the kind's own key", JSON.stringify(G.creationContent(oldCreation)) === JSON.stringify({ story: oldCreation.story }));
 }
 
 // ---------------------------------------------------------------------------

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import { CalmToolShell } from "../../calm-tools/components/CalmToolShell";
-import { CONDITION_KEY, DIET_KEY, EXERCISE_KEY, PROFILE_KEY, clearKey } from "../lib/deviceStore";
 import {
   ABOUT,
   CONDITIONS,
@@ -46,7 +45,8 @@ import { Coach, DietSection, ProfileSection } from "./CycleCareHealth";
 import { WaterTally } from "./CycleCareExtras";
 import { MovementPicker } from "./CycleCareExtras";
 import { Notes, type ModuleScreenProps } from "./ModuleScreens";
-import { useStoredState } from "./useStoredState";
+import { useCycleCarePart, useCycleCareStore } from "./useCycleCarePart";
+import { CycleCareAccountNote } from "./CycleCareAccountNote";
 import { useCondition } from "./useCondition";
 import { canOpenCycleCare } from "../lib/content";
 
@@ -76,7 +76,7 @@ const BackToHub: React.FC<{ base: string }> = ({ base }) => (
 
 export const PhysicalExercise: React.FC<ModuleScreenProps & { role: string | null }> = ({ role, ...p }) => {
   const [condition] = useCondition();
-  const [state, setState, saveFailed] = useStoredState<ExerciseState>(EXERCISE_KEY, EMPTY_EXERCISE, sanitizeExercise);
+  const [state, setState, saveFailed] = useCycleCarePart<ExerciseState>("exercise", EMPTY_EXERCISE, sanitizeExercise);
   const [type, setType] = useState<ActivityType>("walk");
   const [minutes, setMinutes] = useState("");
   const [goalText, setGoalText] = useState("");
@@ -265,8 +265,8 @@ export const PhysicalExercise: React.FC<ModuleScreenProps & { role: string | nul
             Save goal
           </Button>
           <p className="text-sm text-textMuted">
-            Your movement is saved on this device only, not in your account. SafeSpace does not count calories burned or link movement to weight.
-            {saveFailed ? " This browser is not allowing saving, so it will be lost when you leave." : ""}
+            Your movement is saved to your account, and only you can see it. SafeSpace does not count calories burned or link movement to weight.
+            {saveFailed ? " Your last change didn't save. It will try again with your next change." : ""}
           </p>
         </Card>
         <Notes extra="Always follow your own doctor's advice about exercise." />
@@ -296,20 +296,22 @@ export const FoodModule: React.FC<ModuleScreenProps & { role: string | null }> =
 
 export const PcosPcodHub: React.FC<ModuleScreenProps & { role: string | null }> = ({ role, ...p }) => {
   const [condition, setCondition] = useCondition();
-  const [profile, setProfile, saveFailed] = useStoredState<Assessment>(PROFILE_KEY, EMPTY_ASSESSMENT, sanitizeAssessment);
+  const [profile, setProfile, saveFailed] = useCycleCarePart<Assessment>("profile", EMPTY_ASSESSMENT, sanitizeAssessment);
+  const store = useCycleCareStore();
+  const [clearFailed, setClearFailed] = useState(false);
 
   if (!canOpenCycleCare(role)) return <AdultsOnly title="PCOS / PCOD" {...p} />;
 
   const clearAll = () => {
-    for (const k of [DIET_KEY, PROFILE_KEY, EXERCISE_KEY, CONDITION_KEY]) clearKey(k);
-    setProfile(EMPTY_ASSESSMENT);
-    setCondition(null);
+    setClearFailed(false);
+    store?.deleteAll().catch(() => setClearFailed(true));
   };
   const shownAbout = condition === "pcos" || condition === "pcod" ? [ABOUT[condition]] : [ABOUT.pcos, ABOUT.pcod];
 
   return (
     <CalmToolShell title="PCOS / PCOD" {...p}>
       <div className="space-y-4">
+        <CycleCareAccountNote />
         <Card className="space-y-3">
           <h2 className="font-display text-xl text-textHeading">What does your doctor call it?</h2>
           <div className="flex flex-wrap gap-2">
@@ -374,12 +376,13 @@ export const PcosPcodHub: React.FC<ModuleScreenProps & { role: string | null }> 
 
         <Card className="space-y-2">
           <p className="text-sm text-textMuted">
-            Your choices, diet plan, movement and health profile are kept on this device only, not in your account.
-            {saveFailed ? " This browser is not allowing saving, so they will be lost when you leave." : ""}
+            Your choices, diet plan, movement and health profile are saved to your account. Only you can see them: not a caregiver, not anyone else.
+            {saveFailed ? " Your last change didn't save. It will try again with your next change." : ""}
           </p>
           <Button size="sm" variant="outline" onClick={clearAll}>
             Clear all my PCOS / PCOD data
           </Button>
+          {clearFailed && <p role="alert" className="text-sm text-red-700">That didn't clear. Please try again.</p>}
         </Card>
         <Notes extra="There is no cycle tracking in this version. Always follow your own doctor's advice." />
       </div>

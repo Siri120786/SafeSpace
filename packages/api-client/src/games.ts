@@ -133,3 +133,69 @@ export async function getChildGameSummary(childId: string): Promise<GameProgress
   if (error) throw toContractError(error);
   return (data ?? []).map(toProgress);
 }
+
+// ---------------------------------------------------------------------------
+// Creations (Imagine & Create): kept characters, scenes and stories, newest
+// 12, private to the player (migration 20261029400000). Caregivers have no
+// read access.
+// ---------------------------------------------------------------------------
+export type CreationKind = "character" | "scene" | "story";
+
+/** A kept creation: its id, kind and when it was kept, plus its choices under the kind's own key. */
+export interface SavedCreation {
+  id: string;
+  kind: CreationKind;
+  createdAt: string;
+  character?: unknown;
+  scene?: unknown;
+  story?: unknown;
+}
+
+const CREATION_ID = /^[a-z]{1,12}-[0-9]{1,16}$/;
+const CREATION_KINDS: readonly string[] = ["character", "scene", "story"];
+
+function toCreation(r: any): SavedCreation {
+  return { id: r.id, kind: r.kind, createdAt: r.created_at, ...(r.content ?? {}) };
+}
+
+/** The player's kept creations, newest first. */
+export async function listGameCreations(session: AppSession): Promise<SavedCreation[]> {
+  if (session?.kind === "child") {
+    const data = await invokeEdge<{ creations: SavedCreation[] }>("games", { action: "list_creations", child_session_token: session.childSessionToken });
+    return data.creations ?? [];
+  }
+  if (session?.kind !== "auth_user") throw new ContractError("unsupported_session");
+  const { data, error } = await getSafeSpaceClient().from("game_creations")
+    .select("id, kind, content, created_at").eq("profile_id", session.profile.id).order("created_at", { ascending: false });
+  if (error) throw toContractError(error);
+  return (data ?? []).map(toCreation);
+}
+
+/** Keeps a creation (keeping one already kept changes nothing). The oldest past 12 lets go. */
+export async function saveGameCreation(
+  session: AppSession,
+  creation: { id: string; kind: CreationKind; content: Record<string, unknown> },
+): Promise<void> {
+  if (!CREATION_ID.test(creation?.id ?? "") || !CREATION_KINDS.includes(creation?.kind)) throw new ContractError("invalid_input");
+  if (session?.kind === "child") {
+    await invokeEdge("games", { action: "save_creation", creation, child_session_token: session.childSessionToken });
+    return;
+  }
+  if (session?.kind !== "auth_user") throw new ContractError("unsupported_session");
+  const { error } = await getSafeSpaceClient().from("game_creations").upsert(
+    { profile_id: session.profile.id, id: creation.id, kind: creation.kind, content: creation.content },
+    { onConflict: "profile_id,id", ignoreDuplicates: true },
+  );
+  if (error) throw toContractError(error);
+}
+
+export async function deleteGameCreation(session: AppSession, id: string): Promise<void> {
+  if (!CREATION_ID.test(id ?? "")) throw new ContractError("invalid_input");
+  if (session?.kind === "child") {
+    await invokeEdge("games", { action: "delete_creation", id, child_session_token: session.childSessionToken });
+    return;
+  }
+  if (session?.kind !== "auth_user") throw new ContractError("unsupported_session");
+  const { error } = await getSafeSpaceClient().from("game_creations").delete().eq("profile_id", session.profile.id).eq("id", id);
+  if (error) throw toContractError(error);
+}

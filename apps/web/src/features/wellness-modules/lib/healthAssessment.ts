@@ -140,7 +140,7 @@ export const SUMMARY_NOTE =
   "This is only a list of what you chose to share. It is not a diagnosis, score or advice. Bring it to your doctor or dietitian.";
 
 export const PROFILE_NOTE =
-  "Everything here is optional, so skip anything you like. It is saved on this device only, and you can clear it at any time.";
+  "Everything here is optional, so skip anything you like. It is saved to your account, only you can see it, and you can clear it at any time.";
 
 const toggleId = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 export const toggleChoice = toggleId;

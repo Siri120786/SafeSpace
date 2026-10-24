@@ -168,6 +168,10 @@ export type {
   ChildToolsOverview,
 } from "./focusTools";
 
-export { getGameState, recordGameRound, saveGamePreferences, getChildGameSummary } from "./games";
+export { getGameState, recordGameRound, saveGamePreferences, getChildGameSummary, listGameCreations, saveGameCreation, deleteGameCreation } from "./games";
+export type { SavedCreation, CreationKind } from "./games";
 
 export { listMusicFavorites, setMusicFavorite, musicFileUrl, MUSIC_BUCKET } from "./music";
+
+export { getCycleCareData, saveCycleCareParts, deleteCycleCareData } from "./cycleCare";
+export type { CycleCareData, CycleCarePart } from "./cycleCare";
