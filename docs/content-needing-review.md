@@ -13,6 +13,8 @@ Everything below is **placeholder or unreviewed wording** and must not be treate
 | Support text in every module | same content file | "talk to a trusted adult or local services" | region-correct helplines and clinician review (see `docs/emergency-audit-sprint3.md`) |
 | Animated story "Kai visits the dentist" | `apps/web/src/features/stories/library/dentist.ts` | all lines, especially the Telugu (a first draft) | native Telugu speaker check; social-story and clinician review |
 | Story templates (new school, doctor visit, taking turns, fire drill, change of plans) | `apps/web/src/features/stories/templates.ts` | all lines, especially the Telugu (a first draft; the editor asks caregivers to check it) | native Telugu speaker check; social-story and clinician review |
+| Hindi and Telugu rhymes (Machhli Jal Ki Rani, Aloo Kachaloo, Chandamama Raave, Chitti Chilakamma) | `apps/web/src/features/music/rhymes.ts` | the words and the English-letter lines; the tunes are our own simple melodies, not the traditional ones | native Hindi and Telugu speaker check; decide on "mar jaayegi" (Machhli) and "amma kottinda" (Chitti Chilakamma) for a wellness app |
+| English rhymes | same | the tunes as written | a listen-through to check they sound right |
 | Gemini story-writer instructions | `supabase/functions/_shared/storyWriter.ts` | the system prompt (social-story rules, coping step, age bands) | social-story and clinician review |
 
 ## Limitations to state at sprint review

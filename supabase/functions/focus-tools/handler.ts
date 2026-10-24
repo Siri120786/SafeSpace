@@ -1,6 +1,7 @@
 // supabase/functions/focus-tools/handler.ts
 // The ADHD and autism tools for a signed-in child (role-flow 8e): focus
-// sessions, tasks, habits, stars, feelings cards and tool settings. Verifies
+// sessions, tasks, habits, stars, feelings cards and tool settings, and their
+// music favorites and music controls (role-flow 9b/9c). Verifies
 // the child-session token (signature, expiry and session version), then reads
 // and writes ONLY that child's rows with the service role. Children can't
 // delete feelings choices or focus history; removing a habit archives it, so
@@ -10,7 +11,8 @@
 // Actions (all with child_session_token): sessions.list, sessions.add,
 // tasks.list, tasks.create, tasks.update, tasks.delete, habits.list,
 // habits.add, habits.archive, habits.set, stars.get, stars.award,
-// stars.claim, emotions.list, emotions.add, settings.get.
+// stars.claim, emotions.list, emotions.add, settings.get, favorites.list,
+// favorites.add, favorites.remove.
 // Request rules: _shared/focusTools.ts.
 //
 // No Deno or esm.sh imports; index.ts wires the real dependencies and
@@ -34,7 +36,13 @@ export interface HabitRow { id: string; title: string; icon: string | null; is_a
 export interface StarRow { kind: "award" | "claim"; stars: number }
 export interface GoalRow { title: string; target_stars: number; icon: string | null }
 export interface EmotionRow { id: string; card_id: string; created_at: string }
-export interface SettingsRow { transition_preset: { activity: string; totalSeconds: number } | null; aac_labels: Record<string, string> }
+export interface SettingsRow {
+  transition_preset: { activity: string; totalSeconds: number } | null;
+  aac_labels: Record<string, string>;
+  music_enabled: boolean;
+  music_volume_max: number | null;
+  music_sleep_minutes: number | null;
+}
 
 export interface FocusToolsStore {
   listSessions(childId: string, sinceIso: string): Promise<SessionRow[]>;
@@ -59,6 +67,10 @@ export interface FocusToolsStore {
   listEmotions(childId: string, limit: number): Promise<EmotionRow[]>;
   addEmotion(childId: string, cardId: string): Promise<EmotionRow>;
   getSettings(childId: string): Promise<SettingsRow | null>;
+  listFavorites(childId: string): Promise<string[]>;
+  // Idempotent: hearting a hearted track or un-hearting one that isn't is fine.
+  addFavorite(childId: string, trackId: string): Promise<void>;
+  removeFavorite(childId: string, trackId: string): Promise<void>;
 }
 
 export interface FocusToolsDeps {
@@ -160,8 +172,21 @@ export function createFocusToolsHandler(deps: FocusToolsDeps) {
 
           case "settings.get": {
             const s = await store.getSettings(childId);
-            return json({ transitionPreset: s?.transition_preset ?? null, aacLabels: s?.aac_labels ?? {} });
+            return json({
+              transitionPreset: s?.transition_preset ?? null,
+              aacLabels: s?.aac_labels ?? {},
+              music: { enabled: s?.music_enabled ?? true, volumeMax: s?.music_volume_max ?? null, sleepMinutes: s?.music_sleep_minutes ?? null },
+            });
           }
+
+          case "favorites.list":
+            return json({ trackIds: await store.listFavorites(childId) });
+          case "favorites.add":
+            await store.addFavorite(childId, r.trackId);
+            return json({ trackId: r.trackId, favorite: true });
+          case "favorites.remove":
+            await store.removeFavorite(childId, r.trackId);
+            return json({ trackId: r.trackId, favorite: false });
         }
       } catch (e) {
         const known = dbErrorCode(e);

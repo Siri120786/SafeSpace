@@ -19,6 +19,7 @@ export const ROUTES = {
   COMPANION: "/companion",
   MODULES: "/modules",
   TOOLS: "/tools",
+  MUSIC: "/music",
 
   // Caregiver
   CAREGIVER_HOME: "/caregiver",
@@ -50,4 +51,5 @@ export const ROUTES = {
   CHILD_TALK: "/child/talk",
   CHILD_STORIES: "/child/stories",
   CHILD_TOOLS: "/child/tools",
+  CHILD_MUSIC: "/child/music",
 };
