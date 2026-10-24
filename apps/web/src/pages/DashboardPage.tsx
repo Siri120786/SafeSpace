@@ -31,6 +31,7 @@ const TOOL_TILES = [
   { to: ROUTES.JOURNAL, label: "Journal", icon: "📓" },
   { to: ROUTES.REMINDERS, label: "Reminders", icon: "⏰" },
   { to: ROUTES.CALM_TOOLS, label: "Calm tools", icon: "🍃" },
+  { to: ROUTES.GAMES, label: "Games Corner", icon: "🎲" },
   { to: ROUTES.MODULES, label: "Wellness modules", icon: "🌈" },
   { to: ROUTES.COMPANION, label: "AI Companion", icon: "💬" },
 ];

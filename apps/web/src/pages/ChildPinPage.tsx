@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { verifyChildPin } from "@safespace/api-client";
 import type { ChildSession } from "@safespace/shared-types";
-import { storeChildSession, getStoredFamilyCode, storeFamilyCode } from "../lib/childSessionStorage";
+import { storeChildSession, getStoredFamilyCode, storeFamilyCode, clearFamilyCode } from "../lib/childSessionStorage";
 import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
 import { SafeSpaceInput } from "../components/ui/SafeSpaceInput";
 import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
@@ -52,6 +52,15 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
         setChecking(false);
       }
     }
+  }
+
+  // The saved code was wrong, or this device is for another family.
+  function changeFamilyCode() {
+    clearFamilyCode();
+    setFamilyCode(null);
+    setCodeInput("");
+    setPin("");
+    setError(false);
   }
 
   // First time on this device: ask for the family code once.
@@ -116,6 +125,17 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
           title="Hi! Enter your PIN"
           subtitle="Ask a grown-up if you forget your code"
         />
+        <p className="mt-2 text-xs text-charcoal/70">
+          Family code <strong className="tracking-widest text-charcoal">{familyCode}</strong>
+          {" · "}
+          <button
+            type="button"
+            onClick={changeFamilyCode}
+            className="font-bold text-botanical-700 underline hover:text-botanical-900"
+          >
+            Change
+          </button>
+        </p>
         {notice && (
           <p role="status" className="mt-3 rounded-2xl bg-botanical-50 px-4 py-2 text-center text-sm text-botanical-800">
             {notice}

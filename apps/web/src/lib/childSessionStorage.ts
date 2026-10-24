@@ -26,3 +26,5 @@ export const clearStoredChildSession = clearChildSession;
 const FAMILY_KEY = "safespace_family_code";
 export const getStoredFamilyCode = (): string | null => localStorage.getItem(FAMILY_KEY);
 export const storeFamilyCode = (code: string): void => localStorage.setItem(FAMILY_KEY, code.trim().toUpperCase());
+// "Change" on the PIN screen: a different family, or a mistyped code.
+export const clearFamilyCode = (): void => localStorage.removeItem(FAMILY_KEY);

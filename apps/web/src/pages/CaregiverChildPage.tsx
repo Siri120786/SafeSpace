@@ -4,6 +4,7 @@ import { getChildDetail } from "@safespace/api-client";
 import type { CaregiverChildDetail, WellnessPeriodDays } from "@safespace/shared-types";
 import { Card } from "../components/ui/Card";
 import { MoodHistoryList } from "../features/mood";
+import { ChildGamesSummary } from "../features/games";
 import {
   AiChatList,
   CaregiverPageShell,
@@ -172,6 +173,10 @@ export const CaregiverChildPage: React.FC = () => {
           </Section>
 
           <ToolsProgressCard childId={child.id} childName={child.name} setupPath={caregiverChildPath(child.id, "tools")} />
+
+          <Section title="Games">
+            <ChildGamesSummary childId={child.id} childName={child.name} />
+          </Section>
 
           <Section title="AI Companion chats">
             {note && <p className="text-xs text-textMuted">{note}</p>}

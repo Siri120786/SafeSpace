@@ -165,3 +165,5 @@ export type {
   ToolSettings,
   ChildToolsOverview,
 } from "./focusTools";
+
+export { getGameState, recordGameRound, saveGamePreferences, getChildGameSummary } from "./games";

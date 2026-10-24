@@ -538,3 +538,41 @@ export interface CreateStoryInput {
   title: string;
   text: string;
 }
+
+// ----------------------------------------------------------------------------
+// Games Corner (Sprint 4; docs/games.md). Game rules and puzzles run on the
+// device; only a short progress record and the player's comfort settings are
+// stored. Ids must match the checks in
+// supabase/migrations/20261029100000_game_progress.sql.
+// ----------------------------------------------------------------------------
+export const GAME_IDS = ["memory-match", "pattern-quest", "feelings-detective", "imagine-create", "maze-explorer"] as const;
+export type GameId = (typeof GAME_IDS)[number];
+
+export const GAME_DIFFICULTIES = ["easy", "medium", "hard"] as const;
+export type GameDifficulty = (typeof GAME_DIFFICULTIES)[number];
+
+export interface GameProgress {
+  gameId: GameId;
+  difficulty: GameDifficulty;
+  roundsCompleted: number;
+  bestScore: number | null;   // 0-100, or null for games with no score
+  lastPlayedAt: string;
+}
+
+export interface GamePreferences {
+  difficulty: GameDifficulty;
+  reducedMotion: boolean;
+  soundEnabled: boolean;
+  voiceEnabled: boolean;
+}
+
+export interface RecordGameRoundInput {
+  gameId: GameId;
+  difficulty: GameDifficulty;
+  score: number | null;
+}
+
+export interface GameState {
+  progress: GameProgress[];
+  preferences: GamePreferences | null;   // null until the player has saved one
+}

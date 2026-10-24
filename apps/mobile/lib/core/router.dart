@@ -12,7 +12,9 @@ import '../screens/child_home_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/profile_screen.dart';
 import '../features/calm_tools/calm_tools_feature.dart';
+import '../features/games/games_feature.dart';
 import '../features/wellness_modules/module_screens.dart';
+import '../features/wellness_modules/pcos_screens.dart';
 import '../features/story_workflow/story_workflow_screen.dart';
 import '../features/mood/screens/mood_check_in_screen.dart';
 
@@ -88,6 +90,20 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
     GoRoute(
+      path: '/games',
+      builder: (BuildContext context, GoRouterState state) {
+        return const GamesHomeScreen();
+      },
+      routes: <RouteBase>[
+        GoRoute(
+          path: ':gameId',
+          builder: (BuildContext context, GoRouterState state) {
+            return GameRouteScreen(gameId: state.pathParameters['gameId'] ?? '');
+          },
+        ),
+      ],
+    ),
+    GoRoute(
       path: '/modules',
       builder: (BuildContext context, GoRouterState state) {
         return const ModulesHomeScreen();
@@ -112,10 +128,34 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: 'cycle-care',
+          path: 'pcos-pcod',
           builder: (BuildContext context, GoRouterState state) {
-            return const CycleCareScreen();
+            return const PcosPcodHubScreen();
           },
+          routes: <RouteBase>[
+            GoRoute(
+              path: 'cycle-care',
+              builder: (BuildContext context, GoRouterState state) {
+                return const CycleCareScreen();
+              },
+            ),
+            GoRoute(
+              path: 'exercise',
+              builder: (BuildContext context, GoRouterState state) {
+                return const PhysicalExerciseScreen();
+              },
+            ),
+            GoRoute(
+              path: 'food',
+              builder: (BuildContext context, GoRouterState state) {
+                return const FoodScreen();
+              },
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'cycle-care',
+          redirect: (BuildContext context, GoRouterState state) => '/modules/pcos-pcod/cycle-care',
         ),
       ],
     ),
