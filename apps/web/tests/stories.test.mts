@@ -188,7 +188,8 @@ test("every template has a coping step and a calm, proud ending, in 1 to 3.5 min
 
 test("the new places, the teacher and the bell are used by the templates", () => {
   const scenes = STORY_TEMPLATES.flatMap((t) => t.script.scenes);
-  for (const bg of ["classroom", "playground", "doctor_room"]) assert.ok(scenes.some((s) => s.background === bg), bg);
+  for (const bg of ["school", "classroom", "playground", "doctor_room"]) assert.ok(scenes.some((s) => s.background === bg), bg);
+  assert.ok(scenes.some((s) => s.cast.some((c) => c.id === "jaya")) && scenes.some((s) => s.lines.some((l) => l.speaker === "jaya")));
   assert.ok(scenes.some((s) => s.cast.some((c) => c.id === "asha")));
   assert.ok(scenes.some((s) => s.effect === "bell"));
 });

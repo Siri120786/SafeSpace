@@ -48,10 +48,11 @@ export const promptIsUnsuitable = (prompt: string) => screenForCrisis(prompt);
 
 const CHARACTER_NOTES: Record<(typeof STORY_CHARACTERS)[number], string> = {
   kai: "Kai: the child, the hero of every story (he/him). Things happen from his point of view.",
+  jaya: "Jaya: Kai's friend and classmate, a cheerful girl (she/her) about his age. In school, playground or play scenes.",
   amma: "Amma: Kai's mother.",
   papa: "Papa: Kai's father.",
   maya: "maya = Dr. Maya: a kind doctor and dentist in a white coat. Only in clinic scenes.",
-  asha: "asha = Ms. Asha: Kai's kind teacher. Only in school scenes (classroom, playground).",
+  asha: "asha = Ms. Asha: Kai's kind teacher. Only in school scenes (school, classroom, playground).",
   pip: "Pip: Kai's small blue bird friend, cheerful, good at calm breathing.",
 };
 
@@ -62,6 +63,7 @@ const BACKGROUND_NOTES: Record<(typeof STORY_BACKGROUNDS)[number], string> = {
   waiting_room: "waiting_room: a clinic waiting room with chairs (people can sit at left and midleft)",
   dental_room: "dental_room: a dentist's room with the chair at center (only Kai sits there)",
   doctor_room: "doctor_room: a doctor's room with the examination bed at center (only Kai sits there)",
+  school: "school: outside the school, at the gate (arriving and leaving)",
   classroom: "classroom: a school classroom with a board; children sit at midleft and midright",
   playground: "playground: the school playground with a slide and swings; someone can sit on the bench at left",
 };

@@ -219,6 +219,68 @@ const DoctorRoom: React.FC = () => (
   </g>
 );
 
+// Outside the school, at the gate. Nobody sits here.
+const School: React.FC = () => (
+  <g>
+    <defs>
+      <linearGradient id="st-sky-school" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#BFE3F6" />
+        <stop offset="1" stopColor="#F1F9FC" />
+      </linearGradient>
+    </defs>
+    <rect width={STAGE_W} height={STAGE_H} fill="url(#st-sky-school)" />
+    <ellipse cx={250} cy={110} rx={120} ry={40} fill="#fff" opacity={0.9} />
+    <ellipse cx={1330} cy={90} rx={110} ry={36} fill="#fff" opacity={0.9} />
+    {/* The school building */}
+    <g transform="translate(330 180)">
+      <path d="M-40 70 L470 -40 L980 70 z" fill="#D98C6A" />
+      <rect x={0} y={70} width={940} height={470} fill="#F6E3C6" />
+      <rect x={0} y={70} width={940} height={22} fill="#E8CBA4" />
+      {[60, 220, 380, 560, 720].map((x) => [120, 280].map((y) => (
+        <g key={`${x}-${y}`}>
+          <rect x={x} y={y} width={120} height={100} rx={8} fill="#CFE8F5" stroke="#FFFFFF" strokeWidth={8} />
+          <line x1={x + 60} y1={y} x2={x + 60} y2={y + 100} stroke="#FFFFFF" strokeWidth={6} />
+        </g>
+      )))}
+      {/* Front door and the clock above it */}
+      <rect x={410} y={380} width={120} height={160} rx={10} fill="#B98A5E" />
+      <circle cx={470} cy={20} r={34} fill="#FFFFFF" stroke="#B98A5E" strokeWidth={8} />
+      <path d="M470 20 V0 M470 20 L486 28" stroke="#2B1D17" strokeWidth={5} strokeLinecap="round" />
+    </g>
+    {/* Flag */}
+    <g transform="translate(1380 260)">
+      <rect x={-5} y={0} width={10} height={480} fill="#9AA6B8" />
+      <rect x={5} y={10} width={120} height={26} fill="#F2A65A" />
+      <rect x={5} y={36} width={120} height={26} fill="#FFFFFF" />
+      <rect x={5} y={62} width={120} height={26} fill="#7FB26A" />
+      <circle cx={65} cy={49} r={9} fill="none" stroke="#3A5A9C" strokeWidth={3} />
+    </g>
+    {/* Trees */}
+    <g transform="translate(130 740)">
+      <rect x={-20} y={-230} width={40} height={230} rx={12} fill="#9C6B47" />
+      <circle cx={0} cy={-280} r={110} fill="#7FB26A" />
+      <circle cx={-70} cy={-220} r={70} fill="#6E9E5A" />
+      <circle cx={75} cy={-225} r={78} fill="#86BC70" />
+    </g>
+    {/* Fence and the open gate */}
+    <g fill="#FFFFFF" stroke="#D9CBB5" strokeWidth={3}>
+      {Array.from({ length: 9 }, (_, i) => <rect key={`l${i}`} x={250 + i * 46} y={640} width={22} height={100} rx={8} />)}
+      {Array.from({ length: 9 }, (_, i) => <rect key={`r${i}`} x={970 + i * 46} y={640} width={22} height={100} rx={8} />)}
+      <rect x={250} y={665} width={420} height={14} rx={6} />
+      <rect x={950} y={665} width={420} height={14} rx={6} />
+    </g>
+    <g fill="#C0573F">
+      <rect x={670} y={520} width={50} height={230} rx={8} />
+      <rect x={880} y={520} width={50} height={230} rx={8} />
+      <path d="M660 530 Q800 420 940 530 L940 560 Q800 460 660 560 z" />
+    </g>
+    <circle cx={800} cy={470} r={22} fill="#F6C945" stroke="#C99A2E" strokeWidth={5} />
+    <Floor fill="#A9D18E" line="#94C079" />
+    {/* The path to the door */}
+    <path d={`M700 ${FLOOR_Y - 60} L900 ${FLOOR_Y - 60} L1080 ${STAGE_H} L520 ${STAGE_H} z`} fill="#E6D3B3" />
+  </g>
+);
+
 // Children sit on the small chairs at midleft and midright.
 const Classroom: React.FC = () => (
   <g>
@@ -331,6 +393,8 @@ export const StoryBackdrop: React.FC<{ id: StoryBackground }> = ({ id }) => {
       return <DentalRoom />;
     case "doctor_room":
       return <DoctorRoom />;
+    case "school":
+      return <School />;
     case "classroom":
       return <Classroom />;
     case "playground":

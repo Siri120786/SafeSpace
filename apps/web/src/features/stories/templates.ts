@@ -27,7 +27,7 @@ const BREATHE_TE = "నెమ్మదిగా శ్వాస లోపలి�
 const NEW_SCHOOL: Story = {
   id: "new-school",
   title: { en: "Kai's first day at a new school", te: "కొత్త స్కూల్‌లో కై మొదటి రోజు" },
-  summary: { en: "Meeting the teacher, the bell, and asking for a quiet moment.", te: "టీచర్‌ని కలవడం, బెల్, నిశ్శబ్ద సమయం అడగడం." },
+  summary: { en: "The school gate, the teacher, the bell, a quiet moment and a new friend.", te: "స్కూల్ గేటు, టీచర్, బెల్, నిశ్శబ్ద సమయం, ఒక కొత్త స్నేహితురాలు." },
   scenes: [
     scene("morning", "home", [
       { id: "amma", slot: "left", expression: "happy" },
@@ -57,6 +57,13 @@ const NEW_SCHOOL: Story = {
       { id: "papa", slot: "midright", expression: "happy", action: "walk_out" },
     ], [
       L("narrator", "Kai puts on his backpack. Papa walks with him to school.", "కై తన బ్యాగ్ వేసుకున్నాడు. నాన్న అతనితో కలిసి స్కూల్‌కి నడుస్తాడు."),
+    ]),
+    scene("school-gate", "school", [
+      { id: "kai", slot: "midleft", action: "walk_in", holding: "backpack" },
+      { id: "papa", slot: "midright", expression: "happy", action: "walk_in" },
+    ], [
+      L("narrator", "This is Kai's new school. Papa walks with him to the gate.", "ఇది కై కొత్త స్కూల్. నాన్న అతనితో కలిసి గేటు దాకా నడిచాడు."),
+      L("papa", "I will come back to pick you up after school.", "స్కూల్ అయిపోయాక నిన్ను తీసుకెళ్ళడానికి నేను మళ్ళీ వస్తాను."),
     ]),
     scene("meet-teacher", "classroom", [
       { id: "kai", slot: "midleft", expression: "surprised", holding: "backpack" },
@@ -88,9 +95,18 @@ const NEW_SCHOOL: Story = {
     ], { camera: { shot: "close", focus: "kai" } }),
     scene("break-time", "playground", [
       { id: "asha", slot: "left", expression: "happy" },
-      { id: "kai", slot: "center", expression: "happy", action: "hop" },
+      { id: "kai", slot: "center", expression: "surprised" },
+      { id: "jaya", slot: "midright", expression: "happy", action: "walk_in" },
     ], [
-      L("narrator", "At break, Kai plays on the playground.", "విరామంలో కై ప్లేగ్రౌండ్‌లో ఆడుకుంటాడు."),
+      L("narrator", "At break, a girl from Kai's class comes over.", "విరామంలో కై క్లాస్‌లోని ఒక అమ్మాయి దగ్గరికి వచ్చింది."),
+      L("jaya", "Hi Kai! I'm Jaya. Do you want to play on the slide with me?", "హాయ్ కై! నేను జయ. నాతో కలిసి జారుడుబల్ల మీద ఆడుకుంటావా?"),
+      L("kai", "Yes please!", "అవును, ఆడుకుంటాను!"),
+    ]),
+    scene("friends", "playground", [
+      { id: "kai", slot: "midright", expression: "happy", action: "hop" },
+      { id: "jaya", slot: "right", expression: "happy", action: "hop" },
+    ], [
+      L("narrator", "Kai and Jaya take turns on the slide.", "కై, జయ వంతుల వారీగా జారుడుబల్ల మీద ఆడుకున్నారు."),
       L("kai", "The slide is fun!", "జారుడుబల్ల సరదాగా ఉంది!"),
     ]),
     scene("home-proud", "home", [
@@ -99,7 +115,7 @@ const NEW_SCHOOL: Story = {
       { id: "papa", slot: "right", expression: "happy" },
     ], [
       L("amma", "How was your first day, Kai?", "నీ మొదటి రోజు ఎలా గడిచింది, కై?"),
-      L("kai", "It was new, and I did it! I asked for a quiet moment when I needed one.", "అంతా కొత్తగా ఉంది, కానీ నేను చేశాను! అవసరమైనప్పుడు నిశ్శబ్ద సమయం అడిగాను."),
+      L("kai", "It was new, and I did it! I asked for a quiet moment, and I made a friend called Jaya.", "అంతా కొత్తగా ఉంది, కానీ నేను చేశాను! నిశ్శబ్ద సమయం అడిగాను, జయ అనే స్నేహితురాలు దొరికింది."),
       L("papa", "We are so proud of you.", "నిన్ను చూసి మాకు చాలా గర్వంగా ఉంది."),
     ], { effect: "sparkles" }),
   ],
@@ -369,7 +385,7 @@ const CHANGE_OF_PLANS: Story = {
 };
 
 export const STORY_TEMPLATES: StoryTemplate[] = [
-  { key: "new_school", emoji: "🏫", title: NEW_SCHOOL.title, blurb: "Meeting the teacher, the bell, asking for a quiet moment.", script: NEW_SCHOOL },
+  { key: "new_school", emoji: "🏫", title: NEW_SCHOOL.title, blurb: "The gate, the teacher, the bell, a quiet moment, a new friend.", script: NEW_SCHOOL },
   { key: "doctor_visit", emoji: "🩺", title: DOCTOR_VISIT.title, blurb: "A check-up step by step, with a break when needed.", script: DOCTOR_VISIT },
   { key: "dentist", emoji: "🦷", title: DENTIST_STORY.title, blurb: "The waiting room, the chair, the mirror, raising a hand.", script: DENTIST_STORY },
   { key: "taking_turns", emoji: "🛝", title: TAKING_TURNS.title, blurb: "Waiting for the slide, and what helps while waiting.", script: TAKING_TURNS },

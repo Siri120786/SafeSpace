@@ -6,11 +6,12 @@
 // Shared by the web app (re-exported from apps/web/src/features/stories) and
 // the Edge Functions, so: plain TypeScript, no imports.
 
-export const STORY_CHARACTERS = ["kai", "amma", "papa", "maya", "asha", "pip"] as const;
+export const STORY_CHARACTERS = ["kai", "jaya", "amma", "papa", "maya", "asha", "pip"] as const;
 export type StoryCharacterId = (typeof STORY_CHARACTERS)[number];
 
 export const CHARACTER_NAMES: Record<StoryCharacterId, { en: string; te: string }> = {
   kai: { en: "Kai", te: "కై" },
+  jaya: { en: "Jaya", te: "జయ" },
   amma: { en: "Amma", te: "అమ్మ" },
   papa: { en: "Papa", te: "నాన్న" },
   maya: { en: "Dr. Maya", te: "డాక్టర్ మాయ" },
@@ -19,7 +20,7 @@ export const CHARACTER_NAMES: Record<StoryCharacterId, { en: string; te: string 
 };
 
 export const STORY_BACKGROUNDS = [
-  "home", "front_door", "clinic_outside", "waiting_room", "dental_room", "doctor_room", "classroom", "playground",
+  "home", "front_door", "clinic_outside", "waiting_room", "dental_room", "doctor_room", "school", "classroom", "playground",
 ] as const;
 export type StoryBackground = (typeof STORY_BACKGROUNDS)[number];
 

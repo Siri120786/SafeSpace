@@ -160,8 +160,9 @@ interface PersonLook {
   shoes: string;
   long?: boolean;      // kurta: a long top
   coat?: boolean;      // white doctor's coat over the top
-  hair: (headR: number) => React.ReactNode;
-  extras?: (headR: number) => React.ReactNode;
+  hair: (headR: number) => React.ReactNode;    // drawn behind the head
+  extras?: (headR: number) => React.ReactNode; // drawn over the head, under the face
+  shirtArt?: (shoulderY: number) => React.ReactNode; // a print on the top
 }
 
 const Person: React.FC<Omit<PoseProps, "look"> & { outfit: PersonLook; gaze: -1 | 0 | 1 }> = ({
@@ -249,13 +250,7 @@ const Person: React.FC<Omit<PoseProps, "look"> & { outfit: PersonLook; gaze: -1 
               <rect x={torsoW / 2 - 34} y={shoulderY + 40} width={20} height={6} rx={2} fill="#9DB7D8" />
             </g>
           )}
-          {child && (
-            <g fill="#F6C945">
-              {[[-24, 30], [18, 52], [-8, 84], [28, 96]].map(([x, y]) => (
-                <path key={`${x}${y}`} d="M0 -7 L2 -2 L7 -2 L3 1 L4 6 L0 3 L-4 6 L-3 1 L-7 -2 L-2 -2 Z" transform={`translate(${x} ${shoulderY + y})`} />
-              ))}
-            </g>
-          )}
+          {look.shirtArt?.(shoulderY)}
           <rect x={-10} y={shoulderY - 14} width={20} height={20} fill={SKIN_SHADE} />
           <g className={action === "nod" ? "st-nod" : undefined} style={{ transformBox: "fill-box", transformOrigin: "50% 100%" }}>
             <g style={{ transformBox: "fill-box", transformOrigin: "50% 100%", transform: `translateX(${gaze * 5}px) rotate(${gaze * 4}deg)`, transition: EASE }}>
@@ -283,12 +278,55 @@ const LOOKS: Record<Exclude<StoryCharacterId, "pip">, PersonLook> = {
     topShade: "#5A8CC0",
     bottom: "#F2C744",
     shoes: "#F4F4F4",
+    shirtArt: (y) => (
+      <g fill="#F6C945">
+        {[[-24, 30], [18, 52], [-8, 84], [28, 96]].map(([x, sy]) => (
+          <path key={`${x}${sy}`} d="M0 -7 L2 -2 L7 -2 L3 1 L4 6 L0 3 L-4 6 L-3 1 L-7 -2 L-2 -2 Z" transform={`translate(${x} ${y + sy})`} />
+        ))}
+      </g>
+    ),
     hair: (r) => (
       <g fill={HAIR}>
         {[[-46, -38], [-20, -56], [8, -60], [36, -48], [52, -22], [-56, -10], [-30, -62], [24, -66], [56, 2], [-60, 14],
           [-8, -70], [44, -64], [-48, -54], [62, -36], [-64, -28], [12, -48], [-30, -44], [64, 18]].map(([x, y]) => (
           <circle key={`${x}${y}`} cx={x * (r / 64)} cy={y * (r / 64)} r={r * 0.34} />
         ))}
+      </g>
+    ),
+  },
+  // Kai's friend and classmate, from the character sheet: centre parting, a
+  // lock by each ear, a low ponytail with a pink band; pink T-shirt with a
+  // daisy, lilac shorts, white trainers with pink.
+  jaya: {
+    height: "child",
+    top: "#F4A7C0",
+    topShade: "#E48FAA",
+    bottom: "#B9A7E0",
+    shoes: "#FBEFF3",
+    shirtArt: (y) => (
+      <g transform={`translate(8 ${y + 46})`}>
+        {[0, 72, 144, 216, 288].map((a) => (
+          <ellipse key={a} cx={0} cy={-11} rx={7} ry={11} fill="#FFFFFF" transform={`rotate(${a})`} />
+        ))}
+        <circle r={7} fill="#F6C945" />
+      </g>
+    ),
+    hair: (r) => (
+      <g fill={HAIR}>
+        {/* Ponytail at the back of the head, then the band. */}
+        <ellipse cx={-r * 0.98} cy={r * 0.55} rx={r * 0.34} ry={r * 0.5} transform={`rotate(18 ${-r * 0.98} ${r * 0.55})`} />
+        <ellipse cx={-r * 1.12} cy={r * 0.95} rx={r * 0.24} ry={r * 0.3} />
+        <path d={`M${-r - 6} 6 q0 ${-r - 22} ${r + 6} ${-r - 14} q${r + 10} -6 ${r + 6} ${r + 14} q-${r * 0.4} -${r * 0.8} -${r + 6} -${r * 0.75} q-${r * 0.6} 0 -${r + 6} ${r * 0.75} z`} />
+        <rect x={-r * 1.3} y={r * 0.12} width={r * 0.34} height={r * 0.17} rx={r * 0.08} fill="#F08DB0" transform={`rotate(-20 ${-r * 1.13} ${r * 0.2})`} />
+      </g>
+    ),
+    // Centre-parted hair over the forehead, and a lock in front of each ear.
+    extras: (r) => (
+      <g fill={HAIR}>
+        <path d={`M${-r * 0.99} ${r * 0.05} Q${-r * 0.98} ${-r * 1.02} ${-r * 0.02} ${-r * 0.99} Q${-r * 0.5} ${-r * 0.72} ${-r * 0.82} ${-r * 0.12} z`} />
+        <path d={`M${r * 0.99} ${r * 0.05} Q${r * 0.98} ${-r * 1.02} ${r * 0.02} ${-r * 0.99} Q${r * 0.5} ${-r * 0.72} ${r * 0.82} ${-r * 0.12} z`} />
+        <ellipse cx={-r * 0.9} cy={r * 0.22} rx={r * 0.13} ry={r * 0.32} />
+        <ellipse cx={r * 0.9} cy={r * 0.22} rx={r * 0.13} ry={r * 0.32} />
       </g>
     ),
   },
@@ -402,13 +440,13 @@ const Pip: React.FC<Omit<PoseProps, "look"> & { gaze: -1 | 0 | 1 }> = ({ express
 // ---------------------------------------------------------------------------
 
 // Sized so faces are easy to read on a phone.
-export const CHARACTER_SCALE: Record<StoryCharacterId, number> = { kai: 1.55, amma: 1.42, papa: 1.48, maya: 1.42, asha: 1.42, pip: 1.5 };
+export const CHARACTER_SCALE: Record<StoryCharacterId, number> = { kai: 1.55, jaya: 1.48, amma: 1.42, papa: 1.48, maya: 1.42, asha: 1.42, pip: 1.5 };
 
 // Roughly where each face is above the floor (stage units), for the camera.
 export function faceHeight(id: StoryCharacterId, pose: StoryPose): number {
   const s = CHARACTER_SCALE[id];
   if (id === "pip") return 100 * s;
-  const child = id === "kai";
+  const child = LOOKS[id].height === "child";
   const standing = (child ? 110 + 120 - 10 + 6 + 76 : 190 + 160 - 10 + 6 + 64) * s;
   const legLen = (child ? 110 : 190) * s;
   return pose === "sit" ? standing - legLen + SEAT_HEIGHT : standing;

@@ -17,6 +17,7 @@ export const CHARACTER_VOICES: Record<StoryCharacterId | "narrator", VoiceProfil
   amma: { gender: "female", pick: 1, pitch: 1.26, rate: 0.9 },      // warm and soft
   // Children and Pip: higher and sweeter.
   kai: { gender: "female", pick: 1, pitch: 1.45, rate: 0.95 },      // sweet, a little high
+  jaya: { gender: "female", pick: 0, pitch: 1.62, rate: 1.0 },     // a cheerful little girl
   pip: { gender: "female", pick: 0, pitch: 1.95, rate: 1.12 },      // cute, small and quick
   papa: { gender: "male", pick: 0, pitch: 0.92, rate: 0.88 },
 };

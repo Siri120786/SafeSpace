@@ -128,6 +128,7 @@ export const BACKGROUND_LABELS: Record<StoryScene["background"], string> = {
   waiting_room: "Waiting room",
   dental_room: "Dentist's room",
   doctor_room: "Doctor's room",
+  school: "School gate",
   classroom: "Classroom",
   playground: "Playground",
 };
