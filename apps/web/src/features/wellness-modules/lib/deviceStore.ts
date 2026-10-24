@@ -1,6 +1,8 @@
 /**
- * Tiny browser-storage helper for Cycle Care data that is kept ON THIS DEVICE ONLY
- * (diet plan, rewards, health profile). Nothing here is sent to the server.
+ * Tiny browser-storage helper. Cycle Care used to keep its data here under the
+ * fixed keys below, shared by everyone on the device; it now lives in the
+ * person's account (lib/cycleCareStore.ts), and these keys are only read so
+ * old data can be saved to the account or deleted.
  * Every access is wrapped: storage can be blocked, full or missing (private windows, tests).
  */
 
@@ -8,6 +10,10 @@ export interface KeyValueStore {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
+}
+
+export function deviceKeyValueStore(): KeyValueStore | null {
+  return browserStore();
 }
 
 function browserStore(): KeyValueStore | null {

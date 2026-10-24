@@ -1,8 +1,7 @@
-import { CONDITION_KEY } from "../lib/deviceStore";
 import { sanitizeCondition, type Condition } from "../lib/condition";
-import { useStoredState } from "./useStoredState";
+import { useCycleCarePart } from "./useCycleCarePart";
 
-/** Which label the person follows (PCOS, PCOD or not sure). Kept on this device only. */
+/** Which label the person follows (PCOS, PCOD or not sure). Saved to their account. */
 export function useCondition() {
-  return useStoredState<Condition | null>(CONDITION_KEY, null, sanitizeCondition);
+  return useCycleCarePart<Condition | null>("condition", null, sanitizeCondition);
 }

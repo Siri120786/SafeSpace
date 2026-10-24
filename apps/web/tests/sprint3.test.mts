@@ -381,7 +381,7 @@ test("food module: diet plan, rewards, character and water, for adults only", ()
   assert.match(ok, /Hide stars and streaks/);
   assert.match(ok, /Add a few meals to your plan/);
   assert.match(ok, /Water so far today/);
-  assert.match(ok, /kept on this device only/);
+  assert.match(ok, /saved to your account, so you can come back to them on any device. Only you can see them/);
   assert.doesNotMatch(ok, /<audio|autoplay/i);
   assert.doesNotMatch(render(React.createElement(FoodModule, { ...common, role: "caregiver" })), /Diet plan/);
 });
