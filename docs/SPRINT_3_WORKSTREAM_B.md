@@ -3,6 +3,14 @@
 **Audience:** Siri (Workstream A — Backend, Database, Auth & Contracts)  
 **Status:** Complete on Web (Device-Only Mode) — Ready for Contract & Backend Integration
 
+> **Integration note (role-flow step 8, Siri):** this work is being brought into the app on
+> `feat/conditions-tools` (8a–8f): the overlapping schedule, AAC board and themes blend into the
+> existing routines, talk board and child themes; storage moves from the device to the database in
+> steps. The dev preview harness below was removed in 8a: the tools get real routes instead.
+> Sections 2–4 are kept as the original proposal; the integration follows
+> `docs/role-flow/CONTRACT.md` (profile_id/child_id ownership, the age-15 sharing rule,
+> child-session Edge Functions).
+
 ---
 
 ## 1. What Was Built & How to View It
@@ -25,17 +33,7 @@ All features are implemented on web as accessible, keyboard-operable, low-sensor
 | **ADHD: Daily Habits** | `apps/web/src/features/conditions/adhd/components/HabitTracker.tsx` | Gentle 7-day tracker with month-boundary calendar date math. Missed days are never styled as failures (no red, no streak-loss shaming). |
 | **ADHD: Star Bank & Rewards** | `apps/web/src/features/conditions/adhd/components/RewardsProgress.tsx` | Idempotent star ledger (`lib/rewardLogic.ts`), custom goal progress, static calm celebration for reduced motion. |
 | **ADHD: Hub** | `apps/web/src/features/conditions/adhd/components/AdhdFocusZone.tsx` | Integrated workspace tabbed across Timers, Step Breakdown, Daily Habits, and Star Bank. |
-| **Dev Preview Test Harness** | `apps/web/preview.html`, `apps/web/src/features/dev-preview/` | Standalone dev harness hosting Wellness Gallery, Autism "My Space", and ADHD "Focus Zone" tabs without modifying production routing. |
-
-### How to View the Preview Harness
-Run the Vite development server:
-```powershell
-pnpm.cmd --filter @safespace/web dev
-```
-Open your browser to:
-```text
-http://localhost:5173/preview.html
-```
+| **Dev Preview Test Harness** | *(removed in step 8a)* | Was a standalone page (`preview.html`) hosting the tools before they had routes. |
 
 ---
 

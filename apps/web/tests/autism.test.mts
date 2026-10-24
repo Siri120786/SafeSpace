@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { RoutineStep } from "@safespace/shared-types";
+import { ROUTINE_STEP_ICONS, type RoutineStepWithProgress } from "@safespace/shared-types";
 
 import {
   initCountdown,
@@ -242,23 +242,26 @@ async function runAll() {
   // 2. ROUTINESTEP ADAPTER TEST
   // ============================================================================
 
-  await test("RoutineStep adapter: toScheduleStep maps shared-types RoutineStep cleanly", () => {
-    const mockDbRoutine: RoutineStep = {
+  await test("RoutineStep adapter: toScheduleStep maps a routine step with today's completion", () => {
+    const mockDbRoutine: RoutineStepWithProgress = {
       id: "routine-test-1",
-      childId: "child-42",
-      moduleKey: "autism",
+      routineId: "routine-42",
       label: "Pack backpack",
-      scheduledTime: "08:30:00",
-      isComplete: true,
+      scheduledTime: "08:30",
       orderIndex: 3,
+      icon: "school",
+      completedOnDate: true,
     };
 
     const scheduleStep = toScheduleStep(mockDbRoutine);
     assert.equal(scheduleStep.id, "routine-test-1");
     assert.equal(scheduleStep.label, "Pack backpack");
-    assert.equal(scheduleStep.timeEstimate, "08:30:00");
+    assert.equal(scheduleStep.timeEstimate, "08:30");
+    assert.equal(scheduleStep.icon, ROUTINE_STEP_ICONS.school.emoji);
     assert.equal(scheduleStep.isComplete, true);
     assert.equal(scheduleStep.orderIndex, 3);
+    assert.equal(toScheduleStep({ ...mockDbRoutine, icon: null, completedOnDate: false }).icon, undefined);
+    assert.equal(toScheduleStep({ ...mockDbRoutine, completedOnDate: false }).isComplete, false);
   });
 
   // ============================================================================

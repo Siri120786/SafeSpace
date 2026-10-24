@@ -1,4 +1,4 @@
-import type { MoodValue, RoutineStep } from "@safespace/shared-types";
+import { ROUTINE_STEP_ICONS, type MoodValue, type RoutineStepWithProgress } from "@safespace/shared-types";
 
 /**
  * Friendly emotion card representation for visual selection.
@@ -66,15 +66,17 @@ export interface ScheduleStep {
 export type ScheduleStepRole = "now" | "next" | "later" | "done";
 
 /**
- * NOT connected to routine_steps: child sessions have no DB access yet.
- * A future adapter must map RoutineStep from @safespace/shared-types to this interface.
+ * Maps a routine step (with today's completion) from @safespace/shared-types
+ * to a schedule step: the step's icon key becomes its emoji, and "complete"
+ * means completed on the day the list was loaded for.
  */
-export function toScheduleStep(routineStep: RoutineStep): ScheduleStep {
+export function toScheduleStep(routineStep: RoutineStepWithProgress): ScheduleStep {
   return {
     id: routineStep.id,
     label: routineStep.label,
     timeEstimate: routineStep.scheduledTime ?? undefined,
-    isComplete: routineStep.isComplete,
+    icon: routineStep.icon ? ROUTINE_STEP_ICONS[routineStep.icon].emoji : undefined,
+    isComplete: routineStep.completedOnDate,
     orderIndex: routineStep.orderIndex,
   };
 }
