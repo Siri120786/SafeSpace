@@ -20,6 +20,9 @@ import {
   SUPPORT_TEXT,
   canOpenCycleCare,
 } from "../lib/content";
+import { HealthSections } from "./CycleCareHealth";
+import { MedicineReminders } from "./MedicineReminders";
+import type { AppSession } from "@safespace/shared-types";
 import { BodyKindness, DailyCheckIn, DoctorVisitPrep, MedicationNotes, MovementPicker, WaterTally } from "./CycleCareExtras";
 
 export interface ModuleScreenProps {
@@ -230,7 +233,7 @@ export const SafeHarbor: React.FC<ModuleScreenProps> = ({ onExit, notice }) => {
   );
 };
 
-export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = ({ role, ...p }) => {
+export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; session?: AppSession }> = ({ role, session, ...p }) => {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   if (!canOpenCycleCare(role)) {
@@ -282,7 +285,9 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
         <MovementPicker />
         <WaterTally />
         <MedicationNotes />
+        <MedicineReminders session={session} />
         <DoctorVisitPrep />
+        <HealthSections lowSensory={p.lowSensory} />
         <Card className="space-y-2">
           <h2 className="font-display text-xl text-textHeading">Sleep and stress</h2>
           <ul className="list-disc pl-5 text-base text-textBody space-y-1">
@@ -295,7 +300,7 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
           </Link>
         </Card>
         <BodyKindness />
-        <Notes extra="There is no cycle tracking in this version. Always follow your own doctor's advice." />
+        <Notes extra="There is no cycle tracking in this version. The diet plan, rewards and health profile are kept on this device only. Always follow your own doctor's advice." />
       </div>
     </CalmToolShell>
   );

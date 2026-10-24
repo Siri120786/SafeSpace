@@ -6,6 +6,9 @@ import 'package:safespace_mobile/features/calm_tools/low_sensory.dart';
 import 'package:safespace_mobile/features/story_workflow/story_logic.dart';
 import 'package:safespace_mobile/features/story_workflow/story_workflow_screen.dart';
 import 'package:safespace_mobile/features/wellness_modules/cycle_care_extras.dart';
+import 'package:safespace_mobile/features/wellness_modules/diet_plan.dart';
+import 'package:safespace_mobile/features/wellness_modules/health_assessment.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:safespace_mobile/features/wellness_modules/module_content.dart';
 import 'package:safespace_mobile/features/wellness_modules/module_screens.dart';
 
@@ -154,6 +157,120 @@ void main() {
     });
   });
 
+  group('diet, rewards and health profile logic', () {
+    const String day = '2026-10-24';
+    DietState planned() {
+      DietState st = DietState.empty();
+      for (final MapEntry<MealId, String> e in <MealId, String>{MealId.breakfast: 'Oats upma', MealId.lunch: 'Roti and dal', MealId.dinner: 'Soup'}.entries) {
+        st = st.copyWith(plan: addPlanItem(st.plan, e.key, e.value).plan);
+      }
+      return refreshDay(st, day);
+    }
+
+    test('plan items are trimmed and rejected when empty, duplicate, long or over the limit', () {
+      expect(addPlanItem(emptyPlan(), MealId.lunch, '  ').error, isNotNull);
+      final PlanResult a = addPlanItem(emptyPlan(), MealId.lunch, ' Roti and dal ');
+      expect(a.plan![MealId.lunch], <String>['Roti and dal']);
+      expect(addPlanItem(a.plan!, MealId.lunch, 'roti AND dal').error, isNotNull);
+      expect(addPlanItem(emptyPlan(), MealId.snack, 'x' * (maxPlanItemLength + 1)).error, isNotNull);
+      DietPlan plan = emptyPlan();
+      for (int i = 0; i < maxPlanItemsPerMeal; i++) {
+        plan = addPlanItem(plan, MealId.snack, 'item $i').plan!;
+      }
+      expect(addPlanItem(plan, MealId.snack, 'one more').error, isNotNull);
+      expect(removePlanItem(plan, MealId.snack, 0)[MealId.snack]!.take(2), <String>['item 1', 'item 2']);
+    });
+
+    test('a star per ticked meal, a bonus for the whole plan, partial days still count', () {
+      DietState st = planned();
+      expect(starsForDay(st.days[day]), 0);
+      st = toggleMeal(st, MealId.breakfast, day);
+      expect(starsForDay(st.days[day]), 1);
+      st = toggleMeal(toggleMeal(st, MealId.lunch, day), MealId.dinner, day);
+      expect(starsForDay(st.days[day]), 4);
+      st = toggleMeal(st, MealId.dinner, day);
+      expect(starsForDay(st.days[day]), 2);
+      expect(identical(toggleMeal(st, MealId.snack, day), st), true);
+    });
+
+    test('streak counts complete days and an unfinished today does not erase yesterday', () {
+      const DayEntry done = DayEntry(3, 3);
+      final Map<String, DayEntry> days = <String, DayEntry>{'2026-10-21': done, '2026-10-22': done, '2026-10-23': done, '2026-10-24': const DayEntry(3, 1)};
+      expect(currentStreak(days, day), 3);
+      expect(currentStreak(<String, DayEntry>{...days, day: done}, day), 4);
+      expect(currentStreak(<String, DayEntry>{'2026-10-20': done}, day), 0);
+      expect(bestStreak(<String, DayEntry>{...days, '2026-10-18': done, '2026-10-19': done}), 3);
+      expect(totalStars(days), 4 + 4 + 4 + 1);
+    });
+
+    test('the character cheers, encourages and nudges kindly, and never shames or mentions the body', () {
+      expect(characterReaction(const DayEntry(3, 3), 12, 0).stance, Stance.celebrating);
+      expect(characterReaction(const DayEntry(3, 3), 12, 0).text.toLowerCase(), contains('yayyy'));
+      expect(characterReaction(const DayEntry(3, 3), 12, 4).text, contains('4 days in a row'));
+      expect(characterReaction(const DayEntry(3, 1), 12, 0).stance, Stance.happy);
+      expect(characterReaction(const DayEntry(3, 0), 20, 0).text, contains('try to follow your plan'));
+      expect(characterReaction(const DayEntry(3, 0), 9, 0).text, contains('Tick a meal'));
+      expect(characterReaction(null, 9, 0).text, contains('Add a few meals'));
+      final RegExp shaming = RegExp('lazy|failed|failure|bad|cheat|guilt|punish|fat|ugly|disappoint|should have|give up', caseSensitive: false);
+      for (final String l in allCharacterLines()) {
+        expect(shaming.hasMatch(l), false, reason: l);
+      }
+      final RegExp numbers = RegExp('calor|BMI|target weight|lose weight|fat loss|slim', caseSensitive: false);
+      for (final String l in <String>[...generalGuidance, ...mealIdeas.map((i) => i.text)]) {
+        expect(numbers.hasMatch(l), false, reason: l);
+      }
+    });
+
+    test('meal ideas follow the food preference', () {
+      String lunch(FoodPreference? p) => mealIdeasFor(MealId.lunch, p).map((i) => i.text).join('|');
+      expect(lunch(null), contains('fish or chicken'));
+      expect(lunch(FoodPreference.vegetarian), isNot(contains('chicken')));
+      expect(mealIdeasFor(MealId.breakfast, FoodPreference.vegan).map((i) => i.text).join('|'), isNot(contains('Curd')));
+      expect(mealIdeasFor(MealId.breakfast, FoodPreference.eggetarian).map((i) => i.text).join('|'), contains('omelette'));
+    });
+
+    test('stored diet data is sanitised and round-trips', () {
+      expect(stateFromJson('nonsense').plan[MealId.breakfast], isEmpty);
+      final DietState st = stateFromJson(<String, dynamic>{
+        'plan': <String, dynamic>{'breakfast': <Object>['Oats', 5, ''], 'lunch': 'bad'},
+        'ticks': <String, dynamic>{'2026-10-24': <String>['breakfast', 'dessert'], 'bad': <String>['lunch']},
+        'days': <String, dynamic>{'2026-10-24': <String, int>{'planned': 2, 'done': 5}, '2026-10-23': <String, int>{'planned': 2, 'done': 1}},
+        'hideRewards': 'yes',
+      });
+      expect(st.plan[MealId.breakfast], <String>['Oats']);
+      expect(st.plan[MealId.lunch], isEmpty);
+      expect(st.ticks.keys, <String>['2026-10-24']);
+      expect(st.ticks['2026-10-24'], <MealId>[MealId.breakfast]);
+      expect(st.days.keys, <String>['2026-10-23']);
+      expect(st.hideRewards, false);
+      final DietState back = stateFromJson(stateToJson(planned()));
+      expect(back.plan[MealId.dinner], <String>['Soup']);
+      expect(back.days[day]!.planned, 3);
+    });
+
+    test('health profile: every field optional, numbers range-checked, summary lists only what was shared', () {
+      expect(validateAssessment(const Assessment()), isEmpty);
+      expect(buildSummary(const Assessment()), isEmpty);
+      expect(validateAssessment(const Assessment(weightKg: 'abc')).length, 1);
+      expect(validateAssessment(const Assessment(hba1c: '40')).length, 1);
+      expect(validateAssessment(const Assessment(weightKg: '62', waistCm: '78', fastingGlucose: '92', hba1c: '5.4')), isEmpty);
+      final String s = buildSummary(const Assessment(cycle: 'irregular', history: <String>['thyroid'], weightKg: '62', preference: FoodPreference.vegetarian, goals: <String>['energy'], allergies: 'peanuts')).join(' ');
+      expect(s, contains('Periods: irregular'));
+      expect(s, contains('Thyroid condition'));
+      expect(s, contains('Body weight: 62 kg'));
+      expect(s, contains('Food preference: vegetarian'));
+      expect(s, contains('Allergies: peanuts'));
+      expect(RegExp('BMI|target|score|overweight|underweight|obese|normal range', caseSensitive: false).hasMatch(s), false);
+      expect(buildSummary(const Assessment(goals: <String>['energy'])).join(' ').toLowerCase(), isNot(contains('weight')));
+      expect(summaryNote, contains('not a diagnosis'));
+      final Assessment a = assessmentFromJson(<String, dynamic>{'cycle': 'weird', 'history': <String>['thyroid', 'x'], 'preference': 'vegan'});
+      expect(a.cycle, isNull);
+      expect(a.history, <String>['thyroid']);
+      expect(a.preference, FoodPreference.vegan);
+      expect(assessmentFromJson(assessmentToJson(const Assessment(cycle: 'regular', allergies: 'nuts'))).allergies, 'nuts');
+    });
+  });
+
   group('module screens', () {
     testWidgets('every module screen has Exit, the review notice and the not-saved warning', (tester) async {
       final List<Widget> screens = <Widget>[
@@ -192,9 +309,9 @@ void main() {
       expect(find.text('Water so far today'), findsOneWidget);
       expect(find.text('My medicine and supplement notes'), findsOneWidget);
       expect(find.text('Doctor visit prep'), findsOneWidget);
-      expect(find.textContaining('does not track weight, calories or body size'), findsOneWidget);
+      expect(find.textContaining('does not set target weights, calorie targets or BMI scores'), findsOneWidget);
       expect(find.textContaining('no cycle tracking'), findsOneWidget);
-      expect(find.textContaining(RegExp('log (your )?period|last period|cycle day|streak', caseSensitive: false)), findsNothing);
+      expect(find.textContaining(RegExp('log (your )?period|last period|cycle day', caseSensitive: false)), findsNothing);
     });
 
     testWidgets('cycle care: water tally goes up and down, never below zero', (tester) async {
@@ -222,6 +339,51 @@ void main() {
       await tester.tap(find.widgetWithText(ChoiceChip, 'Running low').last);
       await tester.pump();
       expect(find.textContaining('Slow stretching'), findsOneWidget);
+    });
+
+    testWidgets('cycle care shows diet plan, rewards, health profile and the reminders note, and caregivers see none', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(800, 12000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
+      await tester.pump();
+      expect(find.text('Diet plan and rewards'), findsOneWidget);
+      expect(find.text('General eating tips'), findsOneWidget);
+      expect(find.textContaining('Add a few meals to your plan'), findsOneWidget);
+      expect(find.text('0'), findsWidgets);
+      expect(find.text('Hide stars and streaks'), findsOneWidget);
+      expect(find.text('My health profile'), findsOneWidget);
+      for (final String t in <String>['Menstrual cycle patterns', 'Health and medical history', 'Current eating habits', 'Nutritional requirements', 'Food preferences', 'Individual health goals']) {
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
+      expect(find.text('Show my private summary'), findsOneWidget);
+      expect(find.text('Medicine and supplement reminders'), findsOneWidget);
+      expect(find.textContaining('kept on this device only'), findsWidgets);
+
+      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'caregiver', onExit: () {})));
+      await tester.pump();
+      expect(find.text('Diet plan and rewards'), findsNothing);
+    });
+
+    testWidgets('cycle care: adding a meal and ticking it makes the character celebrate and gives stars', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      tester.view.physicalSize = const Size(800, 12000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(ActionChip, 'Vegetable oats upma'));
+      await tester.pump();
+      expect(find.textContaining('Nothing planned yet'), findsNWidgets(3));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Breakfast'));
+      await tester.pump();
+      expect(find.textContaining('Yayyy! You finished'), findsOneWidget);
+      expect(find.text('2'), findsWidgets);
+      await tester.tap(find.text('Hide stars and streaks'));
+      await tester.pump();
+      expect(find.text('Show stars and streaks'), findsOneWidget);
+      expect(find.textContaining('Stars and streaks are hidden'), findsOneWidget);
     });
 
     testWidgets('cycle care blocks caregivers', (tester) async {

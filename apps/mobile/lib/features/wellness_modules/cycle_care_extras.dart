@@ -73,7 +73,7 @@ const String medicationNote =
 const String waterNote = 'Just a tally for you. There is no goal to reach and nothing to keep up.';
 
 const String bodyKindnessText =
-    'SafeSpace does not track weight, calories or body size, on purpose. If thoughts about food or your body feel heavy, please talk to a doctor or someone you trust.';
+    'Everything here is optional. SafeSpace does not set target weights, calorie targets or BMI scores. If thoughts about food or your body feel heavy, please talk to a doctor or someone you trust.';
 
 const int maxItems = 20;
 const int maxItemLength = 120;

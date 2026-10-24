@@ -19,7 +19,7 @@ export const ModulesRoutes: React.FC = () => {
       <Route path="calm-space" element={<CalmSpace {...common} />} />
       <Route path="bright-days" element={<BrightDays {...common} />} />
       <Route path="safe-harbor" element={<SafeHarbor {...common} />} />
-      <Route path="cycle-care" element={<CycleCare {...common} role={role} />} />
+      <Route path="cycle-care" element={<CycleCare {...common} role={role} session={session} />} />
       <Route path="*" element={<Navigate to="/modules" replace />} />
     </Routes>
   );

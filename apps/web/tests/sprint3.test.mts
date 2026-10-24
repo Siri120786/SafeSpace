@@ -31,6 +31,27 @@ import {
   removeNote,
   summarizeCheckIns,
 } from "../src/features/wellness-modules/lib/cycleCare.ts";
+import {
+  EMPTY_STATE,
+  GENERAL_GUIDANCE,
+  MEAL_IDEAS,
+  addPlanItem,
+  allCharacterLines,
+  bestStreak,
+  characterReaction,
+  currentStreak,
+  mealIdeasFor,
+  refreshDay,
+  removePlanItem,
+  sanitizeState,
+  starsForDay,
+  toggleMeal,
+  totalStars,
+  type DietState,
+} from "../src/features/wellness-modules/lib/dietPlan.ts";
+import { EMPTY_ASSESSMENT, SUMMARY_NOTE, buildSummary, sanitizeAssessment, validateAssessment } from "../src/features/wellness-modules/lib/healthAssessment.ts";
+import { MEDICINE_TITLES, REMINDER_PRIVACY_NOTE, buildMedicineReminder, describeSchedule, dueMedicineAlerts } from "../src/features/wellness-modules/lib/medicineReminders.ts";
+import { readJson, writeJson, type KeyValueStore } from "../src/features/wellness-modules/lib/deviceStore.ts";
 import { BrightDays, CalmSpace, CycleCare, ModulesHome, SafeHarbor } from "../src/features/wellness-modules/components/ModuleScreens.tsx";
 import { BreathingExercise } from "../src/features/calm-tools/components/BreathingExercise.tsx";
 import { GroundingExercise } from "../src/features/calm-tools/components/GroundingExercise.tsx";
@@ -171,11 +192,172 @@ test("cycle care screen shows the new adult features and still has no cycle trac
   assert.match(ok, /Water so far today/);
   assert.match(ok, /medicine and supplement notes/);
   assert.match(ok, /Doctor visit prep/);
-  assert.match(ok, /does not track weight, calories or body size/);
+  assert.match(ok, /does not set target weights, calorie targets or BMI scores/);
   assert.match(ok, /no goal to reach/i);
-  assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"|streak/i);
+  assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"/i);
   const blocked = render(React.createElement(CycleCare, { ...common, role: "caregiver" }));
   assert.doesNotMatch(blocked, /How are you today/);
+});
+
+const SHAMING = /lazy|failed|failure|bad|cheat|guilt|punish|fat|ugly|disappoint|should have|give up/i;
+const planned = (): DietState => {
+  let st: DietState = { ...EMPTY_STATE };
+  for (const [m, t] of [["breakfast", "Oats upma"], ["lunch", "Roti and dal"], ["dinner", "Soup"]] as const) {
+    const r = addPlanItem(st.plan, m, t);
+    assert.ok(r.ok);
+    if (r.ok) st = { ...st, plan: r.plan };
+  }
+  return refreshDay(st, "2026-10-24");
+};
+
+test("diet plan: items are trimmed and rejected when empty, duplicate, long or over the limit", () => {
+  assert.equal(addPlanItem(EMPTY_STATE.plan, "lunch", "  ").ok, false);
+  const a = addPlanItem(EMPTY_STATE.plan, "lunch", " Roti and dal ");
+  assert.ok(a.ok && a.plan.lunch[0] === "Roti and dal");
+  if (a.ok) assert.equal(addPlanItem(a.plan, "lunch", "roti AND dal").ok, false);
+  assert.equal(addPlanItem(EMPTY_STATE.plan, "snack", "x".repeat(101)).ok, false);
+  let plan = EMPTY_STATE.plan;
+  for (let i = 0; i < 8; i++) {
+    const r = addPlanItem(plan, "snack", `item ${i}`);
+    assert.ok(r.ok);
+    if (r.ok) plan = r.plan;
+  }
+  assert.equal(addPlanItem(plan, "snack", "one more").ok, false);
+  assert.deepEqual(removePlanItem(plan, "snack", 0).snack.slice(0, 2), ["item 1", "item 2"]);
+});
+
+test("diet rewards: a star per ticked meal, a bonus for the whole plan, partial days still count", () => {
+  const day = "2026-10-24";
+  let st = planned();
+  assert.equal(starsForDay(st.days[day]), 0);
+  st = toggleMeal(st, "breakfast", day);
+  assert.equal(starsForDay(st.days[day]), 1);
+  st = toggleMeal(st, "lunch", day);
+  st = toggleMeal(st, "dinner", day);
+  assert.equal(starsForDay(st.days[day]), 4);
+  st = toggleMeal(st, "dinner", day);
+  assert.equal(starsForDay(st.days[day]), 2);
+  assert.equal(toggleMeal(st, "snack", day), st);
+});
+
+test("diet rewards: streak counts complete days and an unfinished today does not erase yesterday", () => {
+  const done = { planned: 3, done: 3 };
+  const days = { "2026-10-21": done, "2026-10-22": done, "2026-10-23": done, "2026-10-24": { planned: 3, done: 1 } };
+  assert.equal(currentStreak(days, "2026-10-24"), 3);
+  assert.equal(currentStreak({ ...days, "2026-10-24": done }, "2026-10-24"), 4);
+  assert.equal(currentStreak({ "2026-10-20": done }, "2026-10-24"), 0);
+  assert.equal(bestStreak({ ...days, "2026-10-18": done, "2026-10-19": done }), 3);
+  assert.equal(totalStars(days), 4 + 4 + 4 + 1);
+});
+
+test("diet character: celebrates, encourages and nudges kindly, and never shames or mentions the body", () => {
+  assert.equal(characterReaction({ planned: 3, done: 3 }, 12, 0).stance, "celebrating");
+  assert.match(characterReaction({ planned: 3, done: 3 }, 12, 0).text, /yayyy/i);
+  assert.match(characterReaction({ planned: 3, done: 3 }, 12, 4).text, /4 days in a row/);
+  assert.equal(characterReaction({ planned: 3, done: 1 }, 12, 0).stance, "happy");
+  assert.match(characterReaction({ planned: 3, done: 0 }, 20, 0).text, /try to follow your plan/i);
+  assert.match(characterReaction({ planned: 3, done: 0 }, 9, 0).text, /tick a meal/i);
+  assert.match(characterReaction(undefined, 9, 0).text, /add a few meals/i);
+  for (const line of allCharacterLines()) assert.doesNotMatch(line, SHAMING, line);
+  for (const line of [...GENERAL_GUIDANCE, ...MEAL_IDEAS.map((i) => i.text)]) assert.doesNotMatch(line, /calor|BMI|target weight|lose weight|fat loss|slim/i, line);
+});
+
+test("diet plan: meal ideas follow the food preference", () => {
+  const lunch = (pref: Parameters<typeof mealIdeasFor>[1]) => mealIdeasFor("lunch", pref).map((i) => i.text).join("|");
+  assert.match(lunch(null), /fish or chicken/);
+  assert.doesNotMatch(lunch("vegetarian"), /fish|chicken/);
+  assert.doesNotMatch(mealIdeasFor("breakfast", "vegan").map((i) => i.text).join("|"), /Curd|omelette/);
+  assert.match(mealIdeasFor("breakfast", "eggetarian").map((i) => i.text).join("|"), /omelette/);
+});
+
+test("device storage: reads and writes safely, even when storage is missing or broken", () => {
+  const mem = new Map<string, string>();
+  const store: KeyValueStore = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => void mem.set(k, v), removeItem: (k) => void mem.delete(k) };
+  assert.equal(writeJson("k", { a: 1 }, store), true);
+  assert.deepEqual(readJson("k", null, store), { a: 1 });
+  mem.set("bad", "{not json");
+  assert.deepEqual(readJson("bad", { ok: true }, store), { ok: true });
+  assert.equal(writeJson("k", 1, null), false);
+  assert.equal(readJson("k", "fallback", null), "fallback");
+  const full: KeyValueStore = { getItem: () => null, setItem: () => { throw new Error("quota"); }, removeItem: () => {} };
+  assert.equal(writeJson("k", 1, full), false);
+});
+
+test("diet storage: stored data is sanitised before use", () => {
+  assert.deepEqual(sanitizeState("nonsense"), EMPTY_STATE);
+  const st = sanitizeState({
+    plan: { breakfast: ["Oats", 5, ""], lunch: "bad" },
+    ticks: { "2026-10-24": ["breakfast", "dessert"], bad: ["lunch"] },
+    days: { "2026-10-24": { planned: 2, done: 5 }, "2026-10-23": { planned: 2, done: 1 } },
+    hideRewards: "yes",
+  });
+  assert.deepEqual(st.plan.breakfast, ["Oats"]);
+  assert.deepEqual(st.plan.lunch, []);
+  assert.deepEqual(st.ticks, { "2026-10-24": ["breakfast"] });
+  assert.deepEqual(st.days, { "2026-10-23": { planned: 2, done: 1 } });
+  assert.equal(st.hideRewards, false);
+});
+
+test("health profile: every field is optional, numbers are range-checked, and the summary lists only what was shared", () => {
+  assert.deepEqual(validateAssessment(EMPTY_ASSESSMENT), []);
+  assert.deepEqual(buildSummary(EMPTY_ASSESSMENT), []);
+  assert.equal(validateAssessment({ ...EMPTY_ASSESSMENT, weightKg: "abc" }).length, 1);
+  assert.equal(validateAssessment({ ...EMPTY_ASSESSMENT, hba1c: "40" }).length, 1);
+  assert.equal(validateAssessment({ ...EMPTY_ASSESSMENT, weightKg: "62", waistCm: "78", fastingGlucose: "92", hba1c: "5.4" }).length, 0);
+  const s = buildSummary({ ...EMPTY_ASSESSMENT, cycle: "irregular", history: ["thyroid"], weightKg: "62", preference: "vegetarian", goals: ["energy"], allergies: "peanuts" }).join(" ");
+  assert.match(s, /Periods: irregular/);
+  assert.match(s, /Thyroid condition/);
+  assert.match(s, /Body weight: 62 kg/);
+  assert.match(s, /Food preference: vegetarian/);
+  assert.match(s, /Allergies: peanuts/);
+  assert.doesNotMatch(s, /BMI|target|score|overweight|underweight|obese|normal range/i);
+  assert.doesNotMatch(buildSummary({ ...EMPTY_ASSESSMENT, goals: ["energy"] }).join(" "), /weight/i);
+  assert.match(SUMMARY_NOTE, /not a diagnosis/i);
+  assert.deepEqual(sanitizeAssessment({ cycle: "weird", history: ["thyroid", "x"], weightKg: 5, preference: "vegan" }).history, ["thyroid"]);
+  assert.equal(sanitizeAssessment({ cycle: "weird" }).cycle, null);
+});
+
+test("medicine reminders: the saved title is generic and input is validated", () => {
+  const ok = buildMedicineReminder(MEDICINE_TITLES[0], "08:30", [3, 1, 1], "Asia/Kolkata");
+  assert.ok(ok.ok);
+  if (ok.ok) {
+    assert.equal(ok.input.kind, "medication");
+    assert.deepEqual(ok.input.daysOfWeek, [1, 3]);
+    assert.equal(ok.input.title, "Time for your medicine");
+  }
+  assert.equal(buildMedicineReminder("Take metformin 500mg", "08:30", [], "Asia/Kolkata").ok, false);
+  assert.equal(buildMedicineReminder(MEDICINE_TITLES[0], "8:30", [], "Asia/Kolkata").ok, false);
+  assert.equal(buildMedicineReminder(MEDICINE_TITLES[0], "08:30", [9], "Asia/Kolkata").ok, false);
+  assert.equal(buildMedicineReminder(MEDICINE_TITLES[0], "08:30", [], "").ok, false);
+  assert.equal(describeSchedule({ timeOfDay: "08:30", daysOfWeek: [] }), "08:30, every day");
+  assert.equal(describeSchedule({ timeOfDay: "08:30", daysOfWeek: [1, 3] }), "08:30, Mon, Wed");
+  assert.match(REMINDER_PRIVACY_NOTE, /never sent anywhere/);
+  assert.match(REMINDER_PRIVACY_NOTE, /no phone notifications/);
+});
+
+test("medicine reminders: only unacknowledged medication alerts are shown", () => {
+  const mk = (kind: string, acknowledged: boolean) => ({ reminder: { id: kind + acknowledged, kind } as never, dueAt: "", occursOn: "2026-10-24", acknowledged });
+  assert.equal(dueMedicineAlerts([mk("medication", false), mk("medication", true), mk("water", false)]).length, 1);
+});
+
+test("cycle care screen: diet plan, rewards, character, health profile and reminders are shown to adults only", () => {
+  const ok = render(React.createElement(CycleCare, { ...common, role: "user" }));
+  assert.match(ok, /Diet plan and rewards/);
+  assert.match(ok, /General eating tips/);
+  assert.match(ok, /Write the plan your doctor or dietitian gave you/);
+  assert.match(ok, /stars today/);
+  assert.match(ok, /Hide stars and streaks/);
+  assert.match(ok, /Add a few meals to your plan/);
+  assert.match(ok, /My health profile/);
+  for (const t of ["Menstrual cycle patterns", "Health and medical history", "Body weight", "Fasting blood glucose", "Current eating habits", "Nutritional requirements", "Food preferences", "Individual health goals"]) assert.match(ok, new RegExp(t));
+  assert.match(ok, /Show my private summary/);
+  assert.match(ok, /does not work out BMI, set a target weight/);
+  assert.match(ok, /Medicine and supplement reminders/);
+  assert.match(ok, /Sign in with your adult account to set reminders/);
+  assert.match(ok, /kept on this device only/);
+  assert.doesNotMatch(ok, /<audio|autoplay/i);
+  const blocked = render(React.createElement(CycleCare, { ...common, role: "caregiver" }));
+  assert.doesNotMatch(blocked, /Diet plan|health profile|reminders/i);
 });
 
 test("every module screen has Exit, the review notice and the not-saved warning", () => {

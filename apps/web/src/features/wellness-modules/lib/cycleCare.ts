@@ -74,7 +74,7 @@ export const MEDICATION_NOTE =
 export const WATER_NOTE = "Just a tally for you. There is no goal to reach and nothing to keep up.";
 
 export const BODY_KINDNESS_TEXT =
-  "SafeSpace does not track weight, calories or body size, on purpose. If thoughts about food or your body feel heavy, please talk to a doctor or someone you trust.";
+  "Everything here is optional. SafeSpace does not set target weights, calorie targets or BMI scores. If thoughts about food or your body feel heavy, please talk to a doctor or someone you trust.";
 
 export const MAX_ITEMS = 20;
 export const MAX_ITEM_LENGTH = 120;

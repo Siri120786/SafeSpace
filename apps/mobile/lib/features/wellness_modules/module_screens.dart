@@ -5,6 +5,7 @@ import '../auth/auth_provider.dart';
 import '../calm_tools/calm_tool_scaffold.dart';
 import '../calm_tools/low_sensory.dart';
 import 'cycle_care_extras.dart';
+import 'cycle_care_health.dart';
 import 'module_content.dart';
 
 const TextStyle _heading = TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
@@ -374,7 +375,9 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
           const MovementPickerCard(),
           const WaterTallyCard(),
           const MedicationNotesCard(),
+          const MedicineRemindersNote(),
           const DoctorVisitPrepCard(),
+          HealthSections(lowSensory: watchLowSensory(context, ref).lowSensory),
           _card(<Widget>[
             const Text('Sleep and stress', style: _heading),
             const SizedBox(height: 8),
@@ -386,7 +389,7 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
             ),
           ]),
           const BodyKindnessNote(),
-          const _Notes(extra: 'There is no cycle tracking in this version. Always follow your own doctor\'s advice.'),
+          const _Notes(extra: 'There is no cycle tracking in this version. The diet plan, rewards and health profile are kept on this device only. Always follow your own doctor\'s advice.'),
         ],
       ),
     );
