@@ -14,13 +14,15 @@ const ok = (n: string, c: boolean) => {
 const KID = "11111111-1111-4111-8111-111111111111";
 function makeWorld() {
   const raised: string[] = [];
+  const sources: string[] = [];
   const logs: string[] = [];
   const fail = { raise: false };
   const handler = createChildAlertsHandler({
     store: {
-      async raiseHelp(childId) {
+      async raiseHelp(childId, source) {
         if (fail.raise) throw Object.assign(new Error("db down: I need help"), { code: "PGRST301" });
         raised.push(childId);
+        sources.push(source);
         return "alert-1";
       },
     },
@@ -38,7 +40,7 @@ function makeWorld() {
     try { j = JSON.parse(text); } catch { /* preflight */ }
     return { status: res.status, json: j, text };
   };
-  return { call, raised, logs, fail };
+  return { call, raised, sources, logs, fail };
 }
 
 const tok = await signChildToken(KID);
@@ -60,4 +62,19 @@ const tok = await signChildToken(KID);
   const r = await w.call({ action: "raise_help", child_session_token: tok });
   ok("a store failure is 500 with nothing leaked, logged by code only",
     r.status === 500 && !r.text.includes("db down") && w.logs.length === 1 && w.logs[0] === "unhandled_exception PGRST301");
+}
+
+{
+  const w = makeWorld();
+  await w.call({ action: "raise_help", child_session_token: tok });
+  await w.call({ action: "raise_help", child_session_token: tok, source: "talk_board" });
+  await w.call({ action: "raise_help", child_session_token: tok, source: "feelings_cards" });
+  ok("the talk board is the default source; the feelings cards raise a 'feelings_card' alert (8e)",
+    w.sources.join() === "aac_tap,aac_tap,feelings_card");
+  const odd = [
+    await w.call({ action: "raise_help", child_session_token: tok, source: "constructor" }),
+    await w.call({ action: "raise_help", child_session_token: tok, source: "journal_flag" }),
+    await w.call({ action: "raise_help", child_session_token: tok, source: 5 }),
+  ];
+  ok("any other source is refused and raises nothing", odd.every((r) => r.status === 400 && r.json.error === "invalid_input") && w.raised.length === 3);
 }

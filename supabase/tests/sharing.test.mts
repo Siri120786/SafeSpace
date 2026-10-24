@@ -207,6 +207,15 @@ const look = await one<{ theme: string; l: boolean }>(`select theme, low_sensory
 ok("any caregiver sets the theme and low-sensory default", look.theme === "trains" && look.l === true);
 await as("authenticated", co, `select update_child($1, p_theme => '')`, [kid10]);
 ok("an empty theme clears it", (await one<{ theme: string | null }>(`select theme from children where id = $1`, [kid10])).theme === null);
+for (const t of ["calm", "animals", "nature"]) {
+  await as("authenticated", co, `select update_child($1, p_theme => $2)`, [kid10, t]);
+}
+ok("Manju's themes join ours (8d): calm, animals and nature can be chosen",
+  (await one<{ theme: string }>(`select theme from children where id = $1`, [kid10])).theme === "nature");
+let badTheme = "no_error";
+try { await db.query(`update children set theme = 'jungle' where id = $1`, [kid10]); } catch (e) { badTheme = (e as Error).message; }
+ok("the theme column itself still refuses unknown themes", badTheme.includes("children_theme_check"));
+await as("authenticated", co, `select update_child($1, p_theme => '')`, [kid10]);
 ok("invalid values are refused: unknown theme, age 3, age 18, a future month, a blank name",
   (await err("authenticated", co, `select update_child($1, p_theme => 'jungle')`, [kid10])).includes("invalid_input") &&
   (await err("authenticated", primary, `select update_child($1, p_birth_year => $2, p_birth_month => $3)`, [kid10, yearsAgo(3), month])).includes("invalid_input") &&

@@ -10,6 +10,7 @@ export const ALERT_SOURCE_LABELS: Record<AlertSource, string> = {
   aac_tap: "Pressed \"I need help\" on the talk board",
   check_in: "Flagged during a mood check-in",
   journal_flag: "Flagged in their journal",
+  feelings_card: "Pressed \"I want a grown-up\" on the feelings cards",
 };
 
 // Banner text for unreviewed alerts, or null when there are none.

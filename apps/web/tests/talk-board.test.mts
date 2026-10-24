@@ -7,9 +7,12 @@ import { HELP_PHRASE, TALK_BOARD_PHRASES } from "@safespace/shared-types";
 import {
   EVERYDAY_PHRASES,
   PHRASE_EMOJI,
+  SENTENCE_STARTERS,
   helpFailed,
   helpMessage,
+  sentenceTiles,
 } from "../src/features/child-space/talkBoard.ts";
+import { DEFAULT_AAC_TILES } from "../src/features/conditions/autism/services/aacService.ts";
 
 let passed = 0;
 const test = (name: string, fn: () => void) => {
@@ -50,6 +53,16 @@ test("an ended session is named, so they know to sign in again", () => {
 test("nothing to show before help is pressed; a status while sending", () => {
   assert.equal(helpMessage({ kind: "idle" }), null);
   assert.equal(helpMessage({ kind: "sending" }), "Telling your grown-up…");
+});
+
+test("Build a sentence: starters first, Manju's word tiles next, and never a 'help' word", () => {
+  const tiles = sentenceTiles(DEFAULT_AAC_TILES);
+  assert.deepEqual(tiles.slice(0, 4).map((t) => t.label), ["I want", "I feel", "Please", "Thank you"]);
+  assert.ok(DEFAULT_AAC_TILES.some((t) => t.id === "help"));
+  assert.ok(!tiles.some((t) => t.id === "help" || /help/i.test(t.label)));
+  assert.equal(tiles.length, SENTENCE_STARTERS.length + DEFAULT_AAC_TILES.length - 1);
+  assert.equal(new Set(tiles.map((t) => t.id)).size, tiles.length);
+  assert.ok(tiles.some((t) => t.id === "thirsty"));
 });
 
 console.log(`${passed} talk-board checks`);

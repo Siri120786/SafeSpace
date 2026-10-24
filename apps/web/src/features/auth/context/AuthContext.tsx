@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useEffect, useState } from "react";
 import type { AppSession, ChildSession, UserRole } from "@safespace/shared-types";
 import {
   getExistingSession,
@@ -13,6 +13,9 @@ import {
   getStoredChildSession,
   clearStoredChildSession,
 } from "../../../lib/childSessionStorage";
+import { clearDeviceStore, setDeviceStoreOwner } from "../../wellness-ui/store/LocalDeviceStore";
+import { deviceOwnerFor } from "../roleRouting";
+import { setToolsSession } from "../../conditions/toolsSession";
 
 export interface AuthContextType {
   session: AppSession;
@@ -38,7 +41,15 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [session, setSession] = useState<AppSession>(null);
+  const [session, setSessionState] = useState<AppSession>(null);
+  // The tools' data follows the session. Set before React renders the new
+  // session, so the tools never read another person's data (8b), and save to
+  // the signed-in person's account (8e).
+  const setSession = useCallback((s: AppSession) => {
+    setDeviceStoreOwner(deviceOwnerFor(s));
+    setToolsSession(s);
+    setSessionState(s);
+  }, []);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -158,6 +169,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     setLoading(true);
 
+    // Cleared first, so a failed sign-out call can't leave tool data behind.
+    clearDeviceStore();
+    setDeviceStoreOwner(null);
+    setToolsSession(null);
     try {
       await logOut();
       clearStoredChildSession();

@@ -8,15 +8,21 @@ import {
   PHRASE_EMOJI,
   helpFailed,
   helpMessage,
+  sentenceTiles,
   useChildSpace,
   type HelpState,
 } from "../features/child-space";
 import { ROUTES } from "../routes";
 import { speakWarm } from "../features/speech";
+import { AacBoard, DEFAULT_AAC_TILES } from "../features/conditions/autism";
+
+const SENTENCE_TILES = sentenceTiles(DEFAULT_AAC_TILES);
 
 // /child/talk: tap a phrase to hear it. Nothing is saved, except that
 // "I need help" alerts every caregiver straight away (no "are you sure?"; a
-// repeat within 2 minutes is the same alert). In-app only.
+// repeat within 2 minutes is the same alert). In-app only. Below it, "Build a
+// sentence" (Manju's AAC board, role-flow 8d) reads word tiles aloud in the
+// same warm voice.
 export const ChildTalkPage: React.FC = () => {
   const { session } = useChildSpace();
   const [last, setLast] = useState<TalkBoardPhrase | null>(null);
@@ -93,6 +99,12 @@ export const ChildTalkPage: React.FC = () => {
       <p className="text-xs text-charcoal/70">
         Your grown-ups see "I need help" in SafeSpace. It doesn't phone or text anyone.
       </p>
+
+      <section aria-labelledby="build-a-sentence" className="space-y-3 pt-2">
+        <h2 id="build-a-sentence" className="font-display text-2xl font-bold">Build a sentence</h2>
+        <p className="text-sm text-charcoal/80">Tap words to make a sentence, then tap Speak.</p>
+        <AacBoard tiles={SENTENCE_TILES} speak={(text) => speakWarm(text)} hideHeader />
+      </section>
     </ChildPageShell>
   );
 };

@@ -1,0 +1,62 @@
+/* ==========================================================================
+   SafeSpace Wellness UI — Accessibility & Sensory Styles (Workstream B)
+   Applied dynamically via AccessibilityContext (html.accessibility-*)
+   ========================================================================== */
+
+/* 1. Reduced Sensory Stimulation & Reduced Motion */
+html.accessibility-reduced-stimulation,
+html.accessibility-reduced-stimulation *,
+html.accessibility-reduced-stimulation *::before,
+html.accessibility-reduced-stimulation *::after,
+html.motion-reduce,
+html.motion-reduce *,
+html.motion-reduce *::before,
+html.motion-reduce *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Apply filter to body rather than <html> to avoid creating a containing block
+   for position: fixed modals and navigation elements */
+html.accessibility-reduced-stimulation body {
+  filter: saturate(0.85);
+}
+
+/* Softer, subdued shadows to minimize visual glare and harsh depth */
+html.accessibility-reduced-stimulation .shadow-2xl,
+html.accessibility-reduced-stimulation .shadow-xl,
+html.accessibility-reduced-stimulation .shadow-lg,
+html.accessibility-reduced-stimulation .shadow-md,
+html.accessibility-reduced-stimulation .shadow-card,
+html.accessibility-reduced-stimulation .shadow-pill {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 2. Larger Base Size & Line Height (safe wrapping, no clipped overflow) */
+html.accessibility-larger-text {
+  font-size: 115% !important;
+  line-height: 1.6 !important;
+}
+
+html.accessibility-larger-text body {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  overflow-x: clip;
+}
+
+html.accessibility-larger-text p,
+html.accessibility-larger-text span,
+html.accessibility-larger-text label,
+html.accessibility-larger-text button,
+html.accessibility-larger-text input {
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+/* 3. Simplified Presentation (hide non-essential decorative elements) */
+html.accessibility-simplified [data-decorative="true"],
+html.accessibility-simplified [data-decorative] {
+  display: none !important;
+}

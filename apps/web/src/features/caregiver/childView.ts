@@ -34,6 +34,6 @@ export function aiChatsNote(name: string, sharing: ChildSharingStatus): string |
 }
 
 // "/caregiver/children/<id>[/section]"; the id is URL-encoded.
-export function caregiverChildPath(childId: string, section?: "routines" | "reminders" | "settings" | "caregivers"): string {
+export function caregiverChildPath(childId: string, section?: "routines" | "reminders" | "settings" | "caregivers" | "tools"): string {
   return `/caregiver/children/${encodeURIComponent(childId)}${section ? `/${section}` : ""}`;
 }

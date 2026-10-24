@@ -4,3 +4,4 @@ export { SharingChoice, SharingQuestionScreen } from "./SharingChoice";
 export { ChildPageShell, THEME_EMOJI } from "./ChildPageShell";
 export * from "./childHome";
 export * from "./talkBoard";
+export * from "./childThemes";

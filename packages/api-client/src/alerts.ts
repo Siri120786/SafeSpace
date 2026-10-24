@@ -51,12 +51,14 @@ export async function markAlertReviewed(alertId: string): Promise<void> {
   if (error) throw toContractError(error);
 }
 
-// Child session only: the talk board's "I need help". Returns the alert id.
-export async function raiseHelpAlert(session: AppSession): Promise<string> {
+// Child session only: the talk board's "I need help", or "I want a grown-up"
+// on the feelings cards (role-flow 8e). Returns the alert id.
+export async function raiseHelpAlert(session: AppSession, source: "talk_board" | "feelings_cards" = "talk_board"): Promise<string> {
   if (session?.kind !== "child") throw new ContractError("unsupported_session");
   const data = await invokeEdge<{ alertId: string }>("child-alerts", {
     action: "raise_help",
     child_session_token: session.childSessionToken,
+    source,
   });
   return data.alertId;
 }
