@@ -8,7 +8,10 @@ import {
   appendTranscript,
   dictationErrorText,
   langTag,
+  pickProfileVoice,
   pickWarmVoice,
+  profileTone,
+  rankVoices,
   recognitionCtor,
   WARM_PITCH,
   WARM_RATE,
@@ -139,6 +142,62 @@ test("reading uses the chosen voice, a calm pace and a mid pitch", () => {
   assert.equal(u.rate, WARM_RATE);
   assert.equal(u.pitch, WARM_PITCH);
   assert.ok(WARM_RATE < 1 && WARM_PITCH > 1 && WARM_PITCH < 1.2);
+});
+
+const DEVICE = [
+  { name: "Microsoft Heera - English (India)", lang: "en-IN" },
+  { name: "Microsoft Ravi - English (India)", lang: "en-IN" },
+  { name: "Microsoft Zira - English (United States)", lang: "en-US" },
+  { name: "Microsoft David - English (United States)", lang: "en-US" },
+  { name: "Microsoft Shruti Online (Natural) - Telugu (India)", lang: "te-IN" },
+];
+
+test("voices are ranked for the wanted gender, best first, same language only", () => {
+  assert.deepEqual(rankVoices(DEVICE, "en-IN", "female").map((v) => v.name.split(" ")[1]), ["Heera", "Zira", "Ravi", "David"]);
+  assert.equal(rankVoices(DEVICE, "en-IN", "male")[0].name.split(" ")[1], "Ravi");
+  assert.equal(rankVoices(DEVICE, "ta-IN", "female").length, 0);
+});
+
+test("characters get different voices in the story's accent when the device has them", () => {
+  const f0 = pickProfileVoice(DEVICE, "en-IN", { gender: "female", pick: 0, pitch: 1, rate: 1 });
+  const f1 = pickProfileVoice(DEVICE, "en-IN", { gender: "female", pick: 1, pitch: 1, rate: 1 });
+  const m0 = pickProfileVoice(DEVICE, "en-IN", { gender: "male", pick: 0, pitch: 1, rate: 1 });
+  assert.ok(f0.matched && f1.matched && m0.matched);
+  assert.match(m0.voice!.name, /Ravi/);
+  // Only one Indian English female voice: both stay in that accent (pitch tells them apart).
+  assert.equal(f0.voice?.name, f1.voice?.name);
+  assert.match(f1.voice!.name, /Heera/);
+  // With two in the accent, they differ.
+  const two = [...DEVICE, { name: "Microsoft Kalpana - English (India)", lang: "en-IN" }];
+  const a = pickProfileVoice(two, "en-IN", { gender: "female", pick: 0, pitch: 1, rate: 1 }).voice?.name;
+  const b = pickProfileVoice(two, "en-IN", { gender: "female", pick: 1, pitch: 1, rate: 1 }).voice?.name;
+  assert.ok(a && b && a !== b && /India/.test(a) && /India/.test(b));
+  // Another accent only when the story's own has none of that gender.
+  assert.match(pickProfileVoice(DEVICE, "en-GB", { gender: "female", pick: 0, pitch: 1, rate: 1 }).voice!.name, /Heera|Zira/);
+});
+
+test("in Edge, characters use only the natural voices, never mixed with robotic ones", () => {
+  const edge = [
+    ...DEVICE,
+    { name: "Microsoft Neerja Online (Natural) - English (India)", lang: "en-IN" },
+    { name: "Microsoft Prabhat Online (Natural) - English (India)", lang: "en-IN" },
+    { name: "Microsoft Mohan Online (Natural) - Telugu (India)", lang: "te-IN" },
+  ];
+  for (const pick of [0, 1, 2, 3]) {
+    assert.match(pickProfileVoice(edge, "en-IN", { gender: "female", pick, pitch: 1, rate: 1 }).voice!.name, /Neerja/);
+  }
+  assert.match(pickProfileVoice(edge, "en-IN", { gender: "male", pick: 0, pitch: 1, rate: 1 }).voice!.name, /Prabhat/);
+  assert.match(pickProfileVoice(edge, "te-IN", { gender: "female", pick: 1, pitch: 1, rate: 1 }).voice!.name, /Shruti/);
+  assert.match(pickProfileVoice(edge, "te-IN", { gender: "male", pick: 0, pitch: 1, rate: 1 }).voice!.name, /Mohan/);
+});
+
+test("with only a female voice, a male character uses it with a lower pitch", () => {
+  const papa = { gender: "male" as const, pick: 0, pitch: 0.95, rate: 0.9 };
+  const te = pickProfileVoice(DEVICE, "te-IN", papa);
+  assert.ok(te.voice && !te.matched);
+  assert.ok(profileTone(papa, false).pitch < profileTone(papa, true).pitch);
+  assert.equal(pickProfileVoice(DEVICE, "kn-IN", papa).voice, null);
+  assert.deepEqual(profileTone({ gender: "female", pick: 0, pitch: 3, rate: 9 }, true), { pitch: 2, rate: 1.5 });
 });
 
 console.log(`${passed} speech checks`);

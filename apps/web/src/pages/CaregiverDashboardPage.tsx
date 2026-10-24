@@ -26,6 +26,9 @@ export const CaregiverDashboardPage: React.FC = () => {
             <p className="text-sm text-textMuted font-light mt-1">Your children's spaces and how their week is going.</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.CAREGIVER_STORIES)}>
+              Stories
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.CAREGIVER_ALERTS)}>
               Alerts
             </Button>

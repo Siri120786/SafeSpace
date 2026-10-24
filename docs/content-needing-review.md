@@ -10,6 +10,9 @@ Everything below is **placeholder or unreviewed wording** and must not be treate
 | Anxiety (Calm Space) | same | calming tips | wording review |
 | Stories | `apps/web/src/features/story-workflow/lib/storyWorkflow.ts` | the automatic checks are a basic word list only | real content-safety validation, caregiver and clinician review |
 | Support text in every module | same content file | "talk to a trusted adult or local services" | region-correct helplines and clinician review (see `docs/emergency-audit-sprint3.md`) |
+| Animated story "Kai visits the dentist" | `apps/web/src/features/stories/library/dentist.ts` | all lines, especially the Telugu (a first draft) | native Telugu speaker check; social-story and clinician review |
+| Story templates (new school, doctor visit, taking turns, fire drill, change of plans) | `apps/web/src/features/stories/templates.ts` | all lines, especially the Telugu (a first draft; the editor asks caregivers to check it) | native Telugu speaker check; social-story and clinician review |
+| Gemini story-writer instructions | `supabase/functions/_shared/storyWriter.ts` | the system prompt (social-story rules, coping step, age bands) | social-story and clinician review |
 
 ## Limitations to state at sprint review
 - Module screens and the story workflow **keep data only while the page is open**. Nothing is saved to the database yet, because that needs new tables and policies owned by Siri.
