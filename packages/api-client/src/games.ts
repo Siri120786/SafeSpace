@@ -2,7 +2,7 @@
 // Games Corner storage (docs/games.md). Game rules run on the device; this
 // only saves a short progress record and the player's comfort settings.
 //   - Adults: tables and SECURITY INVOKER functions under RLS
-//     (supabase/migrations/20261028000000_game_progress.sql).
+//     (supabase/migrations/20261029100000_game_progress.sql).
 //   - Children: the `games` Edge Function (they have no Supabase login).
 //   - Caregivers: READ-only summary of their own children's progress, by childId.
 

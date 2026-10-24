@@ -1,4 +1,4 @@
-// Games Corner storage (migration 20261028000000, Sprint 4), under the hosted
+// Games Corner storage (migration 20261029100000, Sprint 4), under the hosted
 // project's default privileges: who can write and read progress, caregiver
 // authorization, denial for everyone else, the atomic round function, and the
 // child `games` Edge Function handler with real child tokens.
@@ -21,7 +21,7 @@ const ok = (n: string, c: boolean) => {
 };
 
 const dir = fileURLToPath(new URL("../migrations/", import.meta.url));
-const MIGRATION = "20261028000000_game_progress.sql";
+const MIGRATION = "20261029100000_game_progress.sql";
 const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
 
 // The three lists of game ids and levels must agree.

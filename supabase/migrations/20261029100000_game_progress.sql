@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SafeSpace Sprint 4: Games Corner progress and preferences
--- Migration: 20261028000000_game_progress
+-- Migration: 20261029100000_game_progress
 --
 -- Game rules and puzzles run on the device. Only a short progress record is
 -- stored, plus the player's comfort settings.
