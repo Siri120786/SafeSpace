@@ -11,16 +11,24 @@
 //   record_round      { child_session_token, game_id, difficulty, score }
 //   save_preferences  { child_session_token, preferences: { difficulty,
 //                       reduced_motion, sound_enabled, voice_enabled } }
+//   list_creations    { child_session_token }
+//   save_creation     { child_session_token, creation: { id, kind, content } }
+//   delete_creation   { child_session_token, id }
+// Creations (Imagine & Create) are private to the child: no caregiver reads
+// them (migration 20261029400000).
 //
 // No Deno or esm.sh imports here; index.ts wires the real dependencies and
-// supabase/tests/games_handler.test.mts wires fakes.
+// supabase/tests/games.test.mts wires fakes.
 
 import { json, preflight } from "../_shared/http.ts";
 import { errorSummary } from "../_shared/errors.ts";
 import {
   parseGamesRequest,
+  shapeCreations,
   shapePreferences,
   shapeProgress,
+  type CreationInput,
+  type CreationRow,
   type PreferencesInput,
   type PreferencesRow,
   type ProgressRow,
@@ -31,6 +39,10 @@ export interface ChildGamesStore {
   getPreferences(childId: string): Promise<PreferencesRow | null>;
   recordRound(childId: string, gameId: string, difficulty: string, score: number | null): Promise<void>;
   savePreferences(childId: string, prefs: PreferencesInput): Promise<void>;
+  listCreations(childId: string): Promise<CreationRow[]>;
+  // Keeping one already kept is fine (nothing changes).
+  saveCreation(childId: string, creation: CreationInput): Promise<void>;
+  deleteCreation(childId: string, id: string): Promise<void>;
 }
 
 export interface GamesDeps {
@@ -39,7 +51,8 @@ export interface GamesDeps {
   log(event: string, detail?: string): void;
 }
 
-export const MAX_BODY_BYTES = 2048;
+// Room for one creation (at most 4 KB) and the token.
+export const MAX_BODY_BYTES = 8192;
 
 export function createGamesHandler(deps: GamesDeps) {
   return async function handle(req: Request): Promise<Response> {
@@ -48,7 +61,7 @@ export function createGamesHandler(deps: GamesDeps) {
 
     try {
       const text = await req.text();
-      if (text.length > MAX_BODY_BYTES) return json({ error: "payload_too_large" }, 413);
+      if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) return json({ error: "payload_too_large" }, 413);
       let raw: unknown;
       try {
         raw = JSON.parse(text);
@@ -68,6 +81,17 @@ export function createGamesHandler(deps: GamesDeps) {
       }
       if (request.action === "record_round") {
         await deps.store.recordRound(childId, request.gameId, request.difficulty, request.score);
+        return json({ ok: true });
+      }
+      if (request.action === "list_creations") {
+        return json({ creations: shapeCreations(await deps.store.listCreations(childId)) });
+      }
+      if (request.action === "save_creation") {
+        await deps.store.saveCreation(childId, request.creation);
+        return json({ ok: true });
+      }
+      if (request.action === "delete_creation") {
+        await deps.store.deleteCreation(childId, request.id);
         return json({ ok: true });
       }
       await deps.store.savePreferences(childId, request.preferences);
