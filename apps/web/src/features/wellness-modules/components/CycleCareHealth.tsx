@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useStoredState } from "./useStoredState";
+import { FOOD_SHARED_NOTE, foodFocusFor, type Condition } from "../lib/condition";
 import { BrainMascot } from "../../../components/vectors/BrainMascot";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
-import { DIET_KEY, PROFILE_KEY, clearKey, readJson, writeJson } from "../lib/deviceStore";
+import { DIET_KEY, PROFILE_KEY } from "../lib/deviceStore";
 import {
   EMPTY_STATE,
   GENERAL_GUIDANCE,
@@ -64,7 +66,7 @@ function speak(text: string) {
   }
 }
 
-const Coach: React.FC<{ stance: React.ComponentProps<typeof BrainMascot>["stance"]; text: string; lowSensory: boolean }> = ({ stance, text, lowSensory }) => {
+export const Coach: React.FC<{ stance: React.ComponentProps<typeof BrainMascot>["stance"]; text: string; lowSensory: boolean }> = ({ stance, text, lowSensory }) => {
   const canSpeak = useCanSpeak();
   return (
     <div className="flex flex-col items-center gap-2" role="status" aria-live="polite">
@@ -82,42 +84,25 @@ const Coach: React.FC<{ stance: React.ComponentProps<typeof BrainMascot>["stance
   );
 };
 
-export const HealthSections: React.FC<{ lowSensory: boolean }> = ({ lowSensory }) => {
-  const [diet, setDiet] = useState<DietState>(() => sanitizeState(readJson(DIET_KEY, EMPTY_STATE)));
-  const [profile, setProfile] = useState<Assessment>(() => sanitizeAssessment(readJson(PROFILE_KEY, EMPTY_ASSESSMENT)));
-  const [saveFailed, setSaveFailed] = useState(false);
-  const today = dateKey();
-
-  useEffect(() => {
-    setSaveFailed(!writeJson(DIET_KEY, diet));
-  }, [diet]);
-  useEffect(() => {
-    writeJson(PROFILE_KEY, profile);
-  }, [profile]);
-
-  const clearAll = () => {
-    clearKey(DIET_KEY);
-    clearKey(PROFILE_KEY);
-    setDiet(EMPTY_STATE);
-    setProfile(EMPTY_ASSESSMENT);
-  };
-
+/** Food module body: the diet plan, rewards and character. Reads the food preference from the health profile. */
+export const DietSection: React.FC<{ lowSensory: boolean; condition: Condition | null }> = ({ lowSensory, condition }) => {
+  const [diet, setDiet, saveFailed] = useStoredState<DietState>(DIET_KEY, EMPTY_STATE, sanitizeState);
+  const [profile] = useStoredState<Assessment>(PROFILE_KEY, EMPTY_ASSESSMENT, sanitizeAssessment);
   return (
     <>
-      <DietCard diet={diet} setDiet={setDiet} today={today} preference={profile.preference} lowSensory={lowSensory} />
-      <ProfileCard profile={profile} setProfile={setProfile} />
-      <Card className="space-y-2">
-        <p className="text-sm text-textMuted">
-          The diet plan, rewards and health profile are kept on this device only, not in your account.
-          {saveFailed ? " This browser is not allowing saving, so they will be lost when you leave." : ""}
-        </p>
-        <Button size="sm" variant="outline" onClick={clearAll}>
-          Clear my diet and profile data
-        </Button>
-      </Card>
+      <DietCard diet={diet} setDiet={setDiet} today={dateKey()} preference={profile.preference} lowSensory={lowSensory} condition={condition} />
+      <p className="text-sm text-textMuted">
+        The diet plan and rewards are kept on this device only, not in your account.
+        {saveFailed ? " This browser is not allowing saving, so they will be lost when you leave." : ""}
+      </p>
     </>
   );
 };
+
+/** Hub body: the optional health profile and its private summary. */
+export const ProfileSection: React.FC<{ profile: Assessment; setProfile: (a: Assessment) => void }> = ({ profile, setProfile }) => (
+  <ProfileCard profile={profile} setProfile={setProfile} />
+);
 
 const DietCard: React.FC<{
   diet: DietState;
@@ -125,7 +110,8 @@ const DietCard: React.FC<{
   today: string;
   preference: Assessment["preference"];
   lowSensory: boolean;
-}> = ({ diet, setDiet, today, preference, lowSensory }) => {
+  condition: Condition | null;
+}> = ({ diet, setDiet, today, preference, lowSensory, condition }) => {
   const [meal, setMeal] = useState<MealId>("breakfast");
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -152,10 +138,11 @@ const DietCard: React.FC<{
       <div className="space-y-2">
         <h3 className="font-medium text-textHeading">General eating tips</h3>
         <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-          {GENERAL_GUIDANCE.map((g) => (
+          {[...GENERAL_GUIDANCE, ...foodFocusFor(condition)].map((g) => (
             <li key={g}>{g}</li>
           ))}
         </ul>
+        <p className="text-sm text-textBody">{FOOD_SHARED_NOTE}</p>
         <p className="text-sm text-textMuted">{GUIDANCE_NOTE}</p>
       </div>
 

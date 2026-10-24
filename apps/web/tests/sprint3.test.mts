@@ -52,6 +52,39 @@ import {
 import { EMPTY_ASSESSMENT, SUMMARY_NOTE, buildSummary, sanitizeAssessment, validateAssessment } from "../src/features/wellness-modules/lib/healthAssessment.ts";
 import { MEDICINE_TITLES, REMINDER_PRIVACY_NOTE, buildMedicineReminder, describeSchedule, dueMedicineAlerts } from "../src/features/wellness-modules/lib/medicineReminders.ts";
 import { readJson, writeJson, type KeyValueStore } from "../src/features/wellness-modules/lib/deviceStore.ts";
+import {
+  ABOUT,
+  DIFFERENCES,
+  MYTHS,
+  TERMS_NOTE,
+  allConditionTexts,
+  foodFocusFor,
+  moveFocusFor,
+  mythsFor,
+  sanitizeCondition,
+  visitQuestionsFor,
+} from "../src/features/wellness-modules/lib/condition.ts";
+import {
+  EMPTY_EXERCISE,
+  addEntry,
+  allExerciseLines,
+  exerciseReaction,
+  isLongDay,
+  minutesOn,
+  parseMinutes,
+  planStatus,
+  plannedMinutesPerWeek,
+  removeEntry,
+  sanitizeExercise,
+  setPlanDay,
+  setWeeklyGoal,
+  summarizeWeek,
+  weekDates,
+  weekMessage,
+  weekdayIndex,
+  type ExerciseState,
+} from "../src/features/wellness-modules/lib/exercise.ts";
+import { FoodModule, PcosPcodHub, PhysicalExercise } from "../src/features/wellness-modules/components/PcosScreens.tsx";
 import { BrightDays, CalmSpace, CycleCare, ModulesHome, SafeHarbor } from "../src/features/wellness-modules/components/ModuleScreens.tsx";
 import { BreathingExercise } from "../src/features/calm-tools/components/BreathingExercise.tsx";
 import { GroundingExercise } from "../src/features/calm-tools/components/GroundingExercise.tsx";
@@ -131,24 +164,22 @@ test("story screen: caregiver sees the form, the not-saved warning and Exit", ()
 });
 
 // ---- modules ----
-test("modules: four modules listed and Cycle Care is adult-only", () => {
+test("modules: four modules listed and the PCOS / PCOD hub is adult-only", () => {
   assert.deepEqual(MODULES.map((m) => m.key), ["anxiety", "depression", "ptsd", "pcos_pcod"]);
+  assert.equal(MODULES.find((m) => m.key === "pcos_pcod")?.path, "/modules/pcos-pcod");
   assert.equal(canOpenCycleCare("user"), true);
   assert.equal(canOpenCycleCare("caregiver"), false);
   assert.equal(canOpenCycleCare(null), false);
 });
 
-test("cycle care: caregivers are blocked, adults see the checklist and no cycle tracking", () => {
+test("cycle care: caregivers are blocked, adults see the checklist, and there is no cycle tracking", () => {
   const blocked = render(React.createElement(CycleCare, { ...common, role: "caregiver" }));
   assert.match(blocked, /adult accounts only/);
   assert.doesNotMatch(blocked, /type="checkbox"/);
   const ok = render(React.createElement(CycleCare, { ...common, role: "user" }));
   assert.match(ok, /type="checkbox"/);
   assert.match(ok, /no cycle tracking/i);
-  assert.match(ok, /PCOS myths and facts/);
-  assert.match(ok, /Myth: .*cysts/);
-  assert.match(ok, /not medical advice/);
-  assert.ok(PCOS_MYTHS.length >= 5 && PCOS_MYTHS.every((m) => m.myth && m.fact));
+  assert.match(ok, /Back to PCOS \/ PCOD/);
   assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"/i);
 });
 
@@ -185,16 +216,16 @@ test("cycle care extras: wording is body-neutral (no weight, calories, diets or 
   assert.equal(isBodyNeutral(BODY_KINDNESS_TEXT), true);
 });
 
-test("cycle care screen shows the new adult features and still has no cycle tracking", () => {
+test("cycle care screen has check-in, medicine notes and reminders and doctor prep, and nothing from the other modules", () => {
   const ok = render(React.createElement(CycleCare, { ...common, role: "user" }));
   assert.match(ok, /How are you today\?/);
-  assert.match(ok, /Movement for your energy/);
-  assert.match(ok, /Water so far today/);
   assert.match(ok, /medicine and supplement notes/);
+  assert.match(ok, /Medicine and supplement reminders/);
+  assert.match(ok, /Sign in with your adult account to set reminders/);
   assert.match(ok, /Doctor visit prep/);
+  assert.match(ok, /Sleep and stress/);
   assert.match(ok, /does not set target weights, calorie targets or BMI scores/);
-  assert.match(ok, /no goal to reach/i);
-  assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"/i);
+  assert.doesNotMatch(ok, /Diet plan and rewards|Water so far today|Movement for your energy|myths and facts|health profile/i);
   const blocked = render(React.createElement(CycleCare, { ...common, role: "caregiver" }));
   assert.doesNotMatch(blocked, /How are you today/);
 });
@@ -340,24 +371,186 @@ test("medicine reminders: only unacknowledged medication alerts are shown", () =
   assert.equal(dueMedicineAlerts([mk("medication", false), mk("medication", true), mk("water", false)]).length, 1);
 });
 
-test("cycle care screen: diet plan, rewards, character, health profile and reminders are shown to adults only", () => {
-  const ok = render(React.createElement(CycleCare, { ...common, role: "user" }));
+test("food module: diet plan, rewards, character and water, for adults only", () => {
+  const ok = render(React.createElement(FoodModule, { ...common, role: "user" }));
   assert.match(ok, /Diet plan and rewards/);
   assert.match(ok, /General eating tips/);
+  assert.match(ok, /Crash diets and skipping meals are not recommended/);
   assert.match(ok, /Write the plan your doctor or dietitian gave you/);
   assert.match(ok, /stars today/);
   assert.match(ok, /Hide stars and streaks/);
   assert.match(ok, /Add a few meals to your plan/);
+  assert.match(ok, /Water so far today/);
+  assert.match(ok, /kept on this device only/);
+  assert.doesNotMatch(ok, /<audio|autoplay/i);
+  assert.doesNotMatch(render(React.createElement(FoodModule, { ...common, role: "caregiver" })), /Diet plan/);
+});
+
+test("pcos / pcod hub: label choice, about, differences, care spaces, health profile and myths, adults only", () => {
+  const ok = render(React.createElement(PcosPcodHub, { ...common, role: "user" }));
+  assert.match(ok, /What does your doctor call it\?/);
+  for (const l of ["PCOS", "PCOD", "Not sure yet"]) assert.match(ok, new RegExp(l));
+  assert.match(ok, /About PCOS/);
+  assert.match(ok, /About PCOD/);
+  assert.match(ok, /PCOD and PCOS at a glance/);
+  assert.match(ok, /Ask your doctor which one applies|ask your doctor which one applies/i);
+  for (const href of ["/modules/pcos-pcod/cycle-care", "/modules/pcos-pcod/exercise", "/modules/pcos-pcod/food"]) assert.match(ok, new RegExp(`href="${href}"`));
   assert.match(ok, /My health profile/);
   for (const t of ["Menstrual cycle patterns", "Health and medical history", "Body weight", "Fasting blood glucose", "Current eating habits", "Nutritional requirements", "Food preferences", "Individual health goals"]) assert.match(ok, new RegExp(t));
   assert.match(ok, /Show my private summary/);
   assert.match(ok, /does not work out BMI, set a target weight/);
-  assert.match(ok, /Medicine and supplement reminders/);
-  assert.match(ok, /Sign in with your adult account to set reminders/);
-  assert.match(ok, /kept on this device only/);
+  assert.match(ok, /PCOS and PCOD myths and facts/);
+  assert.match(ok, /Myth: PCOD is a serious disease/);
+  assert.match(ok, /Myth: Everyone with PCOS has the same symptoms/);
+  assert.match(ok, /not medical advice/);
+  assert.match(ok, /Clear all my PCOS \/ PCOD data/);
+  assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"/i);
+  assert.match(render(React.createElement(PcosPcodHub, { ...common, role: "caregiver" })), /adult accounts only/);
+});
+
+test("physical exercise screen: log, yoga, weekly plan and week summary, for adults only", () => {
+  const ok = render(React.createElement(PhysicalExercise, { ...common, role: "user" }));
+  assert.match(ok, /Movement for your condition/);
+  assert.match(ok, /Movement for your energy/);
+  assert.match(ok, /Today&#x27;s movement/);
+  assert.match(ok, /Add to today/);
+  assert.match(ok, /Yoga time/);
+  assert.match(ok, /10 min yoga/);
+  assert.match(ok, /My weekly workout plan/);
+  for (const d of ["Monday", "Wednesday", "Sunday"]) assert.match(ok, new RegExp(d));
+  assert.match(ok, /Rest days are part of a healthy week/);
+  assert.match(ok, /This week/);
+  assert.match(ok, /My own weekly minutes goal \(optional/);
+  assert.match(ok, /does not count calories burned/);
+  assert.match(ok, /Back to PCOS \/ PCOD/);
   assert.doesNotMatch(ok, /<audio|autoplay/i);
-  const blocked = render(React.createElement(CycleCare, { ...common, role: "caregiver" }));
-  assert.doesNotMatch(blocked, /Diet plan|health profile|reminders/i);
+  assert.match(render(React.createElement(PhysicalExercise, { ...common, role: "caregiver" })), /adult accounts only/);
+});
+
+test("condition content: PCOS and PCOD each get their own wording, and both get every feature", () => {
+  assert.match(ABOUT.pcos.points.join(" "), /hormonal/);
+  assert.match(ABOUT.pcod.points.join(" "), /milder/);
+  assert.match(TERMS_NOTE, /ask your doctor which one applies/i);
+  assert.ok(DIFFERENCES.length >= 4 && DIFFERENCES.every((d) => d.pcos && d.pcod));
+  assert.match(visitQuestionsFor("pcos").join(" "), /insulin resistance/);
+  assert.doesNotMatch(visitQuestionsFor("pcod").join(" "), /insulin resistance/);
+  assert.match(visitQuestionsFor("pcod").join(" "), /periods are becoming more regular/);
+  assert.match(visitQuestionsFor(null).join(" "), /Which one applies to me/);
+  assert.notDeepEqual(visitQuestionsFor("pcos"), visitQuestionsFor("pcod"));
+  assert.notDeepEqual(foodFocusFor("pcos"), foodFocusFor("pcod"));
+  assert.match(foodFocusFor("pcos").join(" "), /insulin/);
+  assert.notDeepEqual(moveFocusFor("pcos"), moveFocusFor("pcod"));
+  assert.match(moveFocusFor("pcos").join(" "), /muscle-strengthening/);
+  assert.match(moveFocusFor("pcod").join(" "), /yoga/i);
+  // The same set of features for both: every label has questions, food tips and movement tips.
+  for (const c of ["pcos", "pcod", "unsure"] as const) {
+    assert.ok(visitQuestionsFor(c).length >= 4 && foodFocusFor(c).length >= 2 && moveFocusFor(c).length >= 2 && mythsFor(c).length >= 6);
+  }
+  assert.equal(sanitizeCondition("pcod"), "pcod");
+  assert.equal(sanitizeCondition("other"), null);
+});
+
+test("condition myths: shared myths for everyone, PCOD-only and PCOS-only ones only for that label", () => {
+  const pcos = mythsFor("pcos").map((m) => m.myth).join("|");
+  const pcod = mythsFor("pcod").map((m) => m.myth).join("|");
+  assert.match(pcos, /Everyone with PCOS has the same symptoms/);
+  assert.doesNotMatch(pcos, /PCOD is a serious disease/);
+  assert.match(pcod, /PCOD is a serious disease/);
+  assert.doesNotMatch(pcod, /Everyone with PCOS has the same symptoms/);
+  assert.equal(mythsFor("unsure").length, MYTHS.length);
+  assert.ok(MYTHS.every((m) => m.myth && m.fact));
+  assert.ok(PCOS_MYTHS.length >= 5);
+});
+
+test("condition wording: never shames, never talks about weight loss or calories, and never diagnoses", () => {
+  for (const t of allConditionTexts()) {
+    assert.doesNotMatch(t, /calor|BMI|target weight|lose weight|weight loss|fat loss|slim down|diagnos(e|ed) you|you have (PCOS|PCOD)/i, t);
+  }
+});
+
+test("exercise: logging validates minutes and activity, and sums per day and per week (Monday to Sunday)", () => {
+  const mon = "2026-10-26";
+  assert.equal(parseMinutes(" 25 "), 25);
+  assert.equal(parseMinutes("0"), null);
+  assert.equal(parseMinutes("301"), null);
+  assert.equal(parseMinutes("abc"), null);
+  assert.equal(addEntry(EMPTY_EXERCISE, mon, "walk", 0).ok, false);
+  assert.equal(addEntry(EMPTY_EXERCISE, mon, "swim" as never, 10).ok, false);
+  let st: ExerciseState = EMPTY_EXERCISE;
+  for (const [d, t, m] of [[mon, "walk", 20], [mon, "yoga", 30], ["2026-10-28", "yoga", 20], ["2026-11-01", "strength", 15], ["2026-11-02", "walk", 60]] as const) {
+    const r = addEntry(st, d, t, m);
+    assert.ok(r.ok);
+    if (r.ok) st = r.state;
+  }
+  assert.equal(weekdayIndex("2026-10-26"), 0);
+  assert.equal(weekdayIndex("2026-11-01"), 6);
+  assert.deepEqual(weekDates("2026-10-29")[0], "2026-10-26");
+  assert.deepEqual(weekDates("2026-10-29")[6], "2026-11-01");
+  assert.equal(minutesOn(st, mon), 50);
+  assert.equal(minutesOn(st, mon, "yoga"), 30);
+  const w = summarizeWeek(st, "2026-10-29");
+  assert.equal(w.totalMinutes, 85);
+  assert.equal(w.yogaMinutes, 50);
+  assert.equal(w.daysActive, 3);
+  assert.equal(summarizeWeek(st, "2026-11-02").totalMinutes, 60);
+  assert.equal(removeEntry(st, 0).log.length, 4);
+});
+
+test("exercise: weekly plan, rest days and the plan status follow what was logged", () => {
+  const mon = "2026-10-26";
+  const tue = "2026-10-27";
+  const planned = setPlanDay(EMPTY_EXERCISE, 0, { type: "walk", minutes: 20 });
+  assert.ok(planned.ok);
+  if (!planned.ok) return;
+  assert.equal(setPlanDay(planned.state, 9, null).ok, false);
+  assert.equal(setPlanDay(planned.state, 1, { type: "walk", minutes: 0 }).ok, false);
+  assert.equal(planStatus(planned.state, mon), "todo");
+  assert.equal(planStatus(planned.state, tue), "rest");
+  const part = addEntry(planned.state, mon, "walk", 10);
+  assert.ok(part.ok);
+  if (!part.ok) return;
+  assert.equal(planStatus(part.state, mon), "partly");
+  const other = addEntry(part.state, mon, "yoga", 40);
+  assert.ok(other.ok);
+  if (other.ok) assert.equal(planStatus(other.state, mon), "partly");
+  const done = addEntry(part.state, mon, "walk", 10);
+  assert.ok(done.ok);
+  if (done.ok) {
+    assert.equal(planStatus(done.state, mon), "done");
+    assert.equal(plannedMinutesPerWeek(done.state.plan), 20);
+    assert.equal(setPlanDay(done.state, 0, null).ok && planStatus((setPlanDay(done.state, 0, null) as { state: ExerciseState }).state, mon), "rest");
+  }
+});
+
+test("exercise: weekly goal is optional and validated, and messages never rank, shame or mention the body", () => {
+  assert.deepEqual(setWeeklyGoal(EMPTY_EXERCISE, "").ok && (setWeeklyGoal(EMPTY_EXERCISE, "") as { state: ExerciseState }).state.weeklyGoal, null);
+  assert.equal(setWeeklyGoal(EMPTY_EXERCISE, "150").ok, true);
+  assert.equal(setWeeklyGoal(EMPTY_EXERCISE, "5").ok, false);
+  assert.equal(setWeeklyGoal(EMPTY_EXERCISE, "99999").ok, false);
+  assert.equal(setWeeklyGoal(EMPTY_EXERCISE, "abc").ok, false);
+  const mon = "2026-10-26";
+  assert.match(weekMessage(EMPTY_EXERCISE, mon), /even a short stretch counts/i);
+  assert.match(weekMessage({ log: [{ date: mon, type: "yoga", minutes: 30 }], plan: {}, weeklyGoal: 30 }, mon), /reached the goal you set/);
+  assert.match(weekMessage({ log: [{ date: mon, type: "yoga", minutes: 30 }], plan: {}, weeklyGoal: 100 }, mon), /30 of those were yoga/);
+  assert.match(exerciseReaction({ log: [{ date: mon, type: "walk", minutes: 20 }], plan: { 0: { type: "walk", minutes: 20 } }, weeklyGoal: null }, mon, 12).text, /yayyy/i);
+  assert.equal(exerciseReaction({ log: [{ date: mon, type: "walk", minutes: 20 }], plan: { 0: { type: "walk", minutes: 20 } }, weeklyGoal: null }, mon, 12).stance, "celebrating");
+  assert.match(exerciseReaction({ log: [], plan: {}, weeklyGoal: null }, mon, 10).text, /rest day/i);
+  assert.match(exerciseReaction({ log: [{ date: mon, type: "walk", minutes: 250 }], plan: {}, weeklyGoal: null }, mon, 12).text, /rest/i);
+  assert.equal(isLongDay({ log: [{ date: mon, type: "walk", minutes: 181 }], plan: {}, weeklyGoal: null }, mon), true);
+  for (const line of allExerciseLines()) assert.doesNotMatch(line, /lazy|failed|failure|bad|cheat|guilt|punish|fat|ugly|disappoint|behind|should have|give up|calor|weight|BMI|burn/i, line);
+});
+
+test("exercise: stored data is sanitised before use", () => {
+  assert.deepEqual(sanitizeExercise("nonsense"), EMPTY_EXERCISE);
+  const st = sanitizeExercise({
+    log: [{ date: "2026-10-26", type: "yoga", minutes: 30 }, { date: "bad", type: "yoga", minutes: 30 }, { date: "2026-10-26", type: "swim", minutes: 30 }, { date: "2026-10-26", type: "walk", minutes: 9999 }],
+    plan: { 0: { type: "walk", minutes: 20 }, 9: { type: "walk", minutes: 20 }, 1: { type: "bad", minutes: 20 } },
+    weeklyGoal: 5,
+  });
+  assert.equal(st.log.length, 1);
+  assert.deepEqual(Object.keys(st.plan), ["0"]);
+  assert.equal(st.weeklyGoal, null);
+  assert.equal(sanitizeExercise({ weeklyGoal: 150 }).weeklyGoal, 150);
 });
 
 test("every module screen has Exit, the review notice and the not-saved warning", () => {
@@ -366,6 +559,9 @@ test("every module screen has Exit, the review notice and the not-saved warning"
     render(React.createElement(BrightDays, common)),
     render(React.createElement(SafeHarbor, common)),
     render(React.createElement(CycleCare, { ...common, role: "user" })),
+    render(React.createElement(PhysicalExercise, { ...common, role: "user" })),
+    render(React.createElement(FoodModule, { ...common, role: "user" })),
+    render(React.createElement(PcosPcodHub, { ...common, role: "user" })),
   ];
   for (const html of screens) {
     assert.match(html, /<button[^>]*>Exit<\/button>/);
@@ -392,6 +588,9 @@ test("no module screen claims an alert was sent or uses audio", () => {
     render(React.createElement(BrightDays, common)),
     render(React.createElement(SafeHarbor, common)),
     render(React.createElement(CycleCare, { ...common, role: "user" })),
+    render(React.createElement(PcosPcodHub, { ...common, role: "user" })),
+    render(React.createElement(PhysicalExercise, { ...common, role: "user" })),
+    render(React.createElement(FoodModule, { ...common, role: "user" })),
     render(React.createElement(StoryWorkflow, { ...common, isCaregiver: true })),
   ].join("\n");
   assert.doesNotMatch(all, /<audio|<video|autoplay/i);

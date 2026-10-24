@@ -6,11 +6,49 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'condition.dart';
 import 'diet_plan.dart';
 import 'health_assessment.dart';
 
 const String dietPrefsKey = 'safespace.cycle-care.diet.v1';
 const String profilePrefsKey = 'safespace.cycle-care.profile.v1';
+const String exercisePrefsKey = 'safespace.cycle-care.exercise.v1';
+const String conditionPrefsKey = 'safespace.cycle-care.condition.v1';
+
+/// Reads which label the person follows (PCOS, PCOD, not sure). Kept on this device only.
+Future<Condition?> loadCondition() async {
+  try {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    return conditionFromName(p.getString(conditionPrefsKey));
+  } catch (_) {
+    return null;
+  }
+}
+
+Future<void> saveCondition(Condition? c) async {
+  try {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    if (c == null) {
+      await p.remove(conditionPrefsKey);
+    } else {
+      await p.setString(conditionPrefsKey, c.name);
+    }
+  } catch (_) {
+    // not saved
+  }
+}
+
+/// Removes every PCOS / PCOD value kept on this device.
+Future<void> clearAllPcosData() async {
+  try {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    for (final String k in <String>[dietPrefsKey, profilePrefsKey, exercisePrefsKey, conditionPrefsKey]) {
+      await p.remove(k);
+    }
+  } catch (_) {
+    // nothing to clear
+  }
+}
 
 const TextStyle _heading = TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
 const TextStyle _sub = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
@@ -117,9 +155,14 @@ class _CoachCharacterState extends State<CoachCharacter> with SingleTickerProvid
   }
 }
 
+/// Diet plan, rewards and character ([showDiet]) and the health profile ([showProfile]). The Food
+/// module shows the diet part, the PCOS / PCOD hub shows the profile part.
 class HealthSections extends StatefulWidget {
   final bool lowSensory;
-  const HealthSections({super.key, required this.lowSensory});
+  final bool showDiet;
+  final bool showProfile;
+  final Condition? condition;
+  const HealthSections({super.key, required this.lowSensory, this.showDiet = true, this.showProfile = true, this.condition});
 
   @override
   State<HealthSections> createState() => _HealthSectionsState();
@@ -182,21 +225,6 @@ class _HealthSectionsState extends State<HealthSections> {
     _save();
   }
 
-  Future<void> _clearAll() async {
-    try {
-      final SharedPreferences p = await SharedPreferences.getInstance();
-      await p.remove(dietPrefsKey);
-      await p.remove(profilePrefsKey);
-    } catch (_) {
-      // nothing to clear
-    }
-    if (!mounted) return;
-    setState(() {
-      _diet = DietState.empty();
-      _profile = const Assessment();
-    });
-  }
-
   void _addPlan(String text) {
     final PlanResult r = addPlanItem(_diet.plan, _meal, text);
     setState(() => _planError = r.error);
@@ -217,15 +245,16 @@ class _HealthSectionsState extends State<HealthSections> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _card(<Widget>[
+        if (widget.showDiet) _card(<Widget>[
           const Text('Diet plan and rewards', style: _heading),
           const SizedBox(height: 12),
           Center(child: CoachCharacter(stance: reaction.stance, text: reaction.text, lowSensory: widget.lowSensory)),
           const SizedBox(height: 16),
           const Text('General eating tips', style: _sub),
           const SizedBox(height: 4),
-          for (final String g in generalGuidance) Text('• $g'),
+          for (final String g in <String>[...generalGuidance, ...foodFocusFor(widget.condition)]) Text('• $g'),
           const SizedBox(height: 4),
+          const Text(foodSharedNote),
           const Text(guidanceNote),
           const SizedBox(height: 16),
           const Text('My plan for today', style: _sub),
@@ -302,12 +331,14 @@ class _HealthSectionsState extends State<HealthSections> {
             child: Text(_diet.hideRewards ? 'Show stars and streaks' : 'Hide stars and streaks'),
           ),
         ]),
-        _profileCard(),
-        _card(<Widget>[
-          Text('The diet plan, rewards and health profile are kept on this device only, not in your account.${_saveFailed ? ' This device is not allowing saving, so they will be lost when you leave.' : ''}'),
-          const SizedBox(height: 8),
-          OutlinedButton(onPressed: _clearAll, child: const Text('Clear my diet and profile data')),
-        ]),
+        if (widget.showProfile) _profileCard(),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            'The ${widget.showDiet ? 'diet plan and rewards' : 'health profile'} are kept on this device only, not in your account.${_saveFailed ? ' This device is not allowing saving, so they will be lost when you leave.' : ''}',
+            style: const TextStyle(color: Colors.black54),
+          ),
+        ),
       ],
     );
   }

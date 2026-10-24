@@ -2,6 +2,7 @@
  * Placeholder module content. ALL of this is unreviewed and must not be treated
  * as clinical guidance (see docs/content-needing-review.md).
  */
+import { MYTHS, MYTHS_NOTE as CONDITION_MYTHS_NOTE } from "./condition";
 
 export const REVIEW_NOTICE = "Draft wording that is still waiting for a professional review.";
 
@@ -66,40 +67,10 @@ export const SLEEP_STRESS_IDEAS: readonly string[] = [
   "Write down tomorrow's worries so they stay on paper",
 ];
 
-export interface MythFact {
-  myth: string;
-  fact: string;
-}
 
-/** General education only. Unreviewed: needs clinician review before release. */
-export const PCOS_MYTHS: readonly MythFact[] = [
-  {
-    myth: "PCOS means you have cysts on your ovaries that must be removed.",
-    fact: "The name can be misleading. The small follicles seen on scans are not usually harmful cysts, and surgery is not the usual treatment. A doctor can explain what is right for you.",
-  },
-  {
-    myth: "Only people who are overweight get PCOS.",
-    fact: "PCOS can affect people of many body sizes, including people who are slim.",
-  },
-  {
-    myth: "Everyone with PCOS has the same symptoms.",
-    fact: "Symptoms differ a lot from person to person. Some people have irregular periods, some do not.",
-  },
-  {
-    myth: "PCOS means you can never have a baby.",
-    fact: "PCOS can make ovulation irregular, and some people need medical support, but many people with PCOS do become pregnant.",
-  },
-  {
-    myth: "Birth control pills cure PCOS.",
-    fact: "There is no cure. Treatments help manage symptoms, and the right choice is something to talk through with a doctor.",
-  },
-  {
-    myth: "PCOS is your fault.",
-    fact: "The exact cause is not fully known. Genes and hormones play a part. It is not caused by anything you did wrong.",
-  },
-];
-
-export const MYTHS_NOTE = "This is general information, not medical advice. Please talk to a doctor about your own health.";
+/** PCOS myths and facts (shared ones plus PCOS-only). The PCOD list lives in lib/condition.ts. */
+export const PCOS_MYTHS = MYTHS.filter((m) => m.appliesTo !== "pcod");
+export const MYTHS_NOTE = CONDITION_MYTHS_NOTE;
 
 /** Adult-only module: only adult 'user' accounts may open Cycle Care (pending adult-access decision). */
 export function canOpenCycleCare(role: string | null | undefined): boolean {
@@ -117,5 +88,5 @@ export const MODULES: readonly ModuleInfo[] = [
   { key: "anxiety", name: "Calm Space", path: "/modules/calm-space", blurb: "Breathing, grounding and calming tips." },
   { key: "depression", name: "Bright Days", path: "/modules/bright-days", blurb: "Small goals and gratitude notes." },
   { key: "ptsd", name: "Safe Harbor", path: "/modules/safe-harbor", blurb: "A quiet space with text relaxation steps." },
-  { key: "pcos_pcod", name: "Cycle Care", path: "/modules/cycle-care", blurb: "Check-ins, gentle movement, doctor-visit prep and self-care (adults only)." },
+  { key: "pcos_pcod", name: "PCOS / PCOD", path: "/modules/pcos-pcod", blurb: "Cycle Care, Physical Exercise and Food in one place (adults only)." },
 ];

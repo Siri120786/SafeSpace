@@ -134,14 +134,14 @@ const NoteList: React.FC<{
   );
 };
 
-export const DoctorVisitPrep: React.FC = () => {
+export const DoctorVisitPrep: React.FC<{ prompts?: readonly string[] }> = ({ prompts = VISIT_PROMPTS }) => {
   const [questions, setQuestions] = useState<string[]>([]);
   return (
     <Card className="space-y-3">
       <h2 className="font-display text-xl text-textHeading">Doctor visit prep</h2>
       <p className="text-sm text-textBody">Tap an idea to add it to your list, or write your own.</p>
       <div className="flex flex-wrap gap-2">
-        {VISIT_PROMPTS.map((q) => (
+        {prompts.map((q) => (
           <Button
             key={q}
             size="sm"

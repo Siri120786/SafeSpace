@@ -50,3 +50,5 @@ export function clearKey(key: string, store: KeyValueStore | null = browserStore
 
 export const DIET_KEY = "safespace.cycle-care.diet.v1";
 export const PROFILE_KEY = "safespace.cycle-care.profile.v1";
+export const EXERCISE_KEY = "safespace.cycle-care.exercise.v1";
+export const CONDITION_KEY = "safespace.cycle-care.condition.v1";

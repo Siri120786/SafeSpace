@@ -285,7 +285,8 @@ class _NoteListState extends State<_NoteList> {
 }
 
 class DoctorVisitPrepCard extends StatefulWidget {
-  const DoctorVisitPrepCard({super.key});
+  final List<String> prompts;
+  const DoctorVisitPrepCard({super.key, this.prompts = visitPrompts});
 
   @override
   State<DoctorVisitPrepCard> createState() => _DoctorVisitPrepCardState();
@@ -303,7 +304,7 @@ class _DoctorVisitPrepCardState extends State<DoctorVisitPrepCard> {
       Wrap(
         spacing: 8,
         children: <Widget>[
-          for (final String q in visitPrompts)
+          for (final String q in widget.prompts)
             ActionChip(
               label: Text(q),
               onPressed: () {

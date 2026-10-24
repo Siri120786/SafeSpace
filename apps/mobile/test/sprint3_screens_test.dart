@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,12 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:safespace_mobile/features/calm_tools/low_sensory.dart';
 import 'package:safespace_mobile/features/story_workflow/story_logic.dart';
 import 'package:safespace_mobile/features/story_workflow/story_workflow_screen.dart';
+import 'package:safespace_mobile/features/wellness_modules/condition.dart';
 import 'package:safespace_mobile/features/wellness_modules/cycle_care_extras.dart';
+import 'package:safespace_mobile/features/wellness_modules/exercise.dart';
 import 'package:safespace_mobile/features/wellness_modules/diet_plan.dart';
 import 'package:safespace_mobile/features/wellness_modules/health_assessment.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:safespace_mobile/features/wellness_modules/module_content.dart';
 import 'package:safespace_mobile/features/wellness_modules/module_screens.dart';
+import 'package:safespace_mobile/features/wellness_modules/pcos_screens.dart';
 
 const String goodBody =
     'Once there was a small bird who learned to wait for the rain to stop. Then it flew home.';
@@ -22,6 +26,12 @@ Widget _wrap(Widget child) {
     ],
     child: MaterialApp(home: child),
   );
+}
+
+void _tall(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 14000);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
 }
 
 void main() {
@@ -271,6 +281,138 @@ void main() {
     });
   });
 
+  group('condition content', () {
+    test('PCOS and PCOD each get their own wording, and both get every feature', () {
+      expect(aboutPcos.points.join(' '), contains('hormonal'));
+      expect(aboutPcod.points.join(' '), contains('milder'));
+      expect(termsNote.toLowerCase(), contains('ask your doctor which one applies'));
+      expect(differences.length >= 4 && differences.every((d) => d.pcos.isNotEmpty && d.pcod.isNotEmpty), true);
+      expect(visitQuestionsFor(Condition.pcos).join(' '), contains('insulin resistance'));
+      expect(visitQuestionsFor(Condition.pcod).join(' '), isNot(contains('insulin resistance')));
+      expect(visitQuestionsFor(Condition.pcod).join(' '), contains('periods are becoming more regular'));
+      expect(visitQuestionsFor(null).join(' '), contains('Which one applies to me'));
+      expect(visitQuestionsFor(Condition.pcos), isNot(visitQuestionsFor(Condition.pcod)));
+      expect(foodFocusFor(Condition.pcos), isNot(foodFocusFor(Condition.pcod)));
+      expect(foodFocusFor(Condition.pcos).join(' '), contains('insulin'));
+      expect(moveFocusFor(Condition.pcos), isNot(moveFocusFor(Condition.pcod)));
+      expect(moveFocusFor(Condition.pcos).join(' '), contains('muscle-strengthening'));
+      expect(moveFocusFor(Condition.pcod).join(' ').toLowerCase(), contains('yoga'));
+      for (final Condition c in Condition.values) {
+        expect(visitQuestionsFor(c).length >= 4 && foodFocusFor(c).length >= 2 && moveFocusFor(c).length >= 2 && mythsFor(c).length >= 6, true, reason: c.name);
+      }
+      expect(conditionFromName('pcod'), Condition.pcod);
+      expect(conditionFromName('other'), isNull);
+    });
+
+    test('myths: shared ones for everyone, PCOD-only and PCOS-only ones only for that label', () {
+      String list(Condition? c) => mythsFor(c).map((m) => m.myth).join('|');
+      expect(list(Condition.pcos), contains('Everyone with PCOS has the same symptoms'));
+      expect(list(Condition.pcos), isNot(contains('PCOD is a serious disease')));
+      expect(list(Condition.pcod), contains('PCOD is a serious disease'));
+      expect(list(Condition.pcod), isNot(contains('Everyone with PCOS has the same symptoms')));
+      expect(mythsFor(Condition.unsure).length, myths.length);
+      expect(pcosMyths.length >= 5, true);
+    });
+
+    test('wording never shames, talks about weight loss or calories, or diagnoses', () {
+      final RegExp bad = RegExp('calor|BMI|target weight|lose weight|weight loss|fat loss|slim down|diagnos(e|ed) you|you have (PCOS|PCOD)', caseSensitive: false);
+      for (final String t in allConditionTexts()) {
+        expect(bad.hasMatch(t), false, reason: t);
+      }
+    });
+  });
+
+  group('exercise logic', () {
+    const String mon = '2026-10-26';
+
+    test('logging validates minutes, and sums per day and per week (Monday to Sunday)', () {
+      expect(parseMinutes(' 25 '), 25);
+      expect(parseMinutes('0'), isNull);
+      expect(parseMinutes('301'), isNull);
+      expect(parseMinutes('abc'), isNull);
+      expect(addEntry(ExerciseState.empty(), mon, ActivityType.walk, 0).error, isNotNull);
+      ExerciseState st = ExerciseState.empty();
+      for (final List<Object> e in <List<Object>>[
+        <Object>[mon, ActivityType.walk, 20],
+        <Object>[mon, ActivityType.yoga, 30],
+        <Object>['2026-10-28', ActivityType.yoga, 20],
+        <Object>['2026-11-01', ActivityType.strength, 15],
+        <Object>['2026-11-02', ActivityType.walk, 60],
+      ]) {
+        st = addEntry(st, e[0] as String, e[1] as ActivityType, e[2] as int).state!;
+      }
+      expect(weekdayIndex('2026-10-26'), 0);
+      expect(weekdayIndex('2026-11-01'), 6);
+      expect(weekDates('2026-10-29').first, '2026-10-26');
+      expect(weekDates('2026-10-29').last, '2026-11-01');
+      expect(minutesOn(st, mon), 50);
+      expect(minutesOn(st, mon, ActivityType.yoga), 30);
+      final WeekSummary w = summarizeWeek(st, '2026-10-29');
+      expect(w.totalMinutes, 85);
+      expect(w.yogaMinutes, 50);
+      expect(w.daysActive, 3);
+      expect(summarizeWeek(st, '2026-11-02').totalMinutes, 60);
+      expect(removeEntry(st, 0).log.length, 4);
+    });
+
+    test('weekly plan, rest days and plan status follow what was logged', () {
+      final ExerciseState planned = setPlanDay(ExerciseState.empty(), 0, const PlannedDay(ActivityType.walk, 20)).state!;
+      expect(setPlanDay(planned, 9, null).error, isNotNull);
+      expect(setPlanDay(planned, 1, const PlannedDay(ActivityType.walk, 0)).error, isNotNull);
+      expect(planStatus(planned, mon), PlanStatus.todo);
+      expect(planStatus(planned, '2026-10-27'), PlanStatus.rest);
+      final ExerciseState part = addEntry(planned, mon, ActivityType.walk, 10).state!;
+      expect(planStatus(part, mon), PlanStatus.partly);
+      expect(planStatus(addEntry(part, mon, ActivityType.yoga, 40).state!, mon), PlanStatus.partly);
+      final ExerciseState done = addEntry(part, mon, ActivityType.walk, 10).state!;
+      expect(planStatus(done, mon), PlanStatus.done);
+      expect(plannedMinutesPerWeek(done.plan), 20);
+      expect(planStatus(setPlanDay(done, 0, null).state!, mon), PlanStatus.rest);
+    });
+
+    test('weekly goal is optional and validated, and messages never rank, shame or mention the body', () {
+      expect(setWeeklyGoal(ExerciseState.empty(), '').state!.weeklyGoal, isNull);
+      expect(setWeeklyGoal(ExerciseState.empty(), '150').state!.weeklyGoal, 150);
+      expect(setWeeklyGoal(ExerciseState.empty(), '5').error, isNotNull);
+      expect(setWeeklyGoal(ExerciseState.empty(), '99999').error, isNotNull);
+      expect(setWeeklyGoal(ExerciseState.empty(), 'abc').error, isNotNull);
+      expect(weekMessage(ExerciseState.empty(), mon).toLowerCase(), contains('even a short stretch counts'));
+      expect(weekMessage(ExerciseState(<LogEntry>[LogEntry(mon, ActivityType.yoga, 30)], const <int, PlannedDay>{}, 30), mon), contains('reached the goal you set'));
+      expect(weekMessage(ExerciseState(<LogEntry>[LogEntry(mon, ActivityType.yoga, 30)], const <int, PlannedDay>{}, 100), mon), contains('30 of those were yoga'));
+      final ExerciseState planDone = ExerciseState(<LogEntry>[LogEntry(mon, ActivityType.walk, 20)], <int, PlannedDay>{0: const PlannedDay(ActivityType.walk, 20)}, null);
+      expect(exerciseReaction(planDone, mon, 12).stance, Stance.celebrating);
+      expect(exerciseReaction(planDone, mon, 12).text.toLowerCase(), contains('yayyy'));
+      expect(exerciseReaction(ExerciseState.empty(), mon, 10).text.toLowerCase(), contains('rest day'));
+      expect(exerciseReaction(ExerciseState(<LogEntry>[LogEntry(mon, ActivityType.walk, 250)], const <int, PlannedDay>{}, null), mon, 12).text.toLowerCase(), contains('rest'));
+      expect(isLongDay(ExerciseState(<LogEntry>[LogEntry(mon, ActivityType.walk, 181)], const <int, PlannedDay>{}, null), mon), true);
+      final RegExp bad = RegExp('lazy|failed|failure|bad|cheat|guilt|punish|fat|ugly|disappoint|behind|should have|give up|calor|weight|BMI|burn', caseSensitive: false);
+      for (final String l in allExerciseLines()) {
+        expect(bad.hasMatch(l), false, reason: l);
+      }
+    });
+
+    test('stored exercise data is sanitised and round-trips', () {
+      expect(exerciseFromJson('nonsense').log, isEmpty);
+      final ExerciseState st = exerciseFromJson(<String, dynamic>{
+        'log': <Object>[
+          <String, Object>{'date': '2026-10-26', 'type': 'yoga', 'minutes': 30},
+          <String, Object>{'date': 'bad', 'type': 'yoga', 'minutes': 30},
+          <String, Object>{'date': '2026-10-26', 'type': 'swim', 'minutes': 30},
+          <String, Object>{'date': '2026-10-26', 'type': 'walk', 'minutes': 9999},
+        ],
+        'plan': <String, Object>{'0': <String, Object>{'type': 'walk', 'minutes': 20}, '9': <String, Object>{'type': 'walk', 'minutes': 20}, '1': <String, Object>{'type': 'bad', 'minutes': 20}},
+        'weeklyGoal': 5,
+      });
+      expect(st.log.length, 1);
+      expect(st.plan.keys, <int>[0]);
+      expect(st.weeklyGoal, isNull);
+      final ExerciseState back = exerciseFromJson(exerciseToJson(ExerciseState(<LogEntry>[LogEntry(mon, ActivityType.yoga, 30)], <int, PlannedDay>{2: const PlannedDay(ActivityType.walk, 25)}, 150)));
+      expect(back.log.single.minutes, 30);
+      expect(back.plan[2]!.minutes, 25);
+      expect(back.weeklyGoal, 150);
+    });
+  });
+
   group('module screens', () {
     testWidgets('every module screen has Exit, the review notice and the not-saved warning', (tester) async {
       final List<Widget> screens = <Widget>[
@@ -278,6 +420,9 @@ void main() {
         BrightDaysScreen(onExit: () {}),
         SafeHarborScreen(onExit: () {}),
         CycleCareScreen(role: 'user', onExit: () {}),
+        PcosPcodHubScreen(role: 'user', onExit: () {}),
+        PhysicalExerciseScreen(role: 'user', onExit: () {}),
+        FoodScreen(role: 'user', onExit: () {}),
       ];
       for (final Widget s in screens) {
         await tester.pumpWidget(_wrap(s));
@@ -288,102 +433,114 @@ void main() {
       }
     });
 
-    testWidgets('cycle care shows PCOS myths and facts', (tester) async {
-      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
-      await tester.pump();
-      await tester.ensureVisible(find.text('PCOS myths and facts'));
-      expect(find.text('PCOS myths and facts'), findsOneWidget);
-      expect(find.textContaining('Myth: PCOS means you have cysts'), findsOneWidget);
-      expect(find.textContaining('not medical advice'), findsWidgets);
-      expect(pcosMyths.length >= 5, true);
-    });
-
-    testWidgets('cycle care shows the new adult features and no cycle tracking', (tester) async {
-      tester.view.physicalSize = const Size(800, 6000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
+    testWidgets('cycle care has check-in, medicine notes, reminders note and doctor prep, and nothing from the other modules', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      _tall(tester);
       await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
       await tester.pump();
       expect(find.text('How are you today?'), findsOneWidget);
-      expect(find.text('Movement for your energy'), findsOneWidget);
-      expect(find.text('Water so far today'), findsOneWidget);
       expect(find.text('My medicine and supplement notes'), findsOneWidget);
+      expect(find.text('Medicine and supplement reminders'), findsOneWidget);
       expect(find.text('Doctor visit prep'), findsOneWidget);
+      expect(find.text('Sleep and stress'), findsOneWidget);
+      expect(find.text('Back to PCOS / PCOD'), findsOneWidget);
       expect(find.textContaining('does not set target weights, calorie targets or BMI scores'), findsOneWidget);
       expect(find.textContaining('no cycle tracking'), findsOneWidget);
-      expect(find.textContaining(RegExp('log (your )?period|last period|cycle day', caseSensitive: false)), findsNothing);
+      for (final String t in <String>['Diet plan and rewards', 'Water so far today', 'Movement for your energy', 'My health profile']) {
+        expect(find.text(t), findsNothing, reason: t);
+      }
     });
 
-    testWidgets('cycle care: water tally goes up and down, never below zero', (tester) async {
-      tester.view.physicalSize = const Size(800, 6000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
-      await tester.pump();
-      expect(find.text('0 glasses'), findsOneWidget);
-      await tester.tap(find.byTooltip('Add a glass'));
-      await tester.pump();
-      expect(find.text('1 glass'), findsOneWidget);
-      await tester.tap(find.byTooltip('Remove a glass'));
-      await tester.pump();
-      expect(find.text('0 glasses'), findsOneWidget);
-    });
-
-    testWidgets('cycle care: movement ideas follow the chosen energy level', (tester) async {
-      tester.view.physicalSize = const Size(800, 6000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
-      await tester.pump();
-      expect(find.textContaining('Slow stretching'), findsNothing);
-      await tester.tap(find.widgetWithText(ChoiceChip, 'Running low').last);
-      await tester.pump();
-      expect(find.textContaining('Slow stretching'), findsOneWidget);
-    });
-
-    testWidgets('cycle care shows diet plan, rewards, health profile and the reminders note, and caregivers see none', (tester) async {
+    testWidgets('hub: label choice, about, differences, care spaces, profile and myths, and it follows the chosen label', (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
-      tester.view.physicalSize = const Size(800, 12000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
+      _tall(tester);
+      await tester.pumpWidget(_wrap(PcosPcodHubScreen(role: 'user', onExit: () {})));
+      await tester.pump();
+      expect(find.text('What does your doctor call it?'), findsOneWidget);
+      expect(find.text('PCOS'), findsOneWidget);
+      expect(find.text('PCOD'), findsOneWidget);
+      expect(find.text('Not sure yet'), findsOneWidget);
+      expect(find.textContaining('About PCOS'), findsOneWidget);
+      expect(find.textContaining('About PCOD'), findsOneWidget);
+      expect(find.text('PCOD and PCOS at a glance'), findsOneWidget);
+      for (final String t in <String>['Cycle Care', 'Physical Exercise', 'Food']) {
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
+      expect(find.text('My health profile'), findsOneWidget);
+      expect(find.text('PCOS and PCOD myths and facts'), findsOneWidget);
+      expect(find.text('Clear all my PCOS / PCOD data'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'PCOD'));
+      await tester.pump();
+      expect(find.textContaining('About PCOS'), findsNothing);
+      expect(find.text('PCOD myths and facts'), findsOneWidget);
+      expect(find.textContaining('Myth: PCOD is a serious disease'), findsOneWidget);
+      expect(find.textContaining('Myth: Everyone with PCOS has the same symptoms'), findsNothing);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'PCOS'));
+      await tester.pump();
+      expect(find.textContaining('About PCOD'), findsNothing);
+      expect(find.textContaining('Myth: Everyone with PCOS has the same symptoms'), findsOneWidget);
+      expect(find.textContaining('Myth: PCOD is a serious disease'), findsNothing);
+    });
+
+    testWidgets('food: diet plan, rewards and water; adding a meal and ticking it makes the character celebrate', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      _tall(tester);
+      await tester.pumpWidget(_wrap(FoodScreen(role: 'user', onExit: () {})));
       await tester.pump();
       expect(find.text('Diet plan and rewards'), findsOneWidget);
       expect(find.text('General eating tips'), findsOneWidget);
+      expect(find.textContaining('Crash diets and skipping meals are not recommended'), findsOneWidget);
       expect(find.textContaining('Add a few meals to your plan'), findsOneWidget);
-      expect(find.text('0'), findsWidgets);
+      expect(find.text('Water so far today'), findsOneWidget);
       expect(find.text('Hide stars and streaks'), findsOneWidget);
-      expect(find.text('My health profile'), findsOneWidget);
-      for (final String t in <String>['Menstrual cycle patterns', 'Health and medical history', 'Current eating habits', 'Nutritional requirements', 'Food preferences', 'Individual health goals']) {
-        expect(find.text(t), findsOneWidget, reason: t);
-      }
-      expect(find.text('Show my private summary'), findsOneWidget);
-      expect(find.text('Medicine and supplement reminders'), findsOneWidget);
-      expect(find.textContaining('kept on this device only'), findsWidgets);
-
-      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'caregiver', onExit: () {})));
-      await tester.pump();
-      expect(find.text('Diet plan and rewards'), findsNothing);
-    });
-
-    testWidgets('cycle care: adding a meal and ticking it makes the character celebrate and gives stars', (tester) async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
-      tester.view.physicalSize = const Size(800, 12000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
-      await tester.pump();
       await tester.tap(find.widgetWithText(ActionChip, 'Vegetable oats upma'));
       await tester.pump();
-      expect(find.textContaining('Nothing planned yet'), findsNWidgets(3));
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Breakfast'));
       await tester.pump();
       expect(find.textContaining('Yayyy! You finished'), findsOneWidget);
-      expect(find.text('2'), findsWidgets);
       await tester.tap(find.text('Hide stars and streaks'));
       await tester.pump();
-      expect(find.text('Show stars and streaks'), findsOneWidget);
       expect(find.textContaining('Stars and streaks are hidden'), findsOneWidget);
+      await tester.tap(find.byTooltip('Add a glass'));
+      await tester.pump();
+      expect(find.text('1 glass'), findsOneWidget);
+    });
+
+    testWidgets('exercise: log minutes, yoga time, weekly plan and the week summary', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      _tall(tester);
+      await tester.pumpWidget(_wrap(PhysicalExerciseScreen(role: 'user', onExit: () {})));
+      await tester.pump();
+      for (final String t in <String>['Movement for your condition', 'Movement for your energy', 'Today\'s movement', 'Yoga time', 'My weekly workout plan', 'This week']) {
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
+      expect(find.textContaining('does not count calories burned'), findsOneWidget);
+      expect(find.text('Today: 0 minutes'), findsOneWidget);
+      await tester.enterText(find.widgetWithText(TextField, 'Minutes'), '25');
+      await tester.tap(find.text('Add to today'));
+      await tester.pump();
+      expect(find.text('Walking · 25 min'), findsOneWidget);
+      expect(find.text('Today: 25 minutes'), findsOneWidget);
+      await tester.tap(find.widgetWithText(ActionChip, '30 min yoga'));
+      await tester.pump();
+      expect(find.text('Today: 55 minutes'), findsOneWidget);
+      expect(find.textContaining('this week: 30 min'), findsOneWidget);
+      expect(find.textContaining('30 of those were yoga'), findsOneWidget);
+      await tester.enterText(find.widgetWithText(TextField, 'Minutes'), '0');
+      await tester.tap(find.text('Add to today'));
+      await tester.pump();
+      expect(find.textContaining('between 1 and 300'), findsOneWidget);
+    });
+
+    testWidgets('hub, exercise and food are adult-only', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      for (final Widget w in <Widget>[PcosPcodHubScreen(role: 'caregiver', onExit: () {}), PhysicalExerciseScreen(role: 'caregiver', onExit: () {}), FoodScreen(role: 'caregiver', onExit: () {})]) {
+        await tester.pumpWidget(_wrap(w));
+        await tester.pump();
+        expect(find.textContaining('adult accounts only'), findsOneWidget);
+      }
     });
 
     testWidgets('cycle care blocks caregivers', (tester) async {
