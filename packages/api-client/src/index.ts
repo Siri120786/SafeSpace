@@ -148,6 +148,10 @@ export {
   getToolSettings,
   saveMyToolSettings,
   starTotalsOf,
+  getChildToolsOverview,
+  getChildToolSetup,
+  setChildStarGoal,
+  setChildToolSettings,
 } from "./focusTools";
 export type {
   FocusSessionRecordRow,
@@ -159,4 +163,5 @@ export type {
   StarTotals,
   EmotionChoice,
   ToolSettings,
+  ChildToolsOverview,
 } from "./focusTools";

@@ -30,6 +30,7 @@ import ChildSettingsPage from "./pages/ChildSettingsPage";
 import ChildTalkPage from "./pages/ChildTalkPage";
 import { ChildStoriesPage, ChildStoryPage } from "./pages/ChildStoriesPage";
 import { CaregiverStoriesPage, CaregiverStoryEditorPage } from "./pages/CaregiverStoriesPage";
+import CaregiverChildToolsPage from "./pages/CaregiverChildToolsPage";
 import {
   ChildConditionToolPage,
   ChildConditionToolsPage,
@@ -148,6 +149,10 @@ export default function App() {
             <Route
               path={ROUTES.CAREGIVER_CHILD_CAREGIVERS}
               element={<RoleRoute allow={["caregiver"]}><CaregiverChildCaregiversPage /></RoleRoute>}
+            />
+            <Route
+              path={ROUTES.CAREGIVER_CHILD_TOOLS}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverChildToolsPage /></RoleRoute>}
             />
             <Route
               path={ROUTES.CAREGIVER_STORIES}

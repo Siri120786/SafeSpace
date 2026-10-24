@@ -363,3 +363,84 @@ export async function saveMyToolSettings(session: AppSession, settings: Partial<
   const { error } = await getSafeSpaceClient().from("tool_settings").upsert(row, { onConflict: "profile_id" });
   if (error) fail(error);
 }
+
+// ---------------------------------------------------------------------------
+// Caregivers (role-flow 8f)
+// ---------------------------------------------------------------------------
+
+export interface ChildToolsOverview {
+  sessions: FocusSessionRecordRow[]; // the last 60 days
+  tasks: FocusTask[];                // not archived
+  habits: Habit[];                   // not archived
+  checks: HabitCheck[];              // the last 31 days
+  stars: StarTotals & { goal: StarGoal | null };
+  feelings: EmotionChoice[];         // the latest 20
+}
+
+// A child's tool activity for their caregiver, read under RLS: under 15
+// always; from 15 only when the child shares (otherwise every list is empty,
+// and the page shows its "chose not to share" note instead).
+export async function getChildToolsOverview(childId: string): Promise<ChildToolsOverview> {
+  const db = getSafeSpaceClient();
+  const since = daysAgo(FOCUS_SESSION_HISTORY_DAYS).toISOString();
+  const habitSince = daysAgo(HABIT_HISTORY_DAYS).toISOString().slice(0, 10);
+  const [sessions, tasks, habits, stars, goal, feelings] = await Promise.all([
+    db.from("focus_sessions").select(SESSION_COLS).eq("child_id", childId).gte("ended_at", since).order("ended_at", { ascending: false }).limit(500),
+    db.from("focus_tasks").select(TASK_COLS).eq("child_id", childId).eq("is_archived", false).order("created_at", { ascending: false }),
+    db.from("habits").select(HABIT_COLS).eq("child_id", childId).eq("is_archived", false).order("created_at", { ascending: true }),
+    db.from("star_events").select("kind, stars").eq("child_id", childId),
+    db.from("star_goals").select("title, target_stars, icon").eq("child_id", childId).maybeSingle(),
+    db.from("emotion_choices").select("id, card_id, created_at").eq("child_id", childId).order("created_at", { ascending: false }).limit(20),
+  ]);
+  for (const r of [sessions, tasks, habits, stars, goal, feelings]) if (r.error) fail(r.error);
+  const habitRows = (habits.data ?? []).map(toHabit);
+  let checks: HabitCheck[] = [];
+  if (habitRows.length) {
+    const { data, error } = await db.from("habit_checks").select("habit_id, day")
+      .in("habit_id", habitRows.map((h) => h.id)).gte("day", habitSince);
+    if (error) fail(error);
+    checks = (data ?? []).map((c: Row) => ({ habitId: c.habit_id, day: c.day }));
+  }
+  return {
+    sessions: (sessions.data ?? []).map(toSession),
+    tasks: (tasks.data ?? []).map(toTask),
+    habits: habitRows,
+    checks,
+    stars: {
+      ...starTotalsOf(stars.data ?? []),
+      goal: goal.data ? { title: goal.data.title, targetStars: goal.data.target_stars, icon: goal.data.icon ?? null } : null,
+    },
+    feelings: (feelings.data ?? []).map(toEmotion),
+  };
+}
+
+// The child's tool setup (any caregiver, whatever the sharing choice).
+export async function getChildToolSetup(childId: string): Promise<{ goal: StarGoal | null; settings: ToolSettings }> {
+  const db = getSafeSpaceClient();
+  const [goal, settings] = await Promise.all([
+    db.from("star_goals").select("title, target_stars, icon").eq("child_id", childId).maybeSingle(),
+    db.from("tool_settings").select("transition_preset, aac_labels").eq("child_id", childId).maybeSingle(),
+  ]);
+  if (goal.error) fail(goal.error);
+  if (settings.error) fail(settings.error);
+  return {
+    goal: goal.data ? { title: goal.data.title, targetStars: goal.data.target_stars, icon: goal.data.icon ?? null } : null,
+    settings: { transitionPreset: settings.data?.transition_preset ?? null, aacLabels: settings.data?.aac_labels ?? {} },
+  };
+}
+
+export async function setChildStarGoal(childId: string, goal: StarGoal): Promise<void> {
+  const { error } = await getSafeSpaceClient().from("star_goals").upsert(
+    { child_id: childId, title: goal.title.trim(), target_stars: goal.targetStars, icon: goal.icon || null },
+    { onConflict: "child_id" },
+  );
+  if (error) fail(error);
+}
+
+export async function setChildToolSettings(childId: string, settings: Partial<ToolSettings>): Promise<void> {
+  const row: Row = { child_id: childId };
+  if (settings.transitionPreset !== undefined) row.transition_preset = settings.transitionPreset;
+  if (settings.aacLabels !== undefined) row.aac_labels = settings.aacLabels;
+  const { error } = await getSafeSpaceClient().from("tool_settings").upsert(row, { onConflict: "child_id" });
+  if (error) fail(error);
+}

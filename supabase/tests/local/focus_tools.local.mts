@@ -48,6 +48,10 @@ import {
   clearMyEmotionChoices,
   getToolSettings,
   saveMyToolSettings,
+  getChildToolsOverview,
+  getChildToolSetup,
+  setChildStarGoal,
+  setChildToolSettings,
 } from "../../../packages/api-client/src/index.ts";
 
 const ok = (n: string, c: boolean) => {
@@ -172,3 +176,29 @@ ok("a goal set for one child isn't another's", (await getStars(teen)).goal === n
 ok("a PIN reset ends the child's session for the tools too", (await fails(listFocusSessions(kid))) === "invalid_session");
 kid = await verifyChildPin(family, "1357");
 ok("after signing in again: goal set by the caregiver, claimable", (await getStars(kid)).goal?.title === "Park trip" && (await claimStarGoal(kid)).claimed);
+
+// ---------------------------------------------------------------------------
+// The caregiver's view and setup (role-flow 8f)
+// ---------------------------------------------------------------------------
+await logInUser(co.email, co.password);
+const view = await getChildToolsOverview(kidId);
+ok("a co-caregiver sees the 9-year-old's tools at a glance",
+  view.sessions.length === 1 && view.tasks.length === 1 && view.habits.length === 1 && view.checks.length === 1 &&
+  view.feelings[0]?.cardId === "overwhelmed" && view.stars.goal?.title === "Park trip");
+await setChildStarGoal(kidId, { title: "Ice cream", targetStars: 3, icon: "🍦" });
+await setChildToolSettings(kidId, { transitionPreset: { activity: "Bath time", totalSeconds: 120 } });
+await setChildToolSettings(kidId, { aacLabels: { play: "Lego" } });
+const setup = await getChildToolSetup(kidId);
+ok("any caregiver sets the goal, countdown and words (each save keeps the others)",
+  setup.goal?.title === "Ice cream" && setup.settings.transitionPreset?.activity === "Bath time" && setup.settings.aacLabels.play === "Lego");
+ok("bad setup is refused", (await fails(setChildToolSettings(kidId, { transitionPreset: { activity: "x", totalSeconds: 5 } }))) === "invalid_input");
+await logOut();
+await logInUser(primary.email, primary.password);
+const teenView = await getChildToolsOverview(teenId);
+ok("a 15+ child who doesn't share: the overview is empty", teenView.sessions.length + teenView.tasks.length + teenView.feelings.length === 0);
+ok("…but the teen's setup is still the caregiver's to set", (await fails(setChildStarGoal(teenId, { title: "Cinema", targetStars: 5, icon: null }))) === "no_error");
+await logOut();
+const kidSettings = await getToolSettings(kid);
+ok("the child gets the caregiver's countdown and words", kidSettings.transitionPreset?.totalSeconds === 120 && kidSettings.aacLabels.play === "Lego");
+ok("…and the new goal", (await getStars(kid)).goal?.title === "Ice cream");
+
