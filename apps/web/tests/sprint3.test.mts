@@ -17,6 +17,20 @@ import {
 } from "../src/features/story-workflow/lib/storyWorkflow.ts";
 import { MODULES, PCOS_MYTHS, canOpenCycleCare, SUPPORT_TEXT } from "../src/features/wellness-modules/lib/content.ts";
 import { StoryWorkflow } from "../src/features/story-workflow/components/StoryWorkflow.tsx";
+import {
+  BODY_KINDNESS_TEXT,
+  CYCLE_CARE_TEXTS,
+  MAX_ITEMS,
+  MAX_ITEM_LENGTH,
+  MAX_WATER,
+  MOVEMENT_BY_ENERGY,
+  addNote,
+  bumpWater,
+  describeCheckIn,
+  isBodyNeutral,
+  removeNote,
+  summarizeCheckIns,
+} from "../src/features/wellness-modules/lib/cycleCare.ts";
 import { BrightDays, CalmSpace, CycleCare, ModulesHome, SafeHarbor } from "../src/features/wellness-modules/components/ModuleScreens.tsx";
 import { BreathingExercise } from "../src/features/calm-tools/components/BreathingExercise.tsx";
 import { GroundingExercise } from "../src/features/calm-tools/components/GroundingExercise.tsx";
@@ -115,6 +129,53 @@ test("cycle care: caregivers are blocked, adults see the checklist and no cycle 
   assert.match(ok, /not medical advice/);
   assert.ok(PCOS_MYTHS.length >= 5 && PCOS_MYTHS.every((m) => m.myth && m.fact));
   assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"/i);
+});
+
+test("cycle care extras: check-in wording is gentle and the summary never ranks or streaks", () => {
+  assert.match(describeCheckIn({}), /skipping is always fine/i);
+  assert.match(describeCheckIn({ energy: "low", sleep: "good" }), /energy: running low.*restful/i);
+  assert.match(summarizeCheckIns([]), /no check-ins yet/i);
+  assert.match(summarizeCheckIns([{ energy: "good" }]), /1 time /);
+  assert.match(summarizeCheckIns([{ comfort: "low" }, { comfort: "low" }]), /mention it to your doctor/i);
+  assert.doesNotMatch(summarizeCheckIns([{ mood: "good" }, { mood: "good" }]), /streak|best|worst|score|goal/i);
+  for (const lv of ["low", "okay", "good"] as const) assert.ok(MOVEMENT_BY_ENERGY[lv].length >= 3);
+});
+
+test("cycle care extras: note lists trim, reject empty, duplicates, long text and full lists", () => {
+  assert.deepEqual(addNote([], "  Ask about tests  "), { ok: true, items: ["Ask about tests"] });
+  assert.equal(addNote([], "   ").ok, false);
+  assert.equal(addNote(["Vitamin D"], "vitamin d").ok, false);
+  assert.equal(addNote([], "x".repeat(MAX_ITEM_LENGTH + 1)).ok, false);
+  const full = Array.from({ length: MAX_ITEMS }, (_, i) => `n${i}`);
+  assert.equal(addNote(full, "one more").ok, false);
+  assert.deepEqual(removeNote(["a", "b", "c"], 1), ["a", "c"]);
+});
+
+test("cycle care extras: water tally has no target, never goes below 0 and stops at a sane limit", () => {
+  assert.equal(bumpWater(0, -1), 0);
+  assert.equal(bumpWater(2, 1), 3);
+  assert.equal(bumpWater(MAX_WATER, 1), MAX_WATER);
+});
+
+test("cycle care extras: wording is body-neutral (no weight, calories, diets or streaks)", () => {
+  for (const text of CYCLE_CARE_TEXTS) assert.ok(isBodyNeutral(text), `not body-neutral: ${text}`);
+  assert.equal(isBodyNeutral("Track your calories"), false);
+  assert.equal(isBodyNeutral("Keep your streak going"), false);
+  assert.equal(isBodyNeutral(BODY_KINDNESS_TEXT), true);
+});
+
+test("cycle care screen shows the new adult features and still has no cycle tracking", () => {
+  const ok = render(React.createElement(CycleCare, { ...common, role: "user" }));
+  assert.match(ok, /How are you today\?/);
+  assert.match(ok, /Movement for your energy/);
+  assert.match(ok, /Water so far today/);
+  assert.match(ok, /medicine and supplement notes/);
+  assert.match(ok, /Doctor visit prep/);
+  assert.match(ok, /does not track weight, calories or body size/);
+  assert.match(ok, /no goal to reach/i);
+  assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"|streak/i);
+  const blocked = render(React.createElement(CycleCare, { ...common, role: "caregiver" }));
+  assert.doesNotMatch(blocked, /How are you today/);
 });
 
 test("every module screen has Exit, the review notice and the not-saved warning", () => {

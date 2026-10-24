@@ -11,7 +11,6 @@ import {
   GRATITUDE_PROMPT,
   HOBBY_IDEAS,
   MODULES,
-  MOVEMENT_IDEAS,
   MYTHS_NOTE,
   PCOS_CHECKLIST,
   PCOS_MYTHS,
@@ -21,6 +20,7 @@ import {
   SUPPORT_TEXT,
   canOpenCycleCare,
 } from "../lib/content";
+import { BodyKindness, DailyCheckIn, DoctorVisitPrep, MedicationNotes, MovementPicker, WaterTally } from "./CycleCareExtras";
 
 export interface ModuleScreenProps {
   lowSensory: boolean;
@@ -248,6 +248,7 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
   return (
     <CalmToolShell title="Cycle Care" {...p}>
       <div className="space-y-4">
+        <DailyCheckIn />
         <Card className="space-y-3">
           <h2 className="font-display text-xl text-textHeading">Today's self-care</h2>
           <ul className="space-y-2">
@@ -278,14 +279,10 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
           ))}
           <p className="text-sm text-textMuted">{MYTHS_NOTE}</p>
         </Card>
-        <Card className="space-y-2">
-          <h2 className="font-display text-xl text-textHeading">Gentle movement</h2>
-          <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-            {MOVEMENT_IDEAS.map((m) => (
-              <li key={m}>{m}</li>
-            ))}
-          </ul>
-        </Card>
+        <MovementPicker />
+        <WaterTally />
+        <MedicationNotes />
+        <DoctorVisitPrep />
         <Card className="space-y-2">
           <h2 className="font-display text-xl text-textHeading">Sleep and stress</h2>
           <ul className="list-disc pl-5 text-base text-textBody space-y-1">
@@ -297,6 +294,7 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
             Open the breathing exercise
           </Link>
         </Card>
+        <BodyKindness />
         <Notes extra="There is no cycle tracking in this version. Always follow your own doctor's advice." />
       </div>
     </CalmToolShell>

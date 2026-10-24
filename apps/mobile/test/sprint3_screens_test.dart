@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:safespace_mobile/features/calm_tools/low_sensory.dart';
 import 'package:safespace_mobile/features/story_workflow/story_logic.dart';
 import 'package:safespace_mobile/features/story_workflow/story_workflow_screen.dart';
+import 'package:safespace_mobile/features/wellness_modules/cycle_care_extras.dart';
 import 'package:safespace_mobile/features/wellness_modules/module_content.dart';
 import 'package:safespace_mobile/features/wellness_modules/module_screens.dart';
 
@@ -118,6 +119,41 @@ void main() {
     });
   });
 
+  group('cycle care extras logic', () {
+    test('check-in wording is gentle and the summary never ranks or streaks', () {
+      expect(describeCheckIn(<String, Level>{}), contains('Skipping is always fine'));
+      expect(describeCheckIn(<String, Level>{'energy': Level.low, 'sleep': Level.good}).toLowerCase(), contains('energy: running low'));
+      expect(summarizeCheckIns(<CheckIn>[]), contains('No check-ins yet'));
+      expect(summarizeCheckIns(<CheckIn>[<String, Level>{'energy': Level.good}]), contains('1 time on'));
+      expect(summarizeCheckIns(<CheckIn>[<String, Level>{'comfort': Level.low}, <String, Level>{'comfort': Level.low}]), contains('mention it to your doctor'));
+      expect(summarizeCheckIns(<CheckIn>[<String, Level>{'mood': Level.good}]).toLowerCase(), isNot(contains('streak')));
+    });
+
+    test('note lists trim and reject empty, duplicate, long and overflow input', () {
+      expect(addNote(<String>[], '  Ask about tests  ').items, <String>['Ask about tests']);
+      expect(addNote(<String>[], '   ').error, isNotNull);
+      expect(addNote(<String>['Vitamin D'], 'vitamin d').error, isNotNull);
+      expect(addNote(<String>[], 'x' * (maxItemLength + 1)).error, isNotNull);
+      expect(addNote(List<String>.generate(maxItems, (i) => 'n$i'), 'one more').error, isNotNull);
+      expect(removeNote(<String>['a', 'b', 'c'], 1), <String>['a', 'c']);
+    });
+
+    test('water tally stays within 0 and the limit', () {
+      expect(bumpWater(0, -1), 0);
+      expect(bumpWater(2, 1), 3);
+      expect(bumpWater(maxWater, 1), maxWater);
+    });
+
+    test('wording is body-neutral', () {
+      for (final String t in cycleCareTexts) {
+        expect(isBodyNeutral(t), true, reason: t);
+      }
+      expect(isBodyNeutral('Track your calories'), false);
+      expect(isBodyNeutral('Keep your streak going'), false);
+      expect(isBodyNeutral(bodyKindnessText), true);
+    });
+  });
+
   group('module screens', () {
     testWidgets('every module screen has Exit, the review notice and the not-saved warning', (tester) async {
       final List<Widget> screens = <Widget>[
@@ -143,6 +179,49 @@ void main() {
       expect(find.textContaining('Myth: PCOS means you have cysts'), findsOneWidget);
       expect(find.textContaining('not medical advice'), findsWidgets);
       expect(pcosMyths.length >= 5, true);
+    });
+
+    testWidgets('cycle care shows the new adult features and no cycle tracking', (tester) async {
+      tester.view.physicalSize = const Size(800, 6000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
+      await tester.pump();
+      expect(find.text('How are you today?'), findsOneWidget);
+      expect(find.text('Movement for your energy'), findsOneWidget);
+      expect(find.text('Water so far today'), findsOneWidget);
+      expect(find.text('My medicine and supplement notes'), findsOneWidget);
+      expect(find.text('Doctor visit prep'), findsOneWidget);
+      expect(find.textContaining('does not track weight, calories or body size'), findsOneWidget);
+      expect(find.textContaining('no cycle tracking'), findsOneWidget);
+      expect(find.textContaining(RegExp('log (your )?period|last period|cycle day|streak', caseSensitive: false)), findsNothing);
+    });
+
+    testWidgets('cycle care: water tally goes up and down, never below zero', (tester) async {
+      tester.view.physicalSize = const Size(800, 6000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
+      await tester.pump();
+      expect(find.text('0 glasses'), findsOneWidget);
+      await tester.tap(find.byTooltip('Add a glass'));
+      await tester.pump();
+      expect(find.text('1 glass'), findsOneWidget);
+      await tester.tap(find.byTooltip('Remove a glass'));
+      await tester.pump();
+      expect(find.text('0 glasses'), findsOneWidget);
+    });
+
+    testWidgets('cycle care: movement ideas follow the chosen energy level', (tester) async {
+      tester.view.physicalSize = const Size(800, 6000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_wrap(CycleCareScreen(role: 'user', onExit: () {})));
+      await tester.pump();
+      expect(find.textContaining('Slow stretching'), findsNothing);
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Running low').last);
+      await tester.pump();
+      expect(find.textContaining('Slow stretching'), findsOneWidget);
     });
 
     testWidgets('cycle care blocks caregivers', (tester) async {

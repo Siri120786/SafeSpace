@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_provider.dart';
 import '../calm_tools/calm_tool_scaffold.dart';
 import '../calm_tools/low_sensory.dart';
+import 'cycle_care_extras.dart';
 import 'module_content.dart';
 
 const TextStyle _heading = TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
@@ -88,7 +89,7 @@ class ModulesHomeScreen extends StatelessWidget {
           _tile(context, 'Calm Space', 'Breathing, grounding and calming tips.', '/modules/calm-space'),
           _tile(context, 'Bright Days', 'Small goals and gratitude notes.', '/modules/bright-days'),
           _tile(context, 'Safe Harbor', 'A quiet space with text relaxation steps.', '/modules/safe-harbor'),
-          _tile(context, 'Cycle Care', 'Daily self-care checklist (adults only).', '/modules/cycle-care'),
+          _tile(context, 'Cycle Care', 'Check-ins, gentle movement, doctor-visit prep and self-care (adults only).', '/modules/cycle-care'),
           _tile(context, 'Story workflow', 'For caregivers: write, check, approve and read stories.', '/story-workflow'),
         ],
       ),
@@ -346,6 +347,7 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          const DailyCheckInCard(),
           _card(<Widget>[
             const Text('Today\'s self-care', style: _heading),
             for (final List<String> item in pcosChecklist)
@@ -369,7 +371,10 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
               ),
             const Text(mythsNote),
           ]),
-          _card(<Widget>[const Text('Gentle movement', style: _heading), const SizedBox(height: 8), _bullets(movementIdeas)]),
+          const MovementPickerCard(),
+          const WaterTallyCard(),
+          const MedicationNotesCard(),
+          const DoctorVisitPrepCard(),
           _card(<Widget>[
             const Text('Sleep and stress', style: _heading),
             const SizedBox(height: 8),
@@ -380,7 +385,7 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
               child: const Text('Open the breathing exercise'),
             ),
           ]),
-          const SizedBox(height: 8),
+          const BodyKindnessNote(),
           const _Notes(extra: 'There is no cycle tracking in this version. Always follow your own doctor\'s advice.'),
         ],
       ),

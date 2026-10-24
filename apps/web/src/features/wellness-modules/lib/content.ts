@@ -117,5 +117,5 @@ export const MODULES: readonly ModuleInfo[] = [
   { key: "anxiety", name: "Calm Space", path: "/modules/calm-space", blurb: "Breathing, grounding and calming tips." },
   { key: "depression", name: "Bright Days", path: "/modules/bright-days", blurb: "Small goals and gratitude notes." },
   { key: "ptsd", name: "Safe Harbor", path: "/modules/safe-harbor", blurb: "A quiet space with text relaxation steps." },
-  { key: "pcos_pcod", name: "Cycle Care", path: "/modules/cycle-care", blurb: "Daily self-care checklist (adults only)." },
+  { key: "pcos_pcod", name: "Cycle Care", path: "/modules/cycle-care", blurb: "Check-ins, gentle movement, doctor-visit prep and self-care (adults only)." },
 ];
