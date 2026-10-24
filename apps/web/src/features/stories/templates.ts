@@ -384,6 +384,336 @@ const CHANGE_OF_PLANS: Story = {
   ],
 };
 
+const ASKING_FOR_HELP: Story = {
+  id: "asking-for-help",
+  title: { en: "Asking for help in class", te: "క్లాస్‌లో సహాయం అడగడం" },
+  summary: { en: "Feeling stuck, taking a breath, and raising a hand to ask.", te: "ఇరుక్కుపోయినట్టు అనిపించడం, శ్వాస తీసుకోవడం, చేయి ఎత్తి అడగడం." },
+  scenes: [
+    scene("drawing", "classroom", [
+      { id: "kai", slot: "midleft", pose: "sit" },
+      { id: "asha", slot: "right", expression: "happy" },
+    ], [
+      L("asha", "Today we are drawing a picture of a house.", "ఈరోజు మనం ఒక ఇంటి బొమ్మ గీద్దాం."),
+      L("narrator", "Kai picks up his crayon and starts.", "కై క్రేయాన్ తీసుకుని మొదలుపెట్టాడు."),
+    ]),
+    scene("stuck", "classroom", [
+      { id: "kai", slot: "midleft", expression: "worried", pose: "sit" },
+      { id: "jaya", slot: "midright", pose: "sit" },
+    ], [
+      L("kai", "I don't know how to draw a house.", "నాకు ఇల్లు ఎలా గీయాలో తెలియట్లేదు."),
+      L("narrator", "Kai feels stuck. His tummy feels tight.", "కైకి ఇరుక్కుపోయినట్టు అనిపించింది. కడుపు బిగుసుకుపోయినట్టు ఉంది."),
+    ], { camera: { shot: "medium", focus: "kai" } }),
+    scene("breathe", "classroom", [
+      { id: "kai", slot: "midleft", pose: "sit", action: "breathe" },
+      { id: "jaya", slot: "midright", pose: "sit" },
+    ], [
+      L("narrator", "Kai takes a slow breath.", "కై నెమ్మదిగా శ్వాస తీసుకున్నాడు."),
+      L("narrator", BREATHE_EN, BREATHE_TE),
+    ], { effect: "breathing" }),
+    scene("ask", "classroom", [
+      { id: "kai", slot: "midleft", pose: "sit", action: "raise_hand" },
+      { id: "asha", slot: "right", action: "nod" },
+    ], [
+      L("kai", "Ms. Asha, can you help me, please?", "ఆశా టీచర్, నాకు సహాయం చేస్తారా, ప్లీజ్?"),
+      L("asha", "Of course. Thank you for asking.", "తప్పకుండా. అడిగినందుకు థ్యాంక్యూ."),
+    ], { camera: { shot: "close", focus: "kai" } }),
+    scene("help", "classroom", [
+      { id: "kai", slot: "midleft", pose: "sit", expression: "happy" },
+      { id: "asha", slot: "right", action: "point" },
+    ], [
+      L("asha", "Start with a square. Then add a triangle for the roof.", "ముందు ఒక చతురస్రం గీయి. తర్వాత పైకప్పు కోసం ఒక త్రిభుజం గీయి."),
+      L("asha", "Take your time. There's no rush.", "నెమ్మదిగా గీయి. తొందర ఏమీ లేదు."),
+      L("kai", "I did it! It's a house!", "నేను గీశాను! ఇది ఇల్లు!"),
+    ]),
+    scene("proud", "classroom", [
+      { id: "kai", slot: "midleft", pose: "sit", expression: "happy" },
+      { id: "jaya", slot: "midright", pose: "sit", expression: "happy" },
+      { id: "asha", slot: "right", expression: "happy" },
+    ], [
+      L("jaya", "I like your house, Kai!", "నీ ఇల్లు నాకు నచ్చింది, కై!"),
+      L("kai", "When I feel stuck, I can ask for help.", "నాకు ఇరుక్కుపోయినట్టు అనిపించినప్పుడు, సహాయం అడగొచ్చు."),
+      L("asha", "That's right. Asking for help is a smart thing to do.", "నిజమే. సహాయం అడగడం తెలివైన పని."),
+    ], { effect: "sparkles" }),
+  ],
+};
+
+const JOINING_A_GAME: Story = {
+  id: "joining-a-game",
+  title: { en: "Asking to join a game", te: "ఆటలో చేరమని అడగడం" },
+  summary: { en: "Asking kindly, hearing 'not now', and waiting for the next game.", te: "మర్యాదగా అడగడం, 'ఇప్పుడు కాదు' అని వినడం, తర్వాతి ఆట కోసం ఎదురుచూడటం." },
+  scenes: [
+    scene("ball-game", "playground", [
+      { id: "kai", slot: "midleft" },
+      { id: "jaya", slot: "right", expression: "happy", action: "hop" },
+    ], [
+      L("narrator", "At break, Jaya is playing a ball game.", "విరామంలో జయ బంతి ఆట ఆడుతోంది."),
+      L("kai", "I want to play too.", "నాకూ ఆడాలని ఉంది."),
+    ]),
+    scene("unsure", "playground", [
+      { id: "kai", slot: "midleft", expression: "worried" },
+      { id: "jaya", slot: "right", expression: "happy" },
+    ], [
+      L("narrator", "Kai isn't sure what to say.", "ఏం చెప్పాలో కైకి తెలియట్లేదు."),
+      L("kai", "What if she says no?", "తను వద్దు అంటే ఎలా?"),
+    ], { camera: { shot: "medium", focus: "kai" } }),
+    scene("ask", "playground", [
+      { id: "kai", slot: "midleft" },
+      { id: "jaya", slot: "midright", expression: "happy" },
+    ], [
+      L("kai", "Hi Jaya. Can I play with you?", "హాయ్ జయ. నేను కూడా నీతో ఆడొచ్చా?"),
+      L("jaya", "Not right now. We are finishing this game. You can play in the next one!", "ఇప్పుడు కాదు. మేము ఈ ఆట పూర్తి చేస్తున్నాం. తర్వాతి ఆటలో నువ్వు ఆడొచ్చు!"),
+    ]),
+    scene("wait", "playground", [
+      { id: "kai", slot: "left", pose: "sit", action: "breathe" },
+    ], [
+      L("narrator", "Kai feels a little sad. He sits on the bench and waits.", "కైకి కొంచెం బాధగా అనిపించింది. అతను బెంచ్ మీద కూర్చుని ఎదురుచూశాడు."),
+      L("narrator", BREATHE_EN, BREATHE_TE),
+      L("narrator", "Waiting is hard, but Kai knows his turn is coming.", "ఎదురుచూడటం కష్టమే, కానీ తన వంతు వస్తుందని కైకి తెలుసు."),
+    ], { effect: "breathing" }),
+    scene("next-game", "playground", [
+      { id: "kai", slot: "left", pose: "sit", expression: "surprised" },
+      { id: "jaya", slot: "midleft", expression: "happy", action: "wave" },
+    ], [
+      L("jaya", "Kai! A new game is starting. Come and play!", "కై! కొత్త ఆట మొదలవుతోంది. రా, ఆడుకుందాం!"),
+      L("kai", "Yay! Thank you, Jaya.", "హేయ్! థ్యాంక్యూ, జయ."),
+    ]),
+    scene("proud", "playground", [
+      { id: "asha", slot: "left", expression: "happy" },
+      { id: "kai", slot: "midleft", expression: "happy", action: "hop" },
+      { id: "jaya", slot: "midright", expression: "happy", action: "hop" },
+    ], [
+      L("asha", "Well done, Kai. You asked kindly and waited for your turn.", "బాగా చేశావు కై. నువ్వు మర్యాదగా అడిగి, నీ వంతు కోసం ఎదురుచూశావు."),
+      L("kai", "Sometimes the answer is 'not now'. Then I can wait.", "కొన్నిసార్లు 'ఇప్పుడు కాదు' అంటారు. అప్పుడు నేను ఎదురుచూడగలను."),
+    ], { effect: "sparkles" }),
+  ],
+};
+
+const GOING_SHOPPING: Story = {
+  id: "going-shopping",
+  title: { en: "Going to the shop", te: "షాప్‌కి వెళ్ళడం" },
+  summary: { en: "Busy aisles, helping Amma, a breathing break and waiting in line.", te: "రద్దీగా ఉండే షాప్, అమ్మకి సహాయం, శ్వాస విరామం, వరుసలో ఎదురుచూడటం." },
+  scenes: [
+    scene("plan", "home", [
+      { id: "amma", slot: "left", expression: "happy" },
+      { id: "kai", slot: "center" },
+    ], [
+      L("amma", "Kai, we are going to the shop to buy fruit and milk.", "కై, మనం పండ్లు, పాలు కొనడానికి షాప్‌కి వెళ్తున్నాం."),
+      L("amma", "The shop can be busy and noisy.", "షాప్‌లో చాలా మంది ఉండొచ్చు, శబ్దం ఎక్కువగా ఉండొచ్చు."),
+    ]),
+    scene("inside", "shop", [
+      { id: "amma", slot: "midleft", action: "walk_in" },
+      { id: "kai", slot: "center", action: "walk_in" },
+    ], [
+      L("narrator", "Inside the shop there are many shelves and bright lights.", "షాప్ లోపల చాలా అరలు, ప్రకాశవంతమైన లైట్లు ఉన్నాయి."),
+      L("amma", "Stay close to me, and hold my hand.", "నా దగ్గరే ఉండు, నా చేయి పట్టుకో."),
+    ]),
+    scene("helping", "shop", [
+      { id: "amma", slot: "left", action: "point" },
+      { id: "kai", slot: "midleft", expression: "happy" },
+    ], [
+      L("amma", "Can you help me find the bananas?", "అరటిపండ్లు వెతకడంలో నాకు సహాయం చేస్తావా?"),
+      L("kai", "There they are! I found them!", "అవిగో! నేను కనుక్కున్నాను!"),
+    ]),
+    scene("too-loud", "shop", [
+      { id: "amma", slot: "left" },
+      { id: "kai", slot: "midleft", expression: "worried" },
+    ], [
+      L("narrator", "The shop gets very noisy. It feels like too much.", "షాప్‌లో శబ్దం బాగా పెరిగింది. కైకి చాలా ఎక్కువ అనిపించింది."),
+      L("kai", "Amma, it's too loud.", "అమ్మా, శబ్దం చాలా ఎక్కువగా ఉంది."),
+    ], { camera: { shot: "medium", focus: "kai" } }),
+    scene("breathe", "shop", [
+      { id: "amma", slot: "left", action: "nod" },
+      { id: "kai", slot: "midleft", action: "breathe" },
+    ], [
+      L("amma", "Let's stop and take slow breaths together.", "కాసేపు ఆగి, కలిసి నెమ్మదిగా శ్వాస తీసుకుందాం."),
+      L("narrator", BREATHE_EN, BREATHE_TE),
+    ], { camera: { shot: "close", focus: "kai" }, effect: "breathing" }),
+    scene("checkout", "shop", [
+      { id: "kai", slot: "center" },
+      { id: "amma", slot: "midright", expression: "happy" },
+    ], [
+      L("narrator", "At the end, they wait in line to pay.", "చివరగా, డబ్బు కట్టడానికి వాళ్ళు వరుసలో ఎదురుచూస్తారు."),
+      L("amma", "Waiting in line helps everyone take turns.", "వరుసలో ఎదురుచూడటం వల్ల అందరికీ వంతు వస్తుంది."),
+    ]),
+    scene("home-proud", "home", [
+      { id: "amma", slot: "left", expression: "happy" },
+      { id: "kai", slot: "center", expression: "happy", action: "hop" },
+      { id: "papa", slot: "right", expression: "happy" },
+    ], [
+      L("papa", "You helped Amma at the shop!", "షాప్‌లో నువ్వు అమ్మకి సహాయం చేశావు!"),
+      L("kai", "It was noisy, so I took slow breaths. Then I felt better.", "శబ్దం ఎక్కువగా ఉంది, అందుకే నెమ్మదిగా శ్వాస తీసుకున్నాను. తర్వాత బాగా అనిపించింది."),
+    ], { effect: "sparkles" }),
+  ],
+};
+
+const BUS_RIDE: Story = {
+  id: "bus-ride",
+  title: { en: "Taking the bus", te: "బస్సులో ప్రయాణం" },
+  summary: { en: "Waiting at the bus stop, the loud doors, and finding a seat.", te: "బస్ స్టాప్‌లో ఎదురుచూడటం, తలుపుల పెద్ద శబ్దం, సీటు దొరకడం." },
+  scenes: [
+    scene("plan", "home", [
+      { id: "kai", slot: "center" },
+      { id: "papa", slot: "right", expression: "happy" },
+    ], [
+      L("papa", "Today we will take the bus to visit Grandma.", "ఈరోజు మనం బస్సులో అమ్మమ్మ దగ్గరికి వెళ్తాం."),
+      L("kai", "Will the bus be big?", "బస్సు పెద్దగా ఉంటుందా?"),
+      L("papa", "Yes. Big, and a little noisy.", "అవును. పెద్దగా, కొంచెం శబ్దంతో ఉంటుంది."),
+    ]),
+    scene("bus-stop", "bus_stop", [
+      { id: "papa", slot: "left", action: "walk_in" },
+      { id: "kai", slot: "midleft", action: "walk_in", holding: "teddy" },
+    ], [
+      L("narrator", "They walk to the bus stop and wait under the shelter.", "వాళ్ళు బస్ స్టాప్‌కి నడిచి, షెల్టర్ కింద ఎదురుచూస్తారు."),
+    ]),
+    scene("waiting", "bus_stop", [
+      { id: "papa", slot: "left", pose: "sit" },
+      { id: "kai", slot: "midleft", expression: "worried", holding: "teddy" },
+    ], [
+      L("kai", "When will the bus come?", "బస్సు ఎప్పుడు వస్తుంది?"),
+      L("papa", "Soon. We can count the cars while we wait.", "త్వరలో వస్తుంది. ఎదురుచూస్తూ మనం కార్లను లెక్కపెట్టొచ్చు."),
+    ]),
+    scene("doors", "bus_stop", [
+      { id: "papa", slot: "left", pose: "sit" },
+      { id: "kai", slot: "midleft", expression: "surprised", holding: "teddy" },
+    ], [
+      L("narrator", "The bus is here. The doors make a loud whoosh when they open.", "బస్సు వచ్చింది. తలుపులు తెరుచుకుంటున్నప్పుడు పెద్దగా 'షూ' అని శబ్దం వస్తుంది."),
+      L("papa", "That sound is just the doors. We are safe.", "ఆ శబ్దం తలుపులదే. మనం సురక్షితంగా ఉన్నాం."),
+    ]),
+    scene("teddy", "bus_stop", [
+      { id: "papa", slot: "left", pose: "sit", action: "nod" },
+      { id: "kai", slot: "midleft", action: "breathe", holding: "teddy" },
+    ], [
+      L("narrator", "Kai hugs his teddy and takes a slow breath.", "కై తన టెడ్డీని హత్తుకుని, నెమ్మదిగా శ్వాస తీసుకున్నాడు."),
+      L("narrator", BREATHE_EN, BREATHE_TE),
+    ], { camera: { shot: "close", focus: "kai" }, effect: "breathing" }),
+    scene("on-board", "bus_stop", [
+      { id: "kai", slot: "midright", action: "walk_out", holding: "teddy" },
+      { id: "papa", slot: "right", expression: "happy", action: "walk_out" },
+    ], [
+      L("narrator", "Kai and Papa climb onto the bus and find a seat by the window.", "కై, నాన్న బస్సు ఎక్కి, కిటికీ పక్కన సీటులో కూర్చున్నారు."),
+    ]),
+    scene("home-proud", "home", [
+      { id: "amma", slot: "left", expression: "happy" },
+      { id: "kai", slot: "center", expression: "happy", action: "hop" },
+      { id: "papa", slot: "right", expression: "happy" },
+    ], [
+      L("narrator", "In the evening, Kai and Papa come back home.", "సాయంత్రం కై, నాన్న ఇంటికి తిరిగి వచ్చారు."),
+      L("amma", "How was the bus ride?", "బస్సు ప్రయాణం ఎలా ఉంది?"),
+      L("kai", "It was loud at first, but I hugged my teddy and looked out of the window.", "మొదట శబ్దం ఎక్కువగా ఉంది, కానీ నేను టెడ్డీని హత్తుకుని కిటికీలోంచి చూశాను."),
+    ], { effect: "sparkles" }),
+  ],
+};
+
+const HAIRCUT: Story = {
+  id: "haircut",
+  title: { en: "Getting a haircut", te: "జుట్టు కత్తిరించుకోవడం" },
+  summary: { en: "The salon chair, the cape, snipping and buzzing, and a break.", te: "సెలూన్ కుర్చీ, కేప్, కత్తెర, క్లిప్పర్ శబ్దం, ఒక విరామం." },
+  scenes: [
+    scene("plan", "home", [
+      { id: "amma", slot: "left", expression: "happy" },
+      { id: "kai", slot: "center" },
+    ], [
+      L("amma", "Kai, your hair is getting long. Today we will go for a haircut.", "కై, నీ జుట్టు పొడవుగా పెరిగింది. ఈరోజు మనం జుట్టు కత్తిరించుకోవడానికి వెళ్తాం."),
+      L("kai", "Does a haircut hurt?", "జుట్టు కత్తిరిస్తే నొప్పిగా ఉంటుందా?"),
+      L("amma", "No. Hair doesn't feel anything when it's cut.", "లేదు. జుట్టు కత్తిరించినప్పుడు మనకు ఏమీ అనిపించదు."),
+    ]),
+    scene("waiting", "salon", [
+      { id: "amma", slot: "left", pose: "sit" },
+      { id: "kai", slot: "midleft", holding: "teddy" },
+    ], [
+      L("narrator", "At the salon, Kai and Amma wait for their turn.", "సెలూన్‌లో, కై, అమ్మ తమ వంతు కోసం ఎదురుచూస్తారు."),
+      L("narrator", "Kai can see the big mirror and the special chair.", "కైకి పెద్ద అద్దం, ప్రత్యేకమైన కుర్చీ కనిపిస్తున్నాయి."),
+    ]),
+    scene("the-chair", "salon", [
+      { id: "amma", slot: "left" },
+      { id: "kai", slot: "center", pose: "sit" },
+    ], [
+      L("narrator", "Kai sits in the chair. The barber puts a cape around him, like a superhero.", "కై కుర్చీలో కూర్చున్నాడు. బార్బర్ అతనికి సూపర్‌హీరోలా ఒక కేప్ కట్టాడు."),
+      L("amma", "I'm right here, Kai.", "నేను ఇక్కడే ఉన్నాను, కై."),
+    ]),
+    scene("buzzing", "salon", [
+      { id: "amma", slot: "left" },
+      { id: "kai", slot: "center", expression: "worried", pose: "sit" },
+    ], [
+      L("narrator", "The barber uses scissors: snip, snip. Then the clippers buzz.", "బార్బర్ కత్తెరతో కత్తిరిస్తాడు: కిచ్, కిచ్. తర్వాత క్లిప్పర్ 'ఝుమ్' అని శబ్దం చేస్తుంది."),
+      L("kai", "The buzzing tickles my ears.", "ఆ శబ్దం నా చెవుల దగ్గర చక్కిలిగింతలు పెడుతోంది."),
+    ], { camera: { shot: "medium", focus: "kai" } }),
+    scene("a-break", "salon", [
+      { id: "amma", slot: "left", action: "nod" },
+      { id: "kai", slot: "center", pose: "sit", action: "raise_hand" },
+    ], [
+      L("kai", "Can we stop for a moment, please?", "కాసేపు ఆపగలమా, ప్లీజ్?"),
+      L("narrator", "The barber stops. Kai takes slow breaths, then he is ready again.", "బార్బర్ ఆపాడు. కై నెమ్మదిగా శ్వాస తీసుకుని, మళ్ళీ సిద్ధమయ్యాడు."),
+    ], { camera: { shot: "close", focus: "kai" }, effect: "breathing" }),
+    scene("all-done", "salon", [
+      { id: "amma", slot: "left", expression: "happy" },
+      { id: "kai", slot: "center", expression: "happy", pose: "sit" },
+    ], [
+      L("narrator", "All done! Kai looks in the mirror.", "అయిపోయింది! కై అద్దంలో చూసుకున్నాడు."),
+      L("kai", "I look so smart!", "నేను చాలా బాగున్నాను!"),
+      L("amma", "You were very brave, and you asked for a break when you needed one.", "నువ్వు చాలా ధైర్యంగా ఉన్నావు, అవసరమైనప్పుడు విరామం అడిగావు."),
+    ], { effect: "sparkles" }),
+  ],
+};
+
+const LEAVING_THE_PARK: Story = {
+  id: "leaving-the-park",
+  title: { en: "Time to leave the park", te: "పార్క్ నుంచి బయలుదేరే సమయం" },
+  summary: { en: "Five more minutes, stopping something fun, and saying goodbye.", te: "ఇంకా ఐదు నిమిషాలు, సరదా ఆట ఆపడం, బై చెప్పడం." },
+  scenes: [
+    scene("playing", "park", [
+      { id: "kai", slot: "center", expression: "happy", action: "hop" },
+      { id: "jaya", slot: "midright", expression: "happy" },
+    ], [
+      L("narrator", "Kai is playing at the park with his friend Jaya.", "కై తన స్నేహితురాలు జయతో పార్క్‌లో ఆడుకుంటున్నాడు."),
+      L("kai", "This is so much fun!", "ఇది చాలా సరదాగా ఉంది!"),
+    ]),
+    scene("five-minutes", "park", [
+      { id: "amma", slot: "left", pose: "sit" },
+      { id: "kai", slot: "center" },
+    ], [
+      L("amma", "Kai, five more minutes, then it's time to go home.", "కై, ఇంకా ఐదు నిమిషాలు, తర్వాత ఇంటికి వెళ్ళే సమయం."),
+      L("kai", "Okay. Five more minutes.", "సరే. ఇంకా ఐదు నిమిషాలు."),
+    ]),
+    scene("last-play", "park", [
+      { id: "kai", slot: "center", expression: "happy", action: "hop" },
+      { id: "jaya", slot: "midright", expression: "happy", action: "hop" },
+    ], [
+      L("narrator", "Kai plays with Jaya for his last five minutes.", "కై చివరి ఐదు నిమిషాలు జయతో ఆడుకున్నాడు."),
+    ]),
+    scene("time-to-go", "park", [
+      { id: "amma", slot: "left" },
+      { id: "kai", slot: "center", expression: "worried" },
+    ], [
+      L("amma", "Time to go home now.", "ఇప్పుడు ఇంటికి వెళ్ళే సమయం."),
+      L("kai", "But I don't want to stop playing!", "కానీ నాకు ఆట ఆపాలని లేదు!"),
+      L("amma", "It's hard to stop something fun. We can come back another day.", "సరదాగా ఉన్నది ఆపడం కష్టమే. మనం ఇంకో రోజు మళ్ళీ రావచ్చు."),
+    ], { camera: { shot: "medium", focus: "kai" } }),
+    scene("breathe", "park", [
+      { id: "amma", slot: "left", action: "nod" },
+      { id: "kai", slot: "center", action: "breathe" },
+    ], [
+      L("narrator", BREATHE_EN, BREATHE_TE),
+      L("kai", "I feel a little better.", "నాకు కొంచెం బాగా అనిపిస్తోంది."),
+    ], { effect: "breathing" }),
+    scene("goodbye", "park", [
+      { id: "kai", slot: "center", action: "wave" },
+      { id: "jaya", slot: "midright", expression: "happy", action: "wave" },
+    ], [
+      L("kai", "Bye, Jaya! See you at school.", "బై, జయ! స్కూల్‌లో కలుద్దాం."),
+      L("jaya", "Bye, Kai!", "బై, కై!"),
+    ]),
+    scene("home-proud", "home", [
+      { id: "amma", slot: "left", expression: "happy" },
+      { id: "kai", slot: "center", expression: "happy" },
+      { id: "pip", slot: "right", expression: "happy", action: "hop" },
+    ], [
+      L("amma", "You stopped playing when it was time. Well done!", "సమయం అయినప్పుడు నువ్వు ఆట ఆపావు. బాగా చేశావు!"),
+      L("pip", "Hooray for Kai!", "కైకి హుర్రే!"),
+    ], { effect: "sparkles" }),
+  ],
+};
+
 export const STORY_TEMPLATES: StoryTemplate[] = [
   { key: "new_school", emoji: "🏫", title: NEW_SCHOOL.title, blurb: "The gate, the teacher, the bell, a quiet moment, a new friend.", script: NEW_SCHOOL },
   { key: "doctor_visit", emoji: "🩺", title: DOCTOR_VISIT.title, blurb: "A check-up step by step, with a break when needed.", script: DOCTOR_VISIT },
@@ -391,6 +721,12 @@ export const STORY_TEMPLATES: StoryTemplate[] = [
   { key: "taking_turns", emoji: "🛝", title: TAKING_TURNS.title, blurb: "Waiting for the slide, and what helps while waiting.", script: TAKING_TURNS },
   { key: "fire_drill", emoji: "🔔", title: FIRE_DRILL.title, blurb: "A loud alarm, walking outside in a line, staying calm.", script: FIRE_DRILL },
   { key: "change_of_plans", emoji: "🌧️", title: CHANGE_OF_PLANS.title, blurb: "Rain stops the park trip; feeling upset; a new plan.", script: CHANGE_OF_PLANS },
+  { key: "asking_for_help", emoji: "✋", title: ASKING_FOR_HELP.title, blurb: "Feeling stuck in class, a breath, raising a hand.", script: ASKING_FOR_HELP },
+  { key: "joining_a_game", emoji: "⚽", title: JOINING_A_GAME.title, blurb: "Asking kindly, hearing “not now”, waiting.", script: JOINING_A_GAME },
+  { key: "going_shopping", emoji: "🛒", title: GOING_SHOPPING.title, blurb: "Busy, noisy aisles, a breathing break, the queue.", script: GOING_SHOPPING },
+  { key: "bus_ride", emoji: "🚌", title: BUS_RIDE.title, blurb: "Waiting at the stop, the loud doors, a window seat.", script: BUS_RIDE },
+  { key: "haircut", emoji: "✂️", title: HAIRCUT.title, blurb: "The salon chair, snipping and buzzing, a break.", script: HAIRCUT },
+  { key: "leaving_the_park", emoji: "🌳", title: LEAVING_THE_PARK.title, blurb: "Five more minutes, stopping fun, saying goodbye.", script: LEAVING_THE_PARK },
 ];
 
 export const findTemplate = (key: string | null | undefined) => STORY_TEMPLATES.find((t) => t.key === key);

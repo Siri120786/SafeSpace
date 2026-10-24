@@ -21,6 +21,7 @@ export const CHARACTER_NAMES: Record<StoryCharacterId, { en: string; te: string 
 
 export const STORY_BACKGROUNDS = [
   "home", "front_door", "clinic_outside", "waiting_room", "dental_room", "doctor_room", "school", "classroom", "playground",
+  "park", "shop", "bus_stop", "salon",
 ] as const;
 export type StoryBackground = (typeof STORY_BACKGROUNDS)[number];
 

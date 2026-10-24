@@ -4,6 +4,7 @@ import {
   BACKGROUND_LABELS,
   EFFECT_LABELS,
   PROP_LABELS,
+  SEAT_HINTS,
   SLOT_LABELS,
   addCast,
   addLine,
@@ -226,17 +227,9 @@ const SceneCard: React.FC<{
             </select>
           </label>
         )}
-        {(scene.background === "classroom" || scene.background === "playground" || scene.background.endsWith("_room")) && (
-          <p className="text-xs text-textMuted">
-            {scene.background === "classroom"
-              ? "Chairs are at “Left of middle” and “Right of middle”."
-              : scene.background === "playground"
-                ? "The bench is on the left."
-                : scene.background === "waiting_room"
-                  ? "Chairs are on the left and left of middle."
-                  : "The chair or bed is in the middle."}
-          </p>
-        )}
+        <p className="text-xs text-textMuted">
+          {SEAT_HINTS[scene.background] ?? "There's nowhere to sit here, so everyone stands."}
+        </p>
       </fieldset>
 
       <fieldset className="space-y-2">

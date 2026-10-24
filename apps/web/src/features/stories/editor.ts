@@ -129,8 +129,24 @@ export const BACKGROUND_LABELS: Record<StoryScene["background"], string> = {
   dental_room: "Dentist's room",
   doctor_room: "Doctor's room",
   school: "School gate",
+  park: "Park",
+  shop: "Shop",
+  bus_stop: "Bus stop",
+  salon: "Hair salon",
   classroom: "Classroom",
   playground: "Playground",
+};
+
+// Where people can sit in each place, for the editor's hint.
+export const SEAT_HINTS: Partial<Record<StoryScene["background"], string>> = {
+  waiting_room: "Chairs are on the left and left of middle.",
+  dental_room: "The dentist's chair is in the middle.",
+  doctor_room: "The bed is in the middle.",
+  classroom: "Chairs are at “Left of middle” and “Right of middle”.",
+  playground: "The bench is on the left.",
+  park: "The bench is on the left.",
+  bus_stop: "The bench is on the left.",
+  salon: "The salon chair is in the middle; a waiting bench is on the left.",
 };
 
 export const SLOT_LABELS: Record<StoryCastMember["slot"], string> = {

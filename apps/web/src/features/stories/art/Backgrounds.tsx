@@ -122,8 +122,8 @@ const ClinicOutside: React.FC = () => (
       <rect x={0} y={0} width={880} height={560} rx={16} fill="#F7F4EE" />
       <rect x={0} y={0} width={880} height={80} rx={16} fill="#8CCFC6" />
       <Tooth x={440} y={40} s={0.55} />
-      <rect x={340} y={220} width={200} height={340} rx={10} fill="#CFEDEF" stroke="#BFD6D8" strokeWidth={8} />
-      <line x1={440} y1={220} x2={440} y2={560} stroke="#BFD6D8" strokeWidth={6} />
+      <rect x={320} y={110} width={240} height={450} rx={10} fill="#CFEDEF" stroke="#BFD6D8" strokeWidth={8} />
+      <line x1={440} y1={110} x2={440} y2={560} stroke="#BFD6D8" strokeWidth={6} />
       <rect x={60} y={200} width={220} height={180} rx={10} fill="#CFEDEF" />
       <rect x={600} y={200} width={220} height={180} rx={10} fill="#CFEDEF" />
     </g>
@@ -219,6 +219,200 @@ const DoctorRoom: React.FC = () => (
   </g>
 );
 
+// A slatted bench; its seat is SEAT_HEIGHT above the floor.
+const Bench: React.FC<{ x: number; wood?: string; seat?: string; legs?: string }> = ({ x, wood = "#B98A5E", seat = "#C99A6E", legs = "#8A6A4E" }) => (
+  <g transform={`translate(${x} ${FLOOR_Y})`}>
+    <rect x={-130} y={-SEAT_HEIGHT - 110} width={260} height={26} rx={10} fill={wood} />
+    <rect x={-130} y={-SEAT_HEIGHT - 70} width={260} height={26} rx={10} fill={wood} />
+    <rect x={-140} y={-SEAT_HEIGHT} width={280} height={34} rx={12} fill={seat} />
+    <rect x={-110} y={-SEAT_HEIGHT + 30} width={18} height={SEAT_HEIGHT - 30} fill={legs} />
+    <rect x={92} y={-SEAT_HEIGHT + 30} width={18} height={SEAT_HEIGHT - 30} fill={legs} />
+  </g>
+);
+
+const Tree: React.FC<{ x: number; s?: number }> = ({ x, s = 1 }) => (
+  <g transform={`translate(${x} ${FLOOR_Y - 60}) scale(${s})`}>
+    <rect x={-20} y={-230} width={40} height={230} rx={12} fill="#9C6B47" />
+    <circle cx={0} cy={-280} r={110} fill="#7FB26A" />
+    <circle cx={-70} cy={-220} r={70} fill="#6E9E5A" />
+    <circle cx={75} cy={-225} r={78} fill="#86BC70" />
+  </g>
+);
+
+const Sky: React.FC<{ id: string }> = ({ id }) => (
+  <g>
+    <defs>
+      <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#BFE3F6" />
+        <stop offset="1" stopColor="#F1F9FC" />
+      </linearGradient>
+    </defs>
+    <rect width={STAGE_W} height={STAGE_H} fill={`url(#${id})`} />
+    <ellipse cx={300} cy={120} rx={120} ry={40} fill="#fff" opacity={0.9} />
+    <ellipse cx={1250} cy={95} rx={110} ry={36} fill="#fff" opacity={0.9} />
+  </g>
+);
+
+// A public park: someone can sit on the bench at the left.
+const Park: React.FC = () => (
+  <g>
+    <Sky id="st-sky-park" />
+    <circle cx={1440} cy={140} r={58} fill="#FFE7A0" />
+    <ellipse cx={420} cy={720} rx={520} ry={170} fill="#B7DB9E" />
+    <ellipse cx={1250} cy={730} rx={560} ry={190} fill="#A9D18E" />
+    <Tree x={110} s={1.6} />
+    <Tree x={760} s={1.25} />
+    <Tree x={1500} s={1.5} />
+    {/* Pond with ducks */}
+    <ellipse cx={1150} cy={700} rx={260} ry={60} fill="#9CCFEA" />
+    <ellipse cx={1150} cy={694} rx={220} ry={40} fill="#B8DEF2" />
+    {[[1080, 690], [1200, 700]].map(([x, y]) => (
+      <g key={x} transform={`translate(${x} ${y})`}>
+        <ellipse cx={0} cy={0} rx={20} ry={12} fill="#FFFFFF" />
+        <circle cx={14} cy={-12} r={9} fill="#FFFFFF" />
+        <path d="M22 -12 l10 3 l-10 3 z" fill="#F0A33C" />
+      </g>
+    ))}
+    {/* Lamp post */}
+    <g transform="translate(900 150)">
+      <rect x={-7} y={0} width={14} height={590} fill="#5B6B73" />
+      <rect x={-26} y={-30} width={52} height={40} rx={10} fill="#F6E7B0" stroke="#5B6B73" strokeWidth={6} />
+    </g>
+    {/* Flowers */}
+    {[[520, 730], [580, 745], [640, 728], [1380, 750], [1440, 735]].map(([x, y], i) => (
+      <g key={i} transform={`translate(${x} ${y})`}>
+        <rect x={-2} y={0} width={4} height={18} fill="#6E9E5A" />
+        <circle r={9} fill={["#F2A7A0", "#F5C26B", "#B9A7D9"][i % 3]} />
+        <circle r={4} fill="#FFFFFF" />
+      </g>
+    ))}
+    <Bench x={SLOT_X.left} wood="#7FA0B8" seat="#8FB1C9" legs="#5B6B73" />
+    <Floor fill="#A9D18E" line="#94C079" />
+    <path d={`M${STAGE_W / 2 - 300} ${FLOOR_Y - 60} h600 l120 ${STAGE_H - FLOOR_Y + 60} h-840 z`} fill="#E9D9B8" />
+  </g>
+);
+
+// A shop: shelves, a fruit stand and the checkout on the right. No seats.
+const Shop: React.FC = () => (
+  <g>
+    <rect width={STAGE_W} height={STAGE_H} fill="#F4EEE2" />
+    <rect x={0} y={0} width={STAGE_W} height={70} fill="#E3D6BF" />
+    {[160, 560, 960].map((cx) => (
+      <rect key={cx} x={cx} y={60} width={180} height={16} rx={6} fill="#FFFFFF" opacity={0.9} />
+    ))}
+    {/* Shelves */}
+    {[90, 470].map((x) => (
+      <g key={x} transform={`translate(${x} 170)`}>
+        <rect x={0} y={0} width={330} height={570} rx={8} fill="#D9C2A0" />
+        {[0, 1, 2, 3].map((row) => (
+          <g key={row}>
+            <rect x={10} y={125 + row * 140} width={310} height={12} fill="#C4A981" />
+            {[0, 1, 2, 3, 4].map((i) => (
+              <rect
+                key={i}
+                x={22 + i * 60}
+                y={50 + row * 140}
+                width={44}
+                height={75}
+                rx={6}
+                fill={["#E06C5A", "#6FA3D9", "#F5C26B", "#7FB26A", "#B9A7D9"][(i + row) % 5]}
+              />
+            ))}
+          </g>
+        ))}
+      </g>
+    ))}
+    {/* Fruit stand */}
+    <g transform="translate(880 560)">
+      <rect x={0} y={60} width={280} height={140} rx={8} fill="#C99A6E" />
+      {([[40, 50, "#F2A65A"], [90, 40, "#F2A65A"], [140, 50, "#E06C5A"], [190, 42, "#E06C5A"], [240, 52, "#7FB26A"]] as const).map(([x, y, c], i) => (
+        <circle key={i} cx={x} cy={y} r={24} fill={c} />
+      ))}
+      <path d="M70 20 q40 -30 90 -10 q-30 20 -90 10 z" fill="#F6C945" />
+    </g>
+    {/* Checkout counter */}
+    <g transform="translate(1220 520)">
+      <rect x={0} y={60} width={340} height={180} rx={10} fill="#8FB5E0" />
+      <rect x={0} y={50} width={340} height={20} rx={8} fill="#6F98C8" />
+      <rect x={210} y={-30} width={90} height={80} rx={8} fill="#5B6B73" />
+      <rect x={222} y={-20} width={66} height={36} rx={4} fill="#BFE3D0" />
+    </g>
+    <Floor fill="#E2E2DC" line="#D0D0C8" />
+  </g>
+);
+
+// A bus stop: the shelter's bench at the left, the bus waiting behind.
+const BusStop: React.FC = () => (
+  <g>
+    <Sky id="st-sky-bus" />
+    <rect x={0} y={600} width={STAGE_W} height={140} fill="#B8BEC4" />
+    <rect x={0} y={664} width={STAGE_W} height={10} fill="#FFFFFF" opacity={0.7} />
+    {/* The bus: taller than a grown-up, running off the right edge */}
+    <g transform="translate(700 72) scale(1.75)">
+      <rect x={0} y={0} width={800} height={330} rx={40} fill="#F5C26B" />
+      <rect x={0} y={250} width={800} height={30} fill="#E0A94A" />
+      {[40, 200, 360, 520].map((x) => <rect key={x} x={x} y={50} width={130} height={110} rx={14} fill="#CFE8F5" />)}
+      <rect x={680} y={50} width={90} height={230} rx={12} fill="#9FCBE3" stroke="#E0A94A" strokeWidth={6} />
+      <circle cx={170} cy={330} r={52} fill="#3D3D3D" />
+      <circle cx={170} cy={330} r={22} fill="#9AA6B8" />
+      <circle cx={630} cy={330} r={52} fill="#3D3D3D" />
+      <circle cx={630} cy={330} r={22} fill="#9AA6B8" />
+    </g>
+    {/* Shelter */}
+    <g>
+      <rect x={110} y={170} width={20} height={570} fill="#5B6B73" />
+      <rect x={470} y={170} width={20} height={570} fill="#5B6B73" />
+      <rect x={130} y={200} width={340} height={440} fill="#DCEFF7" opacity={0.85} />
+      <path d="M80 170 h440 l-30 -40 h-380 z" fill="#5A86C9" />
+    </g>
+    {/* Bus stop sign */}
+    <g transform="translate(620 170)">
+      <rect x={-6} y={0} width={12} height={570} fill="#5B6B73" />
+      <circle cx={0} cy={-10} r={44} fill="#3A7D5C" />
+      <rect x={-24} y={-30} width={48} height={32} rx={6} fill="#FFFFFF" />
+      <circle cx={-12} cy={8} r={6} fill="#FFFFFF" />
+      <circle cx={12} cy={8} r={6} fill="#FFFFFF" />
+    </g>
+    <Bench x={SLOT_X.left} wood="#7FA0B8" seat="#8FB1C9" legs="#5B6B73" />
+    <Floor fill="#D8D2C6" line="#C4BDB0" />
+  </g>
+);
+
+// A hair salon: the salon chair centre stage (Kai sits there), a waiting
+// bench at the left.
+const Salon: React.FC = () => (
+  <g>
+    <rect width={STAGE_W} height={STAGE_H} fill="#F6E6EC" />
+    {/* Mirror behind the chair */}
+    <rect x={SLOT_X.center - 200} y={110} width={400} height={330} rx={30} fill="#E4F3F7" stroke="#D7B6C4" strokeWidth={14} />
+    <path d={`M${SLOT_X.center - 140} 180 l60 -40 M${SLOT_X.center - 120} 230 l90 -60`} stroke="#FFFFFF" strokeWidth={10} strokeLinecap="round" opacity={0.8} />
+    {/* Shelf with bottles */}
+    <g transform="translate(1150 220)">
+      <rect x={0} y={90} width={330} height={14} fill="#C9A0B2" />
+      {([["#B9A7D9", 20, 60], ["#8CCFC6", 80, 80], ["#F5C26B", 150, 50], ["#F2A7A0", 210, 70], ["#6FA3D9", 270, 60]] as const).map(([c, x, h]) => (
+        <rect key={x} x={x} y={90 - h} width={40} height={h} rx={10} fill={c} />
+      ))}
+    </g>
+    {/* Hair dryer on the wall */}
+    <g transform="translate(1250 420)">
+      <rect x={0} y={0} width={110} height={60} rx={28} fill="#B8C4C6" />
+      <rect x={80} y={50} width={24} height={70} rx={10} fill="#9AA6B8" />
+    </g>
+    <Plant x={1500} y={600} s={1} />
+    <Bench x={SLOT_X.left} wood="#D7B6C4" seat="#E3C5D2" legs="#9A7A88" />
+    <Floor fill="#EADFD8" line="#DCCDC4" />
+    {/* Salon chair (in front of the floor line, like the dental chair) */}
+    <g transform={`translate(${SLOT_X.center} ${FLOOR_Y})`}>
+      <rect x={-70} y={-20} width={140} height={20} rx={10} fill="#5B6B73" />
+      <rect x={-14} y={-SEAT_HEIGHT + 50} width={28} height={SEAT_HEIGHT - 60} fill="#9AA6B8" />
+      <rect x={-150} y={-SEAT_HEIGHT - 230} width={300} height={240} rx={40} fill="#C0573F" />
+      <rect x={-160} y={-SEAT_HEIGHT} width={320} height={60} rx={26} fill="#C0573F" />
+      <rect x={-200} y={-SEAT_HEIGHT - 30} width={60} height={40} rx={16} fill="#A64A35" />
+      <rect x={140} y={-SEAT_HEIGHT - 30} width={60} height={40} rx={16} fill="#A64A35" />
+    </g>
+  </g>
+);
+
 // Outside the school, at the gate. Nobody sits here.
 const School: React.FC = () => (
   <g>
@@ -256,7 +450,7 @@ const School: React.FC = () => (
       <circle cx={65} cy={49} r={9} fill="none" stroke="#3A5A9C" strokeWidth={3} />
     </g>
     {/* Trees */}
-    <g transform="translate(130 740)">
+    <g transform="translate(130 740) scale(1.5)">
       <rect x={-20} y={-230} width={40} height={230} rx={12} fill="#9C6B47" />
       <circle cx={0} cy={-280} r={110} fill="#7FB26A" />
       <circle cx={-70} cy={-220} r={70} fill="#6E9E5A" />
@@ -270,11 +464,11 @@ const School: React.FC = () => (
       <rect x={950} y={665} width={420} height={14} rx={6} />
     </g>
     <g fill="#C0573F">
-      <rect x={670} y={520} width={50} height={230} rx={8} />
-      <rect x={880} y={520} width={50} height={230} rx={8} />
-      <path d="M660 530 Q800 420 940 530 L940 560 Q800 460 660 560 z" />
+      <rect x={640} y={250} width={56} height={500} rx={8} />
+      <rect x={904} y={250} width={56} height={500} rx={8} />
+      <path d="M628 262 Q800 150 972 262 L972 296 Q800 190 628 296 z" />
     </g>
-    <circle cx={800} cy={470} r={22} fill="#F6C945" stroke="#C99A2E" strokeWidth={5} />
+    <circle cx={800} cy={196} r={26} fill="#F6C945" stroke="#C99A2E" strokeWidth={5} />
     <Floor fill="#A9D18E" line="#94C079" />
     {/* The path to the door */}
     <path d={`M700 ${FLOOR_Y - 60} L900 ${FLOOR_Y - 60} L1080 ${STAGE_H} L520 ${STAGE_H} z`} fill="#E6D3B3" />
@@ -343,14 +537,14 @@ const Playground: React.FC = () => (
       <rect x={190} y={260} width={100} height={180} rx={6} fill="#B98A5E" />
     </g>
     {/* Tree */}
-    <g transform="translate(150 740)">
+    <g transform="translate(150 740) scale(1.5)">
       <rect x={-22} y={-260} width={44} height={260} rx={12} fill="#9C6B47" />
       <circle cx={0} cy={-300} r={120} fill="#7FB26A" />
       <circle cx={-80} cy={-240} r={80} fill="#6E9E5A" />
       <circle cx={80} cy={-250} r={86} fill="#86BC70" />
     </g>
     {/* Swings */}
-    <g transform="translate(330 300)" stroke="#C0392B" strokeWidth={14} strokeLinecap="round" fill="none">
+    <g transform="translate(270 124) scale(1.4)" stroke="#C0392B" strokeWidth={14} strokeLinecap="round" fill="none">
       <path d="M0 440 L60 0 H300 L360 440" />
       <g stroke="#7A7A7A" strokeWidth={4}>
         <path d="M110 0 V300 M170 0 V300 M200 0 V300 M260 0 V300" />
@@ -359,21 +553,14 @@ const Playground: React.FC = () => (
       <rect x={190} y={300} width={80} height={14} rx={6} fill="#6FA3D9" stroke="none" />
     </g>
     {/* Slide */}
-    <g transform="translate(1180 330)">
+    <g transform="translate(1110 146) scale(1.45)">
       <rect x={0} y={0} width={20} height={410} fill="#6FA3D9" />
       <rect x={110} y={0} width={20} height={410} fill="#6FA3D9" />
       {[60, 130, 200, 270, 340].map((y) => <rect key={y} x={0} y={y} width={130} height={12} fill="#9CC7F0" />)}
       <rect x={-10} y={-20} width={150} height={30} rx={8} fill="#F5C26B" />
       <path d="M130 0 Q260 120 330 410 L280 410 Q220 160 130 50 z" fill="#F2A65A" />
     </g>
-    {/* Bench at the left slot */}
-    <g transform={`translate(${SLOT_X.left} ${FLOOR_Y})`}>
-      <rect x={-130} y={-SEAT_HEIGHT - 110} width={260} height={26} rx={10} fill="#B98A5E" />
-      <rect x={-130} y={-SEAT_HEIGHT - 70} width={260} height={26} rx={10} fill="#B98A5E" />
-      <rect x={-140} y={-SEAT_HEIGHT} width={280} height={34} rx={12} fill="#C99A6E" />
-      <rect x={-110} y={-SEAT_HEIGHT + 30} width={18} height={SEAT_HEIGHT - 30} fill="#8A6A4E" />
-      <rect x={92} y={-SEAT_HEIGHT + 30} width={18} height={SEAT_HEIGHT - 30} fill="#8A6A4E" />
-    </g>
+    <Bench x={SLOT_X.left} />
     <Floor fill="#A9D18E" line="#94C079" />
     <ellipse cx={1340} cy={FLOOR_Y + 20} rx={220} ry={40} fill="#F1DDB0" />
   </g>
@@ -395,6 +582,14 @@ export const StoryBackdrop: React.FC<{ id: StoryBackground }> = ({ id }) => {
       return <DoctorRoom />;
     case "school":
       return <School />;
+    case "park":
+      return <Park />;
+    case "shop":
+      return <Shop />;
+    case "bus_stop":
+      return <BusStop />;
+    case "salon":
+      return <Salon />;
     case "classroom":
       return <Classroom />;
     case "playground":

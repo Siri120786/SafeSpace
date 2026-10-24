@@ -439,8 +439,10 @@ const Pip: React.FC<Omit<PoseProps, "look"> & { gaze: -1 | 0 | 1 }> = ({ express
 
 // ---------------------------------------------------------------------------
 
-// Sized so faces are easy to read on a phone.
-export const CHARACTER_SCALE: Record<StoryCharacterId, number> = { kai: 1.55, jaya: 1.48, amma: 1.42, papa: 1.48, maya: 1.42, asha: 1.42, pip: 1.5 };
+// Real-world sizes against the scenery: grown-ups stand about 510 of the
+// 900-unit stage (a door or a bus is taller than them), children about
+// three-quarters of a grown-up. Close-ups make faces big when it matters.
+export const CHARACTER_SCALE: Record<StoryCharacterId, number> = { kai: 1.0, jaya: 0.96, amma: 1.06, papa: 1.1, maya: 1.06, asha: 1.04, pip: 1.0 };
 
 // Roughly where each face is above the floor (stage units), for the camera.
 export function faceHeight(id: StoryCharacterId, pose: StoryPose): number {

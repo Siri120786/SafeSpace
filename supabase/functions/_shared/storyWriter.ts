@@ -64,6 +64,10 @@ const BACKGROUND_NOTES: Record<(typeof STORY_BACKGROUNDS)[number], string> = {
   dental_room: "dental_room: a dentist's room with the chair at center (only Kai sits there)",
   doctor_room: "doctor_room: a doctor's room with the examination bed at center (only Kai sits there)",
   school: "school: outside the school, at the gate (arriving and leaving)",
+  park: "park: a public park with trees and a pond; someone can sit on the bench at left",
+  shop: "shop: a busy shop with shelves, fruit and the checkout (no seats)",
+  bus_stop: "bus_stop: a bus stop with the bus waiting; someone can sit on the bench at left",
+  salon: "salon: a hair salon with a big mirror; only Kai sits in the salon chair at center; a waiting bench at left",
   classroom: "classroom: a school classroom with a board; children sit at midleft and midright",
   playground: "playground: the school playground with a slide and swings; someone can sit on the bench at left",
 };
