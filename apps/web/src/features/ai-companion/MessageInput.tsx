@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { MicButton, appendTranscript } from "../speech";
 
 const MAX_LENGTH = 2000;
 
@@ -7,12 +8,14 @@ interface MessageInputProps {
   onSendMessage: (content: string) => Promise<boolean>;
   disabled?: boolean;
   placeholder?: string;
+  lang?: string; // dictation language, from the chosen chat language
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({
   onSendMessage,
   disabled = false,
   placeholder = "Type your message...",
+  lang,
 }) => {
   const [text, setText] = useState("");
 
@@ -47,6 +50,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         maxLength={MAX_LENGTH}
         rows={1}
         className="w-full resize-none bg-transparent px-3 py-2 text-sm text-textHeading placeholder:text-textMuted/60 focus:outline-none max-h-32 min-h-[40px] font-sans"
+      />
+      {/* Speak instead of typing: words go into the box to check before sending. */}
+      <MicButton
+        lang={lang}
+        disabled={disabled}
+        onText={(spoken) => setText((t) => appendTranscript(t, spoken, MAX_LENGTH))}
+        className="shrink-0"
       />
       {nearLimit && (
         <span className="absolute -top-5 right-3 text-[10px] text-textMuted" aria-live="polite">

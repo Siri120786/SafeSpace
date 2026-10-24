@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { setMySharing } from "@safespace/api-client";
 import type { ChildSettings } from "@safespace/shared-types";
 import { useChildSpace } from "./ChildSpaceContext";
+import { ReadAloudButton } from "../speech";
 
 interface Props {
   onAnswered: (s: ChildSettings) => void;
@@ -53,6 +54,10 @@ export const SharingChoice: React.FC<Props> = ({ onAnswered, mode }) => {
         <p className="text-sm text-charcoal/80">
           Do you want your grown-ups to see your check-ins, journal, routines and AI Companion chats?
         </p>
+        <ReadAloudButton
+          text={'Do you want your grown-ups to see your check-ins, journal, routines and AI Companion chats? You can choose "Yes, they can see them" or "No, keep them private". Either way, if you press I need help, your grown-ups are always told.'}
+          label="Read the question aloud"
+        />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {option(true, "Yes, they can see them", "They'll see what you do in SafeSpace.")}

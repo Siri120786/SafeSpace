@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { listMyRoutines, setRoutineStepCompleted } from "@safespace/api-client";
 import { ROUTINE_STEP_ICONS, type AppSession, type RoutineWithSteps } from "@safespace/shared-types";
 import { recentDays } from "./toolsLogic";
+import { ReadAloudButton, routineSpeech } from "../speech";
 
 export type Guard = <T>(p: Promise<T>) => Promise<T>;
 const noGuard: Guard = (p) => p;
@@ -68,7 +69,10 @@ export const MyRoutines: React.FC<Props> = ({ session, guard = noGuard, emptyTex
           <section key={r.id} className="rounded-3xl bg-white p-5 shadow-card">
             <div className="flex items-baseline justify-between gap-3 mb-3">
               <h2 className="font-display text-xl font-bold text-charcoal">{r.title}</h2>
-              <span className="text-sm text-charcoal/70">{done} of {r.steps.length} done</span>
+              <span className="flex items-center gap-2 text-sm text-charcoal/70">
+                {done} of {r.steps.length} done
+                <ReadAloudButton text={routineSpeech(r)} label={`Read ${r.title} aloud`} />
+              </span>
             </div>
             <ul className="space-y-2">
               {r.steps.map((s) => (

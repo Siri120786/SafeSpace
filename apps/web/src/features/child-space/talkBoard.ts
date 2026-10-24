@@ -45,24 +45,3 @@ export function helpMessage(state: HelpState): string | null {
 export function helpFailed(err: unknown): HelpState {
   return { kind: "failed", sessionEnded: isSessionEnded(err) };
 }
-
-// Minimal piece of the Web Speech API the board uses; injectable for tests.
-export interface Speaker {
-  cancel(): void;
-  speak(u: { text: string; rate?: number }): void;
-}
-
-// Speaks a phrase out loud. Returns false when the device can't speak
-// (the phrase is still shown large on screen).
-export function speakPhrase(text: string, speaker: Speaker | null, makeUtterance: (t: string) => { text: string; rate?: number }): boolean {
-  if (!speaker) return false;
-  try {
-    speaker.cancel();
-    const u = makeUtterance(text);
-    u.rate = 0.9;
-    speaker.speak(u);
-    return true;
-  } catch {
-    return false;
-  }
-}

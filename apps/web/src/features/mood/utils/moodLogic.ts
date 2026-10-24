@@ -64,8 +64,9 @@ export function prepareMoodCheckInPayload(
 
 /**
  * Maps system and API error codes to warm, non-clinical, supportive user messages.
+ * `action` picks the fallback wording: saving a check-in or loading history.
  */
-export function getFriendlyErrorMessage(error: unknown): string {
+export function getFriendlyErrorMessage(error: unknown, action: "save" | "load" = "save"): string {
   if (!error) return "Something went wrong. Please try again.";
 
   const rawMessage = error instanceof Error ? error.message : String(error);
@@ -86,7 +87,9 @@ export function getFriendlyErrorMessage(error: unknown): string {
     return "Unable to connect right now. Please check your internet connection and try again.";
   }
 
-  return "We couldn't save your check-in right now. Please try again in a moment.";
+  return action === "load"
+    ? "We couldn't load your past check-ins right now. Please try again in a moment."
+    : "We couldn't save your check-in right now. Please try again in a moment.";
 }
 
 /**
