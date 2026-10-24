@@ -22,6 +22,9 @@ import {
   DeviceOnlyNote,
   LocalDeviceStore,
   createLocalDeviceStore,
+  setDeviceStoreOwner,
+  getDeviceStoreOwner,
+  clearDeviceStore,
 } from "../src/features/wellness-ui/index.ts";
 
 let passed = 0;
@@ -264,6 +267,12 @@ class MockStorage {
   clear(): void {
     this.map.clear();
   }
+  get length(): number {
+    return this.map.size;
+  }
+  key(i: number): string | null {
+    return [...this.map.keys()][i] ?? null;
+  }
 }
 
 const mockStorage = new MockStorage();
@@ -271,10 +280,12 @@ const originalWindow = (globalThis as unknown as { window?: unknown }).window;
 (globalThis as unknown as { window: unknown }).window = {
   localStorage: mockStorage,
 };
+// Tool data belongs to the signed-in person (role-flow 8b).
+setDeviceStoreOwner("p:test-user");
 
-test("LocalDeviceStore: uses namespace prefix safespace.ws-b.", () => {
+test("LocalDeviceStore: keys are the namespace, then the signed-in person, then the feature", () => {
   const store = createLocalDeviceStore<string[]>("test.routines");
-  assert.equal(store.key, "safespace.ws-b.test.routines");
+  assert.equal(store.key, "safespace.ws-b.p:test-user.test.routines");
 });
 
 test("LocalDeviceStore: returns default value on missing key", () => {
@@ -338,6 +349,56 @@ test("LocalDeviceStore: unavailable storage fails safely without throwing", () =
   assert.equal(store.remove(), false);
 
   mockStorage.shouldThrow = false;
+});
+
+test("LocalDeviceStore: each person on a shared device sees only their own data", () => {
+  mockStorage.clear();
+  const store = createLocalDeviceStore<string[]>("autism.schedule");
+  setDeviceStoreOwner("c:child-a");
+  assert.equal(store.set(["Brush teeth"]), true);
+  setDeviceStoreOwner("c:child-b");
+  assert.deepEqual(store.get([]), []);
+  store.set(["Pack bag"]);
+  setDeviceStoreOwner("c:child-a");
+  assert.deepEqual(store.get([]), ["Brush teeth"]);
+  setDeviceStoreOwner("p:test-user");
+});
+
+test("LocalDeviceStore: with nobody signed in, nothing is read or saved", () => {
+  mockStorage.clear();
+  const store = createLocalDeviceStore<string[]>("adhd.tasks");
+  store.set(["Homework"]);
+  setDeviceStoreOwner(null);
+  assert.equal(store.key, null);
+  assert.equal(store.isAvailable(), false);
+  assert.deepEqual(store.get(["default"]), ["default"]);
+  assert.equal(store.set(["Sneaky"]), false);
+  assert.equal(store.remove(), false);
+  setDeviceStoreOwner("p:test-user");
+  assert.deepEqual(store.get([]), ["Homework"]);
+});
+
+test("LocalDeviceStore: odd owner values are ignored (treated as signed out)", () => {
+  for (const bad of ["", "x:abc", "p:", "p:a.b", "c:../../x", `p:${"a".repeat(65)}`]) {
+    setDeviceStoreOwner(bad);
+    assert.equal(getDeviceStoreOwner(), null, bad);
+  }
+  setDeviceStoreOwner("p:test-user");
+});
+
+test("clearDeviceStore: sign-out removes every person's tool data and nothing else", () => {
+  mockStorage.clear();
+  mockStorage.setItem("safespace_child_session", "keep");
+  mockStorage.setItem("safespace.ws-b.adhd.tasks", "old-format");
+  const store = createLocalDeviceStore<number>("adhd.rewards");
+  store.set(5);
+  setDeviceStoreOwner("c:child-a");
+  store.set(9);
+  clearDeviceStore();
+  assert.equal(mockStorage.length, 1);
+  assert.equal(mockStorage.getItem("safespace_child_session"), "keep");
+  setDeviceStoreOwner("p:test-user");
+  assert.equal(store.get(0), 0);
 });
 
 // Restore global window

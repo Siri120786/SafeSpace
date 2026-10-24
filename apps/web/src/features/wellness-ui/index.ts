@@ -43,5 +43,8 @@ export {
   LocalDeviceStore,
   createLocalDeviceStore,
   STORAGE_PREFIX,
+  setDeviceStoreOwner,
+  getDeviceStoreOwner,
+  clearDeviceStore,
 } from "./store/LocalDeviceStore";
 export type { StorageOptions } from "./store/LocalDeviceStore";

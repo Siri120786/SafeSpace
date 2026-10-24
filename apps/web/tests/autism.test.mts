@@ -38,7 +38,7 @@ import {
   SpecialInterestThemes,
   type CountdownState,
 } from "../src/features/conditions/autism/index.ts";
-import { LocalDeviceStore } from "../src/features/wellness-ui/index.ts";
+import { LocalDeviceStore, setDeviceStoreOwner } from "../src/features/wellness-ui/index.ts";
 
 let passed = 0;
 async function test(name: string, fn: () => void | Promise<void>) {
@@ -270,6 +270,8 @@ async function runAll() {
 
   const mockStorage = new MockMemoryStorage();
   const originalWindow = (globalThis as unknown as { window?: unknown }).window;
+  // Tool data belongs to the signed-in person (role-flow 8b).
+  setDeviceStoreOwner("p:test-user");
   (globalThis as unknown as { window: unknown }).window = {
     localStorage: mockStorage,
   };

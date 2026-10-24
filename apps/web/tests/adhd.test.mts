@@ -12,6 +12,7 @@
  */
 
 import assert from "node:assert/strict";
+import { setDeviceStoreOwner } from "../src/features/wellness-ui/store/LocalDeviceStore.ts";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -110,6 +111,8 @@ const mockStorage = new MemoryStorage();
 
 // Minimal window stub
 const originalWindow = (globalThis as unknown as { window?: unknown }).window;
+// Tool data belongs to the signed-in person (role-flow 8b).
+setDeviceStoreOwner("p:test-user");
 (globalThis as unknown as { window?: unknown }).window = {
   localStorage: mockStorage,
   matchMedia: () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }),

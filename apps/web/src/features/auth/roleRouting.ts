@@ -21,6 +21,15 @@ export function roleOf(session: AppSession): AppRole | null {
   return null;
 }
 
+// Whose on-device tool data is in use (role-flow 8b): "p:<profile id>" for an
+// adult, "c:<child id>" for a child, null when nobody is signed in.
+export function deviceOwnerFor(session: AppSession): string | null {
+  if (!session) return null;
+  if (session.kind === "child") return session.childId ? `c:${session.childId}` : null;
+  if (session.kind === "auth_user") return session.profile?.id ? `p:${session.profile.id}` : null;
+  return null;
+}
+
 export function homeFor(role: AppRole): string {
   return ROLE_HOME_ROUTES[role];
 }

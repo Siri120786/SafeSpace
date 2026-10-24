@@ -6,9 +6,43 @@
  * quota exceeded errors, or when running in SSR/test environments where storage is absent).
  *
  * Namespace prefix: "safespace.ws-b."
+ *
+ * Per person (role-flow 8b): every key includes the signed-in person
+ * ("p:<profile id>" for adults, "c:<child id>" for children), so on a shared
+ * family device nobody sees anyone else's schedule, feelings, tasks or stars.
+ * The auth layer sets the owner whenever the session changes; with nobody
+ * signed in nothing is read or saved. clearDeviceStore() removes every tool
+ * key on sign-out. This is interim: step 8e moves the data to the database.
  */
 
 export const STORAGE_PREFIX = "safespace.ws-b.";
+
+let currentOwner: string | null = null;
+
+/** Who the tool data belongs to: "p:<profile id>", "c:<child id>", or null when signed out. */
+export function setDeviceStoreOwner(owner: string | null): void {
+  currentOwner = owner && /^[pc]:[A-Za-z0-9-]{1,64}$/.test(owner) ? owner : null;
+}
+
+export function getDeviceStoreOwner(): string | null {
+  return currentOwner;
+}
+
+/** Removes every tool key on this device (all people). Used on sign-out. */
+export function clearDeviceStore(): void {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return;
+    const storage = window.localStorage;
+    const keys: string[] = [];
+    for (let i = 0; i < storage.length; i++) {
+      const k = storage.key(i);
+      if (k && k.startsWith(STORAGE_PREFIX)) keys.push(k);
+    }
+    keys.forEach((k) => storage.removeItem(k));
+  } catch {
+    // Storage unavailable: nothing to clear.
+  }
+}
 
 export interface StorageOptions<T> {
   /** Optional custom runtime validator function to verify parsed JSON structure. */
@@ -16,7 +50,7 @@ export interface StorageOptions<T> {
 }
 
 export class LocalDeviceStore<T> {
-  private readonly storageKey: string;
+  private readonly featureKey: string;
   private readonly validator?: (data: unknown) => data is T;
 
   /**
@@ -24,13 +58,13 @@ export class LocalDeviceStore<T> {
    * @param options Storage configuration options including optional validator
    */
   constructor(featureKey: string, options?: StorageOptions<T>) {
-    this.storageKey = `${STORAGE_PREFIX}${featureKey}`;
+    this.featureKey = featureKey;
     this.validator = options?.validator;
   }
 
-  /** Fully qualified storage key including the namespace prefix. */
-  get key(): string {
-    return this.storageKey;
+  /** The full storage key for the signed-in person, or null when nobody is signed in. */
+  get key(): string | null {
+    return currentOwner ? `${STORAGE_PREFIX}${currentOwner}.${this.featureKey}` : null;
   }
 
   /**
@@ -38,7 +72,7 @@ export class LocalDeviceStore<T> {
    */
   public isAvailable(): boolean {
     try {
-      if (typeof window === "undefined" || !window.localStorage) {
+      if (!this.key || typeof window === "undefined" || !window.localStorage) {
         return false;
       }
       const testKey = `${STORAGE_PREFIX}__probe__`;
@@ -57,10 +91,11 @@ export class LocalDeviceStore<T> {
    */
   public get(defaultValue: T): T {
     try {
-      if (typeof window === "undefined" || !window.localStorage) {
+      const key = this.key;
+      if (!key || typeof window === "undefined" || !window.localStorage) {
         return defaultValue;
       }
-      const raw = window.localStorage.getItem(this.storageKey);
+      const raw = window.localStorage.getItem(key);
       if (raw === null || raw === undefined) {
         return defaultValue;
       }
@@ -83,11 +118,12 @@ export class LocalDeviceStore<T> {
    */
   public set(value: T): boolean {
     try {
-      if (typeof window === "undefined" || !window.localStorage) {
+      const key = this.key;
+      if (!key || typeof window === "undefined" || !window.localStorage) {
         return false;
       }
       const serialized = JSON.stringify(value);
-      window.localStorage.setItem(this.storageKey, serialized);
+      window.localStorage.setItem(key, serialized);
       return true;
     } catch {
       // Storage unavailable, quota exceeded, or serialization error
@@ -101,10 +137,11 @@ export class LocalDeviceStore<T> {
    */
   public remove(): boolean {
     try {
-      if (typeof window === "undefined" || !window.localStorage) {
+      const key = this.key;
+      if (!key || typeof window === "undefined" || !window.localStorage) {
         return false;
       }
-      window.localStorage.removeItem(this.storageKey);
+      window.localStorage.removeItem(key);
       return true;
     } catch {
       return false;
