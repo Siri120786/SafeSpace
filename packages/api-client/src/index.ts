@@ -114,3 +114,14 @@ export {
   listAiCompanionConversations,
   getAiCompanionMessages,
 } from "./aiCompanion";
+
+export {
+  listStories,
+  getStory,
+  saveStory,
+  publishStory,
+  deleteStory,
+  draftStoryWithAi,
+  listMyStories,
+} from "./stories";
+export type { StorySummary, StorySource, StoryAgeBand, SaveStoryInput } from "./stories";
