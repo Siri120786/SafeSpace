@@ -152,6 +152,7 @@ export {
   getChildToolSetup,
   setChildStarGoal,
   setChildToolSettings,
+  DEFAULT_MUSIC_SETTINGS,
 } from "./focusTools";
 export type {
   FocusSessionRecordRow,
@@ -163,7 +164,10 @@ export type {
   StarTotals,
   EmotionChoice,
   ToolSettings,
+  MusicSettings,
   ChildToolsOverview,
 } from "./focusTools";
 
 export { getGameState, recordGameRound, saveGamePreferences, getChildGameSummary } from "./games";
+
+export { listMusicFavorites, setMusicFavorite, musicFileUrl, MUSIC_BUCKET } from "./music";

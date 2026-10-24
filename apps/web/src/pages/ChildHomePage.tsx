@@ -15,6 +15,7 @@ import {
 import { ROUTES } from "../routes";
 import { childToolPath, splitConditionTools } from "../features/conditions";
 import { ReadAloudButton, reminderSpeech } from "../features/speech";
+import { useMusicPlayer } from "../features/music";
 
 const REFRESH_MS = 60_000;
 
@@ -29,6 +30,7 @@ const TILES: { to: string; label: string; emoji: string }[] = [
   { to: ROUTES.CHILD_GAMES, label: "Games", emoji: "🎲" },
   { to: ROUTES.CHILD_COMPANION, label: "AI Companion", emoji: "💬" },
 ];
+const MUSIC_TILE = { to: ROUTES.CHILD_MUSIC, label: "Music", emoji: "🎵" };
 const MODULES_TILE = { to: ROUTES.CHILD_MODULES, label: "My spaces", emoji: "🌈" };
 const SETTINGS_TILE = { to: ROUTES.CHILD_SETTINGS, label: "Settings", emoji: "⚙️" };
 
@@ -39,6 +41,7 @@ const emojiFor = (s: DayStep) => (s.icon ? ROUTINE_STEP_ICONS[s.icon]?.emoji : n
 export const ChildHomePage: React.FC = () => {
   const { session, child, guard } = useChildSpace();
   const tools = splitConditionTools(child.assignedModules);
+  const { musicOff } = useMusicPlayer();
   const [now, setNow] = useState(() => new Date());
   const [routines, setRoutines] = useState<RoutineWithSteps[] | null>(null);
   const [due, setDue] = useState<DueReminder[]>([]);
@@ -169,7 +172,10 @@ export const ChildHomePage: React.FC = () => {
         {[
           // The tools for this child's own modules first (role-flow 8c).
           ...tools.mine.map((t) => ({ to: childToolPath(t.key), label: t.label, emoji: t.emoji })),
-          ...TILES,
+          ...TILES.slice(0, 2),
+          // Hidden when their caregiver has turned music off (role-flow 9c).
+          ...(musicOff ? [] : [MUSIC_TILE]),
+          ...TILES.slice(2),
           ...(childModuleKeys(child.assignedModules).length > 0 ? [MODULES_TILE] : []),
           ...(tools.more.length > 0 ? [{ to: ROUTES.CHILD_TOOLS, label: tools.mine.length ? "More tools" : "Focus & feelings", emoji: "🧰" }] : []),
           SETTINGS_TILE,

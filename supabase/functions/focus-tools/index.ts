@@ -99,7 +99,21 @@ const store: FocusToolsStore = {
   },
 
   async getSettings(childId) {
-    return must(await admin.from("tool_settings").select("transition_preset, aac_labels").eq("child_id", childId).maybeSingle());
+    return must(await admin.from("tool_settings")
+      .select("transition_preset, aac_labels, music_enabled, music_volume_max, music_sleep_minutes").eq("child_id", childId).maybeSingle());
+  },
+
+  async listFavorites(childId) {
+    const rows = must(await admin.from("music_favorites").select("track_id")
+      .eq("child_id", childId).order("created_at", { ascending: false })) ?? [];
+    return (rows as { track_id: string }[]).map((r) => r.track_id);
+  },
+  async addFavorite(childId, trackId) {
+    must(await admin.from("music_favorites")
+      .upsert({ child_id: childId, track_id: trackId }, { onConflict: "child_id,track_id", ignoreDuplicates: true }));
+  },
+  async removeFavorite(childId, trackId) {
+    must(await admin.from("music_favorites").delete().eq("child_id", childId).eq("track_id", trackId));
   },
 };
 

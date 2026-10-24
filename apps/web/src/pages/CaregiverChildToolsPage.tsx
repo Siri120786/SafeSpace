@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getChildToolSetup, setChildStarGoal, setChildToolSettings, type StarGoal, type ToolSettings } from "@safespace/api-client";
+import {
+  getChildToolSetup,
+  setChildStarGoal,
+  setChildToolSettings,
+  type MusicSettings,
+  type StarGoal,
+  type ToolSettings,
+} from "@safespace/api-client";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { CaregiverPageShell, SelectField, TextField, caregiverChildPath, useCaregiverChild } from "../features/caregiver";
 import { COUNTDOWN_MINUTES, GOAL_ICONS, RENAMEABLE_WORDS, validGoal, wordLabelsToSave } from "../features/conditions";
 import { ROUTES } from "../routes";
 
-// /caregiver/children/:childId/tools (role-flow 8f): set up a child's ADHD
-// and autism tools. Any caregiver of the child, whatever their sharing
+// /caregiver/children/:childId/tools (role-flow 8f, 9c): set up a child's
+// ADHD and autism tools and their music. Any caregiver of the child, whatever their sharing
 // choice: this is setup, not activity. The child sees each change the next
 // time they open the tool.
 export const CaregiverChildToolsPage: React.FC = () => {
@@ -43,13 +50,14 @@ export const CaregiverChildToolsPage: React.FC = () => {
   return (
     <CaregiverPageShell
       title={`${child.name}'s tools`}
-      subtitle="The star goal, the countdown and the talk-board words. Any of their caregivers can change these."
+      subtitle="The star goal, the countdown, the talk-board words and music. Any of their caregivers can change these."
       backTo={caregiverChildPath(childId)}
       backLabel={`Back to ${child.name}`}
     >
       <GoalCard childId={childId} name={child.name} goal={setup.goal} />
       <CountdownCard childId={childId} name={child.name} preset={setup.settings.transitionPreset} />
       <WordsCard childId={childId} name={child.name} labels={setup.settings.aacLabels} />
+      <MusicCard childId={childId} name={child.name} music={setup.settings.music} />
     </CaregiverPageShell>
   );
 };
@@ -178,6 +186,51 @@ const WordsCard: React.FC<{ childId: string; name: string; labels: Record<string
         <Button size="sm" variant="olive" disabled={saving} onClick={() => run(() => setChildToolSettings(childId, { aacLabels: wordLabelsToSave(edits) }))}>
           Save words
         </Button>
+        {status}
+      </div>
+    </Card>
+  );
+};
+
+// Volume ceilings offered (percent of full). 60 is the most a child can have.
+const VOLUME_CEILINGS = [60, 50, 40, 30, 20] as const;
+
+const MusicCard: React.FC<{ childId: string; name: string; music: MusicSettings }> = ({ childId, name, music }) => {
+  const [enabled, setEnabled] = useState(music.enabled);
+  const [volumeMax, setVolumeMax] = useState(String(music.volumeMax ?? 60));
+  const [sleep, setSleep] = useState(music.sleepMinutes ? String(music.sleepMinutes) : "");
+  const { saving, run, status } = useSave();
+  const save = () =>
+    run(() => setChildToolSettings(childId, {
+      music: {
+        enabled,
+        // 60 is the default, so it's saved as "no change".
+        volumeMax: Number(volumeMax) === 60 ? null : Number(volumeMax),
+        sleepMinutes: sleep ? Number(sleep) : null,
+      },
+    }));
+  return (
+    <Card className="p-6 space-y-3 border border-olive-100">
+      <h2 className="font-display text-lg font-medium text-textHeading">Music</h2>
+      <p className="text-sm text-textBody">
+        {name}'s calm sounds, rhyme tunes and songs. Nothing plays until they press play, and you can't see what they
+        listen to: nothing about listening is kept.
+      </p>
+      <label className="mt-0 flex items-center gap-2 text-sm text-charcoal">
+        <input type="checkbox" className="h-4 w-4 shrink-0 p-0" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+        Music is on for {name}
+      </label>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <SelectField label="Loudest it can go" value={volumeMax} onChange={setVolumeMax}>
+          {VOLUME_CEILINGS.map((v) => <option key={v} value={v}>{v}% of full{v === 60 ? " (the most for children)" : ""}</option>)}
+        </SelectField>
+        <SelectField label="Sleep timer with every play" value={sleep} onChange={setSleep}>
+          <option value="">None</option>
+          {[10, 20, 30].map((m) => <option key={m} value={m}>Stop gently after {m} minutes</option>)}
+        </SelectField>
+      </div>
+      <div className="flex items-center gap-3">
+        <Button size="sm" variant="olive" onClick={save} disabled={saving}>Save music</Button>
         {status}
       </div>
     </Card>

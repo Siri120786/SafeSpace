@@ -1,10 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
-import { AuthProvider, RoleRoute, GuestRoute } from "./features/auth";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AuthProvider, RoleRoute, GuestRoute, roleOf, useAuth } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
 import { CalmToolsRoutes } from "./features/calm-tools";
 import { GamesRoutes } from "./features/games";
 import { ModulesRoutes } from "./features/wellness-modules";
 import { ROUTES } from "./routes";
+import { MiniPlayer, MusicPlayerProvider } from "./features/music";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
 import LoginPage from "./pages/LoginPage";
@@ -39,6 +40,14 @@ import {
   IndividualConditionToolsPage,
 } from "./pages/ConditionToolPages";
 import {
+  ChildMusicCreditsPage,
+  ChildMusicPage,
+  ChildPlaylistPage,
+  IndividualMusicCreditsPage,
+  IndividualMusicPage,
+  IndividualPlaylistPage,
+} from "./pages/MusicPages";
+import {
   IndividualCompanionPage,
   IndividualJournalPage,
   IndividualRemindersPage,
@@ -67,6 +76,16 @@ function ChildSpaceLayout() {
   );
 }
 
+// The mini-player for whoever is signed in: children and Individuals have
+// Music (role-flow 9a). On the Individual dashboard it sits above the bottom bar.
+function MusicMiniPlayer() {
+  const { session } = useAuth();
+  const { pathname } = useLocation();
+  const role = roleOf(session);
+  const base = role === "child" ? ROUTES.CHILD_MUSIC : role === "individual" ? ROUTES.MUSIC : null;
+  return <MiniPlayer basePath={base} raised={pathname === ROUTES.DASHBOARD} />;
+}
+
 // Every signed-in route says which roles it is for (docs/role-flow/CONTRACT.md
 // section 3). RoleRoute sends everyone else to the right place.
 export default function App() {
@@ -74,6 +93,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <AccessibilityProvider>
+          <MusicPlayerProvider>
           <Routes>
             {/* Public */}
             <Route path={ROUTES.HOME} element={<RoleChoicePage />} />
@@ -122,6 +142,9 @@ export default function App() {
             <Route path={ROUTES.COMPANION} element={<RoleRoute allow={["individual"]}><IndividualCompanionPage /></RoleRoute>} />
             <Route path={ROUTES.TOOLS} element={<RoleRoute allow={["individual"]}><IndividualConditionToolsPage /></RoleRoute>} />
             <Route path={`${ROUTES.TOOLS}/:toolKey`} element={<RoleRoute allow={["individual"]}><IndividualConditionToolPage /></RoleRoute>} />
+            <Route path={ROUTES.MUSIC} element={<RoleRoute allow={["individual"]}><IndividualMusicPage /></RoleRoute>} />
+            <Route path={`${ROUTES.MUSIC}/credits`} element={<RoleRoute allow={["individual"]}><IndividualMusicCreditsPage /></RoleRoute>} />
+            <Route path={`${ROUTES.MUSIC}/:playlistId`} element={<RoleRoute allow={["individual"]}><IndividualPlaylistPage /></RoleRoute>} />
 
             {/* Caregiver */}
             <Route
@@ -211,6 +234,9 @@ export default function App() {
               <Route path="tools/:toolKey" element={<ChildConditionToolPage />} />
               <Route path="stories" element={<ChildStoriesPage />} />
               <Route path="stories/:storyId" element={<ChildStoryPage />} />
+              <Route path="music" element={<ChildMusicPage />} />
+              <Route path="music/credits" element={<ChildMusicCreditsPage />} />
+              <Route path="music/:playlistId" element={<ChildPlaylistPage />} />
             </Route>
 
             {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}
@@ -223,6 +249,8 @@ export default function App() {
 
             <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Routes>
+          <MusicMiniPlayer />
+          </MusicPlayerProvider>
         </AccessibilityProvider>
       </AuthProvider>
     </BrowserRouter>

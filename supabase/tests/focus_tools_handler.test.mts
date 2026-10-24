@@ -22,7 +22,7 @@ const nextId = () => `aaaaaaaa-0000-4000-8000-${String(++n).padStart(12, "0")}`;
 function makeWorld() {
   const db = {
     sessions: [] as any[], tasks: [] as any[], habits: [] as any[], checks: new Set<string>(),
-    stars: [] as any[], emotions: [] as any[], settings: new Map<string, any>(),
+    stars: [] as any[], emotions: [] as any[], settings: new Map<string, any>(), favorites: [] as { child_id: string; track_id: string }[],
   };
   const fail: { next: any } = { next: null };
   const maybeFail = () => { if (fail.next) { const e = fail.next; fail.next = null; throw e; } };
@@ -47,6 +47,9 @@ function makeWorld() {
     async listEmotions(c: string) { return db.emotions.filter((e) => e.child_id === c); },
     async addEmotion(c: string, card: string) { const e = { id: nextId(), child_id: c, card_id: card, created_at: "t" }; db.emotions.push(e); return e; },
     async getSettings(c: string) { return db.settings.get(c) ?? null; },
+    async listFavorites(c: string) { return db.favorites.filter((f) => f.child_id === c).map((f) => f.track_id); },
+    async addFavorite(c: string, t: string) { if (!db.favorites.some((f) => f.child_id === c && f.track_id === t)) db.favorites.push({ child_id: c, track_id: t }); },
+    async removeFavorite(c: string, t: string) { db.favorites = db.favorites.filter((f) => !(f.child_id === c && f.track_id === t)); },
   };
   const handler = createFocusToolsHandler({ store, verifyChildToken, log: (e: string, d?: string) => logs.push(`${e} ${d ?? ""}`) });
   const call = async (body: unknown, opts: { raw?: string; method?: string } = {}) => {
@@ -134,7 +137,25 @@ ok("feelings cards: known cards only, newest kept; there is no delete for childr
   (await as("emotions.add", { card_id: "overwhelmed" })).status === 200 &&
   (await as("emotions.add", { card_id: "furious" })).status === 400 &&
   (await as("emotions.list")).json.choices[0].cardId === "overwhelmed");
-ok("settings default to nothing set", JSON.stringify((await as("settings.get")).json) === JSON.stringify({ transitionPreset: null, aacLabels: {} }));
+ok("settings default to nothing set, with music on",
+  JSON.stringify((await as("settings.get")).json) ===
+  JSON.stringify({ transitionPreset: null, aacLabels: {}, music: { enabled: true, volumeMax: null, sleepMinutes: null } }));
+w.db.settings.set(KID, { transition_preset: null, aac_labels: {}, music_enabled: false, music_volume_max: 30, music_sleep_minutes: 20 });
+ok("a caregiver's music controls reach the child",
+  JSON.stringify((await as("settings.get")).json.music) === JSON.stringify({ enabled: false, volumeMax: 30, sleepMinutes: 20 }));
+
+ok("favorites: heart, heart again (no change), list, un-heart",
+  (await as("favorites.add", { track_id: "gentle-waves" })).json.favorite === true &&
+  (await as("favorites.add", { track_id: "gentle-waves" })).status === 200 &&
+  (await as("favorites.add", { track_id: "rhyme-twinkle-twinkle" })).status === 200 &&
+  JSON.stringify((await as("favorites.list")).json.trackIds) === JSON.stringify(["gentle-waves", "rhyme-twinkle-twinkle"]) &&
+  (await as("favorites.remove", { track_id: "gentle-waves" })).json.favorite === false &&
+  JSON.stringify((await as("favorites.list")).json.trackIds) === JSON.stringify(["rhyme-twinkle-twinkle"]));
+ok("favorites: catalog ids only",
+  (await as("favorites.add", { track_id: "Bad Id" })).status === 400 && (await as("favorites.add", {})).status === 400 &&
+  (await as("favorites.remove", { track_id: "x".repeat(81) })).status === 400);
+ok("favorites: another child sees only their own",
+  (await as("favorites.list", {}, otherTok)).json.trackIds.length === 0);
 
 w.fail.next = Object.assign(new Error("limit_reached"), { code: "P0001" });
 ok("the database cap is limit_reached (409)", (await as("sessions.add", { duration_seconds: 60, mode: "simple" })).status === 409);

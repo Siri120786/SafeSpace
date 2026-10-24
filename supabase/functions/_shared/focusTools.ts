@@ -1,6 +1,6 @@
 // supabase/functions/_shared/focusTools.ts
 // Request rules for the focus-tools Edge Function (role-flow 8e): the ADHD
-// and autism tools for a signed-in child. They mirror the database checks in
+// and autism tools for a signed-in child, and their music favorites (9b). They mirror the database checks in
 // migration 20261028200000, so a bad request is a clear 400 before any write;
 // the database stays the final gate. Pure: no Deno or esm.sh imports, so the
 // tests run it under Node.
@@ -14,6 +14,8 @@ export const EMOTION_CARD_IDS = [
 export const SESSION_HISTORY_DAYS = 60;
 export const HABIT_HISTORY_DAYS = 31;
 export const EMOTION_LIST_LIMIT = 20;
+// Music track ids from the web app's catalog (role-flow 9b).
+export const TRACK_ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
 
 export interface TaskStep {
   id: string;
@@ -39,7 +41,10 @@ export type FocusToolsRequest =
   | { action: "stars.claim" }
   | { action: "emotions.list" }
   | { action: "emotions.add"; cardId: (typeof EMOTION_CARD_IDS)[number] }
-  | { action: "settings.get" };
+  | { action: "settings.get" }
+  | { action: "favorites.list" }
+  | { action: "favorites.add"; trackId: string }
+  | { action: "favorites.remove"; trackId: string };
 
 type Parsed = { ok: true; token: string; value: FocusToolsRequest } | { ok: false; error: string; status: number };
 
@@ -86,6 +91,7 @@ export function parseFocusToolsRequest(raw: unknown): Parsed {
     case "stars.claim":
     case "emotions.list":
     case "settings.get":
+    case "favorites.list":
       return done({ action: r.action });
 
     case "sessions.add": {
@@ -150,6 +156,12 @@ export function parseFocusToolsRequest(raw: unknown): Parsed {
     case "emotions.add":
       return (EMOTION_CARD_IDS as readonly unknown[]).includes(r.card_id)
         ? done({ action: "emotions.add", cardId: r.card_id as (typeof EMOTION_CARD_IDS)[number] })
+        : bad();
+
+    case "favorites.add":
+    case "favorites.remove":
+      return typeof r.track_id === "string" && TRACK_ID.test(r.track_id)
+        ? done({ action: r.action, trackId: r.track_id })
         : bad();
 
     default:

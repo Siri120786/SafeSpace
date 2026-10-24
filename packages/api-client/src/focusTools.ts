@@ -14,6 +14,8 @@ import { getSafeSpaceClient } from "./supabaseClient";
 import { ContractError, invokeEdge, toContractError } from "./edge";
 import type { AppSession } from "@safespace/shared-types";
 
+type Row = Record<string, any>;
+
 export interface FocusSessionRecordRow {
   id: string;
   endedAt: string;
@@ -71,9 +73,42 @@ export interface EmotionChoice {
   createdAt: string;
 }
 
+// A child's music controls (role-flow 9c), set by a caregiver. Adults have
+// none: their music is theirs to control.
+export interface MusicSettings {
+  enabled: boolean;
+  volumeMax: number | null;     // percent of full, 10-60; null = the default 60
+  sleepMinutes: number | null;  // 10, 20 or 30: a sleep timer with every play
+}
+export const DEFAULT_MUSIC_SETTINGS: MusicSettings = { enabled: true, volumeMax: null, sleepMinutes: null };
+
 export interface ToolSettings {
   transitionPreset: { activity: string; totalSeconds: number } | null;
   aacLabels: Record<string, string>;
+  music: MusicSettings;
+}
+
+const SETTINGS_COLS = "transition_preset, aac_labels, music_enabled, music_volume_max, music_sleep_minutes";
+const toSettings = (r: Row | null | undefined): ToolSettings => ({
+  transitionPreset: r?.transition_preset ?? null,
+  aacLabels: r?.aac_labels ?? {},
+  music: {
+    enabled: r?.music_enabled ?? true,
+    volumeMax: r?.music_volume_max ?? null,
+    sleepMinutes: r?.music_sleep_minutes ?? null,
+  },
+});
+// The columns to write for the settings given.
+function settingsRow(settings: Partial<ToolSettings>): Row {
+  const row: Row = {};
+  if (settings.transitionPreset !== undefined) row.transition_preset = settings.transitionPreset;
+  if (settings.aacLabels !== undefined) row.aac_labels = settings.aacLabels;
+  if (settings.music !== undefined) {
+    row.music_enabled = settings.music.enabled;
+    row.music_volume_max = settings.music.volumeMax;
+    row.music_sleep_minutes = settings.music.sleepMinutes;
+  }
+  return row;
 }
 
 export const FOCUS_SESSION_HISTORY_DAYS = 60;
@@ -83,7 +118,6 @@ const SESSION_COLS = "id, ended_at, duration_seconds, mode, phase, completed, ac
 const TASK_COLS = "id, title, steps, is_archived, created_at, updated_at";
 const HABIT_COLS = "id, title, icon, is_archived, created_at";
 
-type Row = Record<string, any>;
 const toSession = (r: Row): FocusSessionRecordRow => ({
   id: r.id, endedAt: r.ended_at, durationSeconds: r.duration_seconds, mode: r.mode,
   phase: r.phase ?? null, completed: r.completed, activityLabel: r.activity_label ?? null,
@@ -347,19 +381,22 @@ export async function clearMyEmotionChoices(session: AppSession): Promise<void> 
 // ---------------------------------------------------------------------------
 export async function getToolSettings(session: AppSession): Promise<ToolSettings> {
   const w = who(session);
-  if (w.kind === "child") return call<ToolSettings>(w.token, "settings.get");
-  const { data, error } = await getSafeSpaceClient().from("tool_settings").select("transition_preset, aac_labels")
+  if (w.kind === "child") {
+    const r = await call<Partial<ToolSettings>>(w.token, "settings.get");
+    return { transitionPreset: r.transitionPreset ?? null, aacLabels: r.aacLabels ?? {}, music: r.music ?? DEFAULT_MUSIC_SETTINGS };
+  }
+  const { data, error } = await getSafeSpaceClient().from("tool_settings").select(SETTINGS_COLS)
     .eq("profile_id", w.profileId).maybeSingle();
   if (error) fail(error);
-  return { transitionPreset: data?.transition_preset ?? null, aacLabels: data?.aac_labels ?? {} };
+  // An adult's music has no controls on it.
+  return { ...toSettings(data), music: DEFAULT_MUSIC_SETTINGS };
 }
 
 // Adults save their own (a child's are set by a caregiver, step 8f).
 export async function saveMyToolSettings(session: AppSession, settings: Partial<ToolSettings>): Promise<void> {
   const profileId = adultOnly(session);
-  const row: Row = { profile_id: profileId };
-  if (settings.transitionPreset !== undefined) row.transition_preset = settings.transitionPreset;
-  if (settings.aacLabels !== undefined) row.aac_labels = settings.aacLabels;
+  const { music: _childOnly, ...mine } = settings;
+  const row: Row = { profile_id: profileId, ...settingsRow(mine) };
   const { error } = await getSafeSpaceClient().from("tool_settings").upsert(row, { onConflict: "profile_id" });
   if (error) fail(error);
 }
@@ -419,13 +456,13 @@ export async function getChildToolSetup(childId: string): Promise<{ goal: StarGo
   const db = getSafeSpaceClient();
   const [goal, settings] = await Promise.all([
     db.from("star_goals").select("title, target_stars, icon").eq("child_id", childId).maybeSingle(),
-    db.from("tool_settings").select("transition_preset, aac_labels").eq("child_id", childId).maybeSingle(),
+    db.from("tool_settings").select(SETTINGS_COLS).eq("child_id", childId).maybeSingle(),
   ]);
   if (goal.error) fail(goal.error);
   if (settings.error) fail(settings.error);
   return {
     goal: goal.data ? { title: goal.data.title, targetStars: goal.data.target_stars, icon: goal.data.icon ?? null } : null,
-    settings: { transitionPreset: settings.data?.transition_preset ?? null, aacLabels: settings.data?.aac_labels ?? {} },
+    settings: toSettings(settings.data),
   };
 }
 
@@ -438,9 +475,7 @@ export async function setChildStarGoal(childId: string, goal: StarGoal): Promise
 }
 
 export async function setChildToolSettings(childId: string, settings: Partial<ToolSettings>): Promise<void> {
-  const row: Row = { child_id: childId };
-  if (settings.transitionPreset !== undefined) row.transition_preset = settings.transitionPreset;
-  if (settings.aacLabels !== undefined) row.aac_labels = settings.aacLabels;
+  const row: Row = { child_id: childId, ...settingsRow(settings) };
   const { error } = await getSafeSpaceClient().from("tool_settings").upsert(row, { onConflict: "child_id" });
   if (error) fail(error);
 }
