@@ -24,6 +24,7 @@ const TILES: { to: string; label: string; emoji: string }[] = [
   { to: ROUTES.CHILD_JOURNAL, label: "My journal", emoji: "📓" },
   { to: ROUTES.CHILD_REMINDERS, label: "Reminders", emoji: "⏰" },
   { to: ROUTES.CHILD_CALM_TOOLS, label: "Calm tools", emoji: "🍃" },
+  { to: ROUTES.CHILD_GAMES, label: "Games", emoji: "🎲" },
   { to: ROUTES.CHILD_COMPANION, label: "AI Companion", emoji: "💬" },
 ];
 const MODULES_TILE = { to: ROUTES.CHILD_MODULES, label: "My spaces", emoji: "🌈" };

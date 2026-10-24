@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "note": "Spoken and screen-reader names for every picture used in games. Looked up by the emoji itself; unknown pictures fall back to no name.",
+  "en": {
+    "🦉": "owl", "🐻": "bear", "🦊": "fox", "🐢": "turtle", "🦋": "butterfly", "🐙": "octopus", "🐼": "panda", "🌱": "sprout",
+    "🐶": "dog", "🐱": "cat", "🐰": "rabbit", "🐸": "frog", "🐠": "fish", "🦁": "lion", "🐘": "elephant", "🐧": "penguin",
+    "⭐": "star", "🌙": "moon", "☀️": "sun", "☁️": "cloud", "🌈": "rainbow", "🚀": "rocket", "🪐": "planet", "❄️": "snowflake",
+    "🚗": "car", "🚂": "train", "🚲": "bicycle", "✈️": "plane", "🚌": "bus", "🚁": "helicopter", "⛵": "sailboat", "🚜": "tractor",
+    "🔴": "red circle", "🔵": "blue circle", "🟢": "green circle", "🟡": "yellow circle", "🟣": "purple circle", "🟠": "orange circle",
+    "🟥": "red square", "🟦": "blue square", "🟩": "green square", "🟨": "yellow square",
+    "🔺": "red triangle", "🔷": "blue diamond", "🔶": "orange diamond", "⬛": "black square", "⬜": "white square",
+    "🍎": "apple", "🍌": "banana", "🍇": "grapes", "🍓": "strawberry", "🍊": "orange", "🥕": "carrot",
+    "🌸": "flower", "🌳": "tree", "🏠": "house", "🌊": "wave", "🌻": "sunflower", "🍄": "mushroom",
+    "😀": "happy face", "😢": "sad face", "😠": "angry face", "😨": "scared face", "😴": "sleepy face", "😮": "surprised face",
+    "🤔": "thinking face", "😳": "embarrassed face", "🥰": "loved face", "😕": "confused face", "😟": "worried face", "🤩": "excited face",
+    "❓": "mystery",
+    "🧑": "person", "🦄": "unicorn", "🐲": "dragon", "🤖": "robot", "🧚": "fairy", "👽": "alien", "🐟": "little fish", "🌲": "pine tree",
+    "🏰": "castle", "🌆": "city", "🏝️": "island", "🌌": "night sky", "🎩": "hat", "👑": "crown", "🎒": "backpack", "🕶️": "sunglasses", "🎀": "bow",
+    "🏁": "finish flag", "🚶": "explorer", "🧭": "compass"
+  }
+}

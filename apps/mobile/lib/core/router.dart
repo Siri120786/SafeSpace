@@ -12,6 +12,7 @@ import '../screens/child_home_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/profile_screen.dart';
 import '../features/calm_tools/calm_tools_feature.dart';
+import '../features/games/games_feature.dart';
 import '../features/wellness_modules/module_screens.dart';
 import '../features/wellness_modules/pcos_screens.dart';
 import '../features/story_workflow/story_workflow_screen.dart';
@@ -84,6 +85,20 @@ final GoRouter appRouter = GoRouter(
           path: 'grounding',
           builder: (BuildContext context, GoRouterState state) {
             return const GroundingScreen();
+          },
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/games',
+      builder: (BuildContext context, GoRouterState state) {
+        return const GamesHomeScreen();
+      },
+      routes: <RouteBase>[
+        GoRoute(
+          path: ':gameId',
+          builder: (BuildContext context, GoRouterState state) {
+            return GameRouteScreen(gameId: state.pathParameters['gameId'] ?? '');
           },
         ),
       ],

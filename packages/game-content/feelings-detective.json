@@ -1,0 +1,149 @@
+{
+  "gameId": "feelings-detective",
+  "version": 1,
+  "roundsPerGame": 4,
+  "feelings": {
+    "happy": "😀", "sad": "😢", "angry": "😠", "scared": "😨", "worried": "😟", "excited": "🤩",
+    "proud": "😊", "lonely": "🥺", "embarrassed": "😳", "frustrated": "😤", "calm": "😌", "surprised": "😮",
+    "disappointed": "😞", "nervous": "😬", "left-out": "🫥", "jealous": "😒", "hurt": "💔", "relieved": "😮‍💨",
+    "curious": "🤔", "determined": "💪"
+  },
+  "scenarios": {
+    "easy": [
+      {
+        "id": "fd-e1", "character": "🐻", "name": "Bo", "sceneKey": "fd.e1.scene", "clueKeys": ["fd.e1.c1", "fd.e1.c2"],
+        "feelings": [{ "id": "sad", "fit": "strong" }, { "id": "frustrated", "fit": "strong" }, { "id": "calm", "fit": "unlikely" }, { "id": "excited", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.e1.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.e1.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.e1.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-e2", "character": "🦉", "name": "Pip", "sceneKey": "fd.e2.scene", "clueKeys": ["fd.e2.c1", "fd.e2.c2"],
+        "feelings": [{ "id": "happy", "fit": "strong" }, { "id": "surprised", "fit": "strong" }, { "id": "excited", "fit": "strong" }, { "id": "angry", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.e2.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.e2.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.e2.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-e3", "character": "🦊", "name": "Fox", "sceneKey": "fd.e3.scene", "clueKeys": ["fd.e3.c1", "fd.e3.c2"],
+        "feelings": [{ "id": "sad", "fit": "strong" }, { "id": "lonely", "fit": "strong" }, { "id": "disappointed", "fit": "okay" }, { "id": "excited", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.e3.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.e3.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.e3.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-e4", "character": "🐢", "name": "Turtle", "sceneKey": "fd.e4.scene", "clueKeys": ["fd.e4.c1", "fd.e4.c2"],
+        "feelings": [{ "id": "scared", "fit": "strong" }, { "id": "worried", "fit": "strong" }, { "id": "calm", "fit": "okay" }, { "id": "angry", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.e4.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.e4.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.e4.s3", "fit": "notHelpful" }]
+      }
+    ],
+    "medium": [
+      {
+        "id": "fd-m1", "character": "🐼", "name": "Panda", "sceneKey": "fd.m1.scene", "clueKeys": ["fd.m1.c1", "fd.m1.c2"],
+        "feelings": [{ "id": "nervous", "fit": "strong" }, { "id": "excited", "fit": "strong" }, { "id": "proud", "fit": "okay" }, { "id": "angry", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.m1.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.m1.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.m1.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-m2", "character": "🐙", "name": "Octo", "sceneKey": "fd.m2.scene", "clueKeys": ["fd.m2.c1", "fd.m2.c2"],
+        "feelings": [{ "id": "embarrassed", "fit": "strong" }, { "id": "hurt", "fit": "strong" }, { "id": "angry", "fit": "okay" }, { "id": "proud", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.m2.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.m2.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.m2.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-m3", "character": "🦋", "name": "Flutter", "sceneKey": "fd.m3.scene", "clueKeys": ["fd.m3.c1", "fd.m3.c2"],
+        "feelings": [{ "id": "proud", "fit": "strong" }, { "id": "happy", "fit": "strong" }, { "id": "embarrassed", "fit": "okay" }, { "id": "angry", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.m3.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.m3.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.m3.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-m4", "character": "🌱", "name": "Sprout", "sceneKey": "fd.m4.scene", "clueKeys": ["fd.m4.c1", "fd.m4.c2"],
+        "feelings": [{ "id": "worried", "fit": "strong" }, { "id": "sad", "fit": "strong" }, { "id": "excited", "fit": "okay" }, { "id": "curious", "fit": "okay" }],
+        "steps": [{ "id": "a", "textKey": "fd.m4.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.m4.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.m4.s3", "fit": "notHelpful" }]
+      }
+    ],
+    "hard": [
+      {
+        "id": "fd-h1", "character": "🦊", "name": "Fox", "sceneKey": "fd.h1.scene", "clueKeys": ["fd.h1.c1", "fd.h1.c2"],
+        "feelings": [{ "id": "disappointed", "fit": "strong" }, { "id": "worried", "fit": "okay" }, { "id": "relieved", "fit": "okay" }, { "id": "angry", "fit": "okay" }],
+        "steps": [{ "id": "a", "textKey": "fd.h1.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.h1.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.h1.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-h2", "character": "🦉", "name": "Pip", "sceneKey": "fd.h2.scene", "clueKeys": ["fd.h2.c1", "fd.h2.c2"],
+        "feelings": [{ "id": "frustrated", "fit": "strong" }, { "id": "embarrassed", "fit": "okay" }, { "id": "determined", "fit": "okay" }, { "id": "happy", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.h2.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.h2.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.h2.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-h3", "character": "🐻", "name": "Bo", "sceneKey": "fd.h3.scene", "clueKeys": ["fd.h3.c1", "fd.h3.c2"],
+        "feelings": [{ "id": "left-out", "fit": "strong" }, { "id": "sad", "fit": "strong" }, { "id": "jealous", "fit": "okay" }, { "id": "happy", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.h3.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.h3.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.h3.s3", "fit": "notHelpful" }]
+      },
+      {
+        "id": "fd-h4", "character": "🐢", "name": "Turtle", "sceneKey": "fd.h4.scene", "clueKeys": ["fd.h4.c1", "fd.h4.c2"],
+        "feelings": [{ "id": "nervous", "fit": "strong" }, { "id": "scared", "fit": "okay" }, { "id": "excited", "fit": "okay" }, { "id": "calm", "fit": "unlikely" }],
+        "steps": [{ "id": "a", "textKey": "fd.h4.s1", "fit": "helpful" }, { "id": "b", "textKey": "fd.h4.s2", "fit": "helpful" }, { "id": "c", "textKey": "fd.h4.s3", "fit": "notHelpful" }]
+      }
+    ]
+  },
+  "strings": {
+    "en": {
+      "fd.prompt.feeling": "How might {name} be feeling?",
+      "fd.prompt.step": "What could {name} do next that would help?",
+      "fd.how": "Read the story and look for clues. Pick a feeling that might fit. There can be more than one good answer. Then choose a kind next step.",
+      "fd.clues": "Clues",
+      "fd.clue.show": "Show me a clue",
+      "fd.fb.strong": "Yes, that fits well. Lots of people would feel that way.",
+      "fd.fb.okay": "That could be true too. People feel different things in the same moment.",
+      "fd.fb.unlikely": "Hmm, that might not fit as well here. Look at the clues and try another feeling.",
+      "fd.fb.helpful": "That is a kind and helpful choice.",
+      "fd.fb.notHelpful": "That might make things harder. What else could help?",
+      "fd.fb.okay2": "That could work for some people.",
+      "fd.summary": "You helped {name} today.",
+      "fd.summary.note": "Feelings are never right or wrong. Naming them helps us look after ourselves.",
+      "feeling.happy": "happy", "feeling.sad": "sad", "feeling.angry": "angry", "feeling.scared": "scared", "feeling.worried": "worried",
+      "feeling.excited": "excited", "feeling.proud": "proud", "feeling.lonely": "lonely", "feeling.embarrassed": "embarrassed",
+      "feeling.frustrated": "frustrated", "feeling.calm": "calm", "feeling.surprised": "surprised", "feeling.disappointed": "disappointed",
+      "feeling.nervous": "nervous", "feeling.left-out": "left out", "feeling.jealous": "jealous", "feeling.hurt": "hurt",
+      "feeling.relieved": "relieved", "feeling.curious": "curious", "feeling.determined": "determined",
+
+      "fd.e1.scene": "Bo built a very tall tower out of blocks. Then it wobbled and fell down with a crash.",
+      "fd.e1.c1": "Bo's tower is in pieces on the floor.", "fd.e1.c2": "Bo's shoulders are drooping and Bo is frowning.",
+      "fd.e1.s1": "Take a slow breath, then build it again.", "fd.e1.s2": "Ask a friend to help build a new one.", "fd.e1.s3": "Knock down everyone else's towers.",
+
+      "fd.e2.scene": "Pip walked into the room and everyone shouted, \"Happy birthday!\" There was a cake and balloons.",
+      "fd.e2.c1": "Pip's eyes are wide open and Pip is smiling.", "fd.e2.c2": "Pip did not know about the party.",
+      "fd.e2.s1": "Say thank you and smile.", "fd.e2.s2": "Take a quiet moment if it feels like a lot.", "fd.e2.s3": "Shout at everyone to go away.",
+
+      "fd.e3.scene": "Fox asked a friend to play. The friend said, \"Not today.\" Now Fox is sitting alone.",
+      "fd.e3.c1": "Fox's tail is low and Fox is looking at the ground.", "fd.e3.c2": "Everyone else is busy playing.",
+      "fd.e3.s1": "Ask someone else if they would like to play.", "fd.e3.s2": "Draw a picture or read a book for a while.", "fd.e3.s3": "Say something mean about the friend.",
+
+      "fd.e4.scene": "It is a stormy night. Thunder is booming and Turtle is under the blanket.",
+      "fd.e4.c1": "Turtle's head is pulled inside the shell.", "fd.e4.c2": "Each thunder boom makes Turtle jump.",
+      "fd.e4.s1": "Hug a soft toy and breathe slowly.", "fd.e4.s2": "Tell a grown-up who can keep Turtle company.", "fd.e4.s3": "Run outside to find the thunder.",
+
+      "fd.m1.scene": "Panda has a big show tomorrow. Panda keeps thinking about it and cannot sit still.",
+      "fd.m1.c1": "Panda's tummy feels fluttery.", "fd.m1.c2": "Panda has been practising and really wants to share the show.",
+      "fd.m1.s1": "Practise a little, then rest.", "fd.m1.s2": "Tell someone how it feels.", "fd.m1.s3": "Stay up all night worrying.",
+
+      "fd.m2.scene": "Octo showed a new drawing to the class. A classmate giggled and pointed at it.",
+      "fd.m2.c1": "Octo's cheeks feel hot.", "fd.m2.c2": "Octo quickly hides the drawing under the desk.",
+      "fd.m2.s1": "Tell a trusted grown-up what happened.", "fd.m2.s2": "Take a breath and remember what you like about your drawing.", "fd.m2.s3": "Tear up the drawing.",
+
+      "fd.m3.scene": "Flutter won a small prize at the school fair. Flutter's best friend did not win one.",
+      "fd.m3.c1": "Flutter is holding the prize and smiling a little.", "fd.m3.c2": "Flutter glances at the friend, who looks quiet.",
+      "fd.m3.s1": "Tell the friend, \"You did great too.\"", "fd.m3.s2": "Offer to share the fun of the prize.", "fd.m3.s3": "Boast loudly about winning.",
+
+      "fd.m4.scene": "Sprout's family will move to a new house next week. Boxes are piling up in the hall.",
+      "fd.m4.c1": "Sprout keeps looking at their old bedroom.", "fd.m4.c2": "Sprout has never seen the new house yet.",
+      "fd.m4.s1": "Talk to family about how it feels.", "fd.m4.s2": "Pack a box of favourite things to keep close.", "fd.m4.s3": "Pretend nothing is changing.",
+
+      "fd.h1.scene": "Fox waited at the park for a long time for a friend who never came. Later the friend said, \"Sorry, my bus broke down and my phone had no battery.\"",
+      "fd.h1.c1": "Fox sat on the bench for a long time.", "fd.h1.c2": "The friend looks sorry and a bit upset too.",
+      "fd.h1.s1": "Accept the sorry and plan another day.", "fd.h1.s2": "Calmly say how it felt to wait.", "fd.h1.s3": "Never talk to the friend again.",
+
+      "fd.h2.scene": "Pip is working on a hard puzzle. A friend finishes theirs first and starts cheering.",
+      "fd.h2.c1": "Pip is frowning and rubbing their head.", "fd.h2.c2": "Many pieces are still left.",
+      "fd.h2.s1": "Take a short break, then try again.", "fd.h2.s2": "Ask for a hint, or for help.", "fd.h2.s3": "Throw the puzzle across the room.",
+
+      "fd.h3.scene": "Bo's best friend has a new friend. The two of them whisper and laugh together, and Bo sits nearby.",
+      "fd.h3.c1": "Bo keeps glancing over at the two of them.", "fd.h3.c2": "Bo hasn't been asked to join in.",
+      "fd.h3.s1": "Kindly tell the friend, \"I feel a little left out.\"", "fd.h3.s2": "Spend time on something you enjoy, or with another friend.", "fd.h3.s3": "Spread unkind stories about them.",
+
+      "fd.h4.scene": "Turtle has been asked to speak first in class. Turtle's hands are shaking.",
+      "fd.h4.c1": "Turtle's voice sounds wobbly.", "fd.h4.c2": "Turtle also really wants to share an idea.",
+      "fd.h4.s1": "Take a slow breath and say, \"I need a moment.\"", "fd.h4.s2": "Ask the teacher if you can go second.", "fd.h4.s3": "Decide you can never speak in class."
+    }
+  }
+}

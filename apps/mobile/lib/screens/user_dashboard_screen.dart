@@ -78,6 +78,11 @@ class UserDashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               OutlinedButton(
+                onPressed: () => context.push('/games'),
+                child: const Text('Open Games Corner'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
                 onPressed: () => context.push('/modules'),
                 child: const Text('Open modules'),
               ),
