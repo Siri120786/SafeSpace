@@ -13,6 +13,7 @@ import {
   type DayStep,
 } from "../features/child-space";
 import { ROUTES } from "../routes";
+import { childToolPath, splitConditionTools } from "../features/conditions";
 import { ReadAloudButton, reminderSpeech } from "../features/speech";
 
 const REFRESH_MS = 60_000;
@@ -36,6 +37,7 @@ const emojiFor = (s: DayStep) => (s.icon ? ROUTINE_STEP_ICONS[s.icon]?.emoji : n
 // reminders that are due or in their heads-up (P2), and a tile for every tool.
 export const ChildHomePage: React.FC = () => {
   const { session, child, guard } = useChildSpace();
+  const tools = splitConditionTools(child.assignedModules);
   const [now, setNow] = useState(() => new Date());
   const [routines, setRoutines] = useState<RoutineWithSteps[] | null>(null);
   const [due, setDue] = useState<DueReminder[]>([]);
@@ -163,7 +165,14 @@ export const ChildHomePage: React.FC = () => {
       )}
 
       <nav aria-label="My tools" className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[...TILES, ...(childModuleKeys(child.assignedModules).length > 0 ? [MODULES_TILE] : []), SETTINGS_TILE].map((t) => (
+        {[
+          // The tools for this child's own modules first (role-flow 8c).
+          ...tools.mine.map((t) => ({ to: childToolPath(t.key), label: t.label, emoji: t.emoji })),
+          ...TILES,
+          ...(childModuleKeys(child.assignedModules).length > 0 ? [MODULES_TILE] : []),
+          ...(tools.more.length > 0 ? [{ to: ROUTES.CHILD_TOOLS, label: tools.mine.length ? "More tools" : "Focus & feelings", emoji: "🧰" }] : []),
+          SETTINGS_TILE,
+        ].map((t) => (
           <Link
             key={t.to}
             to={t.to}

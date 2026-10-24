@@ -31,6 +31,12 @@ import ChildTalkPage from "./pages/ChildTalkPage";
 import { ChildStoriesPage, ChildStoryPage } from "./pages/ChildStoriesPage";
 import { CaregiverStoriesPage, CaregiverStoryEditorPage } from "./pages/CaregiverStoriesPage";
 import {
+  ChildConditionToolPage,
+  ChildConditionToolsPage,
+  IndividualConditionToolPage,
+  IndividualConditionToolsPage,
+} from "./pages/ConditionToolPages";
+import {
   IndividualCompanionPage,
   IndividualJournalPage,
   IndividualRemindersPage,
@@ -103,6 +109,8 @@ export default function App() {
             <Route path={ROUTES.JOURNAL} element={<RoleRoute allow={["individual"]}><IndividualJournalPage /></RoleRoute>} />
             <Route path={ROUTES.REMINDERS} element={<RoleRoute allow={["individual"]}><IndividualRemindersPage /></RoleRoute>} />
             <Route path={ROUTES.COMPANION} element={<RoleRoute allow={["individual"]}><IndividualCompanionPage /></RoleRoute>} />
+            <Route path={ROUTES.TOOLS} element={<RoleRoute allow={["individual"]}><IndividualConditionToolsPage /></RoleRoute>} />
+            <Route path={`${ROUTES.TOOLS}/:toolKey`} element={<RoleRoute allow={["individual"]}><IndividualConditionToolPage /></RoleRoute>} />
 
             {/* Caregiver */}
             <Route
@@ -180,6 +188,8 @@ export default function App() {
               <Route path="companion" element={<ChildCompanionPage />} />
               <Route path="modules/*" element={<ChildModulesPage />} />
               <Route path="talk" element={<ChildTalkPage />} />
+              <Route path="tools" element={<ChildConditionToolsPage />} />
+              <Route path="tools/:toolKey" element={<ChildConditionToolPage />} />
               <Route path="stories" element={<ChildStoriesPage />} />
               <Route path="stories/:storyId" element={<ChildStoryPage />} />
             </Route>
