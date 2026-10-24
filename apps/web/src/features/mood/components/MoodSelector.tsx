@@ -2,6 +2,7 @@
 // Accessible radiogroup for mood selection, reusing MoodAvatar and MOOD_LIST.
 
 import React, { useRef, useEffect } from "react";
+import { ReadAloudButton } from "../../speech";
 import type { MoodValue } from "@safespace/shared-types";
 import {
   MoodAvatar,
@@ -57,9 +58,12 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
 
   return (
     <div className="w-full flex flex-col gap-3">
-      <label id="mood-selector-label" className="text-base font-semibold text-textHeading">
-        How are you feeling right now?
-      </label>
+      <div className="flex items-center justify-between gap-2">
+        <label id="mood-selector-label" className="text-base font-semibold text-textHeading">
+          How are you feeling right now?
+        </label>
+        <ReadAloudButton text="How are you feeling right now? Pick the feeling that closest matches your state. Take your time." label="Read the question aloud" />
+      </div>
       <p className="text-xs text-textMuted">
         Pick the feeling that closest matches your state. Take your time.
       </p>

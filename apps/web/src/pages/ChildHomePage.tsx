@@ -13,6 +13,7 @@ import {
   type DayStep,
 } from "../features/child-space";
 import { ROUTES } from "../routes";
+import { ReadAloudButton, reminderSpeech } from "../features/speech";
 
 const REFRESH_MS = 60_000;
 
@@ -101,14 +102,17 @@ export const ChildHomePage: React.FC = () => {
                 <p className="text-xs font-semibold uppercase tracking-wider text-amber-800">{reminderWhen(d, now)}</p>
                 <p className="font-display text-lg font-bold">{d.reminder.title}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => finishReminder(d)}
-                disabled={busy === d.reminder.id}
-                className="rounded-full bg-botanical-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-              >
-                Done
-              </button>
+              <span className="flex items-center gap-2">
+                <ReadAloudButton text={reminderSpeech(d)} label={`Read "${d.reminder.title}" aloud`} />
+                <button
+                  type="button"
+                  onClick={() => finishReminder(d)}
+                  disabled={busy === d.reminder.id}
+                  className="rounded-full bg-botanical-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  Done
+                </button>
+              </span>
             </div>
           ))}
         </section>
@@ -181,7 +185,16 @@ const NowCard: React.FC<{ label: string; step: DayStep | null; emptyText: string
   busy,
 }) => (
   <div className={`rounded-3xl p-5 shadow-card ${label === "Now" ? "bg-botanical-700 text-white" : "bg-white"}`}>
-    <p className={`text-xs font-semibold uppercase tracking-wider ${label === "Now" ? "text-white/80" : "text-botanical-800"}`}>{label}</p>
+    <div className="flex items-center justify-between gap-2">
+      <p className={`text-xs font-semibold uppercase tracking-wider ${label === "Now" ? "text-white/80" : "text-botanical-800"}`}>{label}</p>
+      {step && (
+        <ReadAloudButton
+          text={`${label}: ${step.label}${step.time ? ` at ${step.time}` : ""}.`}
+          label={`Read ${label.toLowerCase()} aloud`}
+          tone={label === "Now" ? "dark" : "light"}
+        />
+      )}
+    </div>
     {step ? (
       <>
         <p className="mt-1 flex items-center gap-3">

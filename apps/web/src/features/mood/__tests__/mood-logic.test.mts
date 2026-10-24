@@ -146,6 +146,11 @@ test("maps known error codes to warm user messages", () => {
 
   const fallback = getFriendlyErrorMessage(new Error("unknown DB crash"));
   assertMatch(fallback, /couldn't save/i);
+
+  // Loading history says so, rather than "couldn't save".
+  const loadFallback = getFriendlyErrorMessage(new Error("unknown DB crash"), "load");
+  assertMatch(loadFallback, /couldn't load your past check-ins/i);
+  assertMatch(getFriendlyErrorMessage(new Error("Failed to fetch"), "load"), /connection/i);
 });
 
 // 3. Date formatter test

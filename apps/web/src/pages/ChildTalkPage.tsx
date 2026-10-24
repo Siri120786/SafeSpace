@@ -8,14 +8,11 @@ import {
   PHRASE_EMOJI,
   helpFailed,
   helpMessage,
-  speakPhrase,
   useChildSpace,
   type HelpState,
 } from "../features/child-space";
 import { ROUTES } from "../routes";
-
-const speaker = () => (typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis : null);
-const utterance = (t: string) => new SpeechSynthesisUtterance(t);
+import { speakWarm } from "../features/speech";
 
 // /child/talk: tap a phrase to hear it. Nothing is saved, except that
 // "I need help" alerts every caregiver straight away (no "are you sure?"; a
@@ -27,7 +24,7 @@ export const ChildTalkPage: React.FC = () => {
 
   function say(p: TalkBoardPhrase) {
     setLast(p);
-    speakPhrase(p, speaker(), utterance);
+    speakWarm(p);
   }
 
   async function needHelp() {

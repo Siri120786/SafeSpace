@@ -60,7 +60,7 @@ export function useMoodCheckIn(session: AppSession): UseMoodCheckInReturn {
       setHistory(items);
       setHistoryStatus("ready");
     } catch (err) {
-      setHistoryErrorMessage(getFriendlyErrorMessage(err));
+      setHistoryErrorMessage(getFriendlyErrorMessage(err, "load"));
       setHistoryStatus("error");
     }
   }, [session]);

@@ -9,7 +9,6 @@ import {
   PHRASE_EMOJI,
   helpFailed,
   helpMessage,
-  speakPhrase,
 } from "../src/features/child-space/talkBoard.ts";
 
 let passed = 0;
@@ -51,19 +50,6 @@ test("an ended session is named, so they know to sign in again", () => {
 test("nothing to show before help is pressed; a status while sending", () => {
   assert.equal(helpMessage({ kind: "idle" }), null);
   assert.equal(helpMessage({ kind: "sending" }), "Telling your grown-up…");
-});
-
-test("speaking stops anything already speaking, then says the phrase a little slowly", () => {
-  const calls: string[] = [];
-  const speaker = { cancel: () => calls.push("cancel"), speak: (u: { text: string; rate?: number }) => calls.push(`speak:${u.text}:${u.rate}`) };
-  assert.equal(speakPhrase("Too loud", speaker, (t) => ({ text: t })), true);
-  assert.deepEqual(calls, ["cancel", "speak:Too loud:0.9"]);
-});
-
-test("a device that can't speak still works (returns false, no throw)", () => {
-  assert.equal(speakPhrase("Yes", null, (t) => ({ text: t })), false);
-  const broken = { cancel: () => {}, speak: () => { throw new Error("no voices"); } };
-  assert.equal(speakPhrase("Yes", broken, (t) => ({ text: t })), false);
 });
 
 console.log(`${passed} talk-board checks`);
