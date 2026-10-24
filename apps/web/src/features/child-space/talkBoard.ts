@@ -19,6 +19,28 @@ export const PHRASE_EMOJI: Record<TalkBoardPhrase, string> = {
 // Every phrase except help, in the contract's order; help gets its own button.
 export const EVERYDAY_PHRASES = TALK_BOARD_PHRASES.filter((p) => p !== HELP_PHRASE);
 
+// "Build a sentence" (role-flow 8d, from Manju's AAC board): word tiles, with
+// starters first so a child can make "I want · Thirsty · Please". There is no
+// "help" word here: on the talk board, help always means the "I need help"
+// button, which alerts every caregiver.
+export interface SentenceTile {
+  id: string;
+  label: string;
+  emoji: string;
+  category: "needs" | "social" | "feelings" | "actions";
+}
+
+export const SENTENCE_STARTERS: SentenceTile[] = [
+  { id: "i_want", label: "I want", emoji: "👉", category: "actions" },
+  { id: "i_feel", label: "I feel", emoji: "💭", category: "feelings" },
+  { id: "please", label: "Please", emoji: "🙏", category: "social" },
+  { id: "thank_you", label: "Thank you", emoji: "💛", category: "social" },
+];
+
+export function sentenceTiles<T extends SentenceTile>(words: readonly T[]): SentenceTile[] {
+  return [...SENTENCE_STARTERS, ...words.filter((w) => w.id !== "help" && !SENTENCE_STARTERS.some((s) => s.id === w.id))];
+}
+
 export type HelpState =
   | { kind: "idle" }
   | { kind: "sending" }

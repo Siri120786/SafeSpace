@@ -29,10 +29,13 @@ export function canDo(role: ChildCaregiverRole | undefined, action: ManageAction
 }
 
 export const THEME_LABELS: Record<ChildTheme, string> = {
+  calm: "🌱 Calm",
   space: "🚀 Space",
-  ocean: "🐠 Ocean",
+  ocean: "🐋 Ocean",
   dinosaurs: "🦕 Dinosaurs",
   trains: "🚂 Trains",
+  animals: "🦁 Animals",
+  nature: "🌲 Nature",
 };
 
 // Friendly text for contract error codes on these pages.

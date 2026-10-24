@@ -1,14 +1,36 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { listMyRoutines, setRoutineStepCompleted } from "@safespace/api-client";
+import type { AppSession } from "@safespace/shared-types";
 import { AdhdFocusZone } from "./adhd";
-import { EmotionCards, TransitionCountdown } from "./autism";
-import type { ConditionTool, ConditionToolKey } from "./conditionTools";
+import { EmotionCards, TransitionCountdown, VisualSchedule, type ScheduleSource } from "./autism";
+import { scheduleFromRoutines, type ConditionTool, type ConditionToolKey } from "./conditionTools";
+import { localDate } from "../child-space/childHome";
+
+type Guard = <T>(p: Promise<T>) => Promise<T>;
+const noGuard: Guard = (p) => p;
 
 // One ADHD or autism tool, the same for children and Individuals (role-flow
-// 8c). Each tool saves on this device for the signed-in person until step 8e
-// moves it to the database.
-export const ConditionToolView: React.FC<{ toolKey: ConditionToolKey }> = ({ toolKey }) => {
+// 8c). The schedule shows the person's own routines (8d); the other tools save
+// on this device for the signed-in person until step 8e moves them to the
+// database. `guard` signs a child out when their session has ended.
+export const ConditionToolView: React.FC<{
+  toolKey: ConditionToolKey;
+  session: AppSession;
+  guard?: Guard;
+  scheduleEmptyText: string;
+}> = ({ toolKey, session, guard = noGuard, scheduleEmptyText }) => {
+  const scheduleSource = useMemo<ScheduleSource>(
+    () => ({
+      load: () => guard(listMyRoutines(session, { date: localDate(new Date()) })).then(scheduleFromRoutines),
+      setComplete: (stepId, complete) => guard(setRoutineStepCompleted(session, stepId, localDate(new Date()), complete)),
+      emptyText: scheduleEmptyText,
+    }),
+    [session, guard, scheduleEmptyText],
+  );
   switch (toolKey) {
+    case "schedule":
+      return <VisualSchedule source={scheduleSource} />;
     case "focus":
       return <AdhdFocusZone />;
     case "feelings":

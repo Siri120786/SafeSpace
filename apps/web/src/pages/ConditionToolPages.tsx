@@ -32,6 +32,7 @@ export const ChildConditionToolsPage: React.FC = () => {
 // /child/tools/:toolKey
 export const ChildConditionToolPage: React.FC = () => {
   const { toolKey } = useParams();
+  const { session, guard } = useChildSpace();
   const tool = findConditionTool(toolKey);
   if (!tool) {
     return (
@@ -42,7 +43,12 @@ export const ChildConditionToolPage: React.FC = () => {
   }
   return (
     <ChildPageShell title={tool.label} backTo={ROUTES.CHILD_HOME}>
-      <ConditionToolView toolKey={tool.key} />
+      <ConditionToolView
+        toolKey={tool.key}
+        session={session}
+        guard={guard}
+        scheduleEmptyText="No routine steps for today. Your grown-up sets these up."
+      />
     </ChildPageShell>
   );
 };
@@ -83,10 +89,19 @@ export const IndividualConditionToolsPage: React.FC = () => {
 // /tools/:toolKey
 export const IndividualConditionToolPage: React.FC = () => {
   const { toolKey } = useParams();
+  const { session } = useAuth();
   const tool = findConditionTool(toolKey);
   return (
     <MyToolsShell title={tool?.label ?? "Tools"} subtitle={tool?.blurb} backTo={ROUTES.DASHBOARD}>
-      {tool ? <ConditionToolView toolKey={tool.key} /> : <p className="text-textBody">That tool isn't here.</p>}
+      {tool ? (
+        <ConditionToolView
+          toolKey={tool.key}
+          session={session}
+          scheduleEmptyText="No routine steps for today. Set them up in My routines."
+        />
+      ) : (
+        <p className="text-textBody">That tool isn't here.</p>
+      )}
     </MyToolsShell>
   );
 };

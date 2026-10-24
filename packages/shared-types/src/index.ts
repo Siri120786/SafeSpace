@@ -482,7 +482,7 @@ export interface CaregiverInvite {
 }
 
 // Child appearance and sensory defaults, set by a caregiver.
-export const CHILD_THEMES = ["space", "ocean", "dinosaurs", "trains"] as const;
+export const CHILD_THEMES = ["calm", "space", "ocean", "dinosaurs", "trains", "animals", "nature"] as const;
 export type ChildTheme = (typeof CHILD_THEMES)[number];
 
 // Talk board. Phrases are spoken on the device and not stored, except

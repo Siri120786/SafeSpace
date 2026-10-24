@@ -13,6 +13,12 @@ import type { AacTile } from "../types";
 export interface AacBoardProps {
   className?: string;
   tiles?: AacTile[];
+  // Reads the sentence aloud (role-flow 8d: the talk board passes its warm
+  // voice). Returns false when the device can't speak. Without it, the
+  // browser's default voice is used.
+  speak?: (text: string) => boolean;
+  // Inside the talk board, which has its own heading.
+  hideHeader?: boolean;
 }
 
 const CATEGORY_COLORS = {
@@ -25,6 +31,8 @@ const CATEGORY_COLORS = {
 export const AacBoard: React.FC<AacBoardProps> = ({
   className = "",
   tiles = DEFAULT_AAC_TILES,
+  speak,
+  hideHeader = false,
 }) => {
   const service = createAacService();
 
@@ -64,6 +72,11 @@ export const AacBoard: React.FC<AacBoardProps> = ({
     if (sentenceStrip.length === 0) return;
     const textToSpeak = sentenceStrip.map((t) => t.label).join(" ");
 
+    if (speak) {
+      setSpeechNotice(speak(textToSpeak) ? null : "This device can't read aloud. Show the words to a grown-up instead.");
+      return;
+    }
+
     if (
       typeof window === "undefined" ||
       !("speechSynthesis" in window) ||
@@ -87,6 +100,7 @@ export const AacBoard: React.FC<AacBoardProps> = ({
   return (
     <div className={`space-y-6 text-left font-sans ${className}`.trim()}>
       {/* Header and Device Note */}
+      {!hideHeader && (
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-olive-100 pb-4">
         <div>
           <span className="text-xs uppercase tracking-wider font-semibold text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
@@ -101,6 +115,7 @@ export const AacBoard: React.FC<AacBoardProps> = ({
         </div>
         <DeviceOnlyNote compact />
       </div>
+      )}
 
       {/* Sentence Strip Container */}
       <div className="p-4 sm:p-5 rounded-3xl bg-white border border-olive-200/80 shadow-soft space-y-3">

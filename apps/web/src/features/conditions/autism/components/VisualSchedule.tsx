@@ -12,14 +12,26 @@ import {
 import { createScheduleService } from "../services";
 import type { ScheduleStep, ScheduleStepRole } from "../types";
 
+// Where the steps come from when they are the person's own routines (role-
+// flow 8d): today's steps from the routine schedule, ticked through routine
+// completion. Then the grown-up editing, sample steps and "reset" are hidden:
+// routines are set up in the routine builder, and ticks start fresh each day.
+export interface ScheduleSource {
+  load(): Promise<ScheduleStep[]>;
+  setComplete(stepId: string, complete: boolean): Promise<void>;
+  emptyText: string;
+}
+
 export interface VisualScheduleProps {
   className?: string;
   initialSteps?: ScheduleStep[];
+  source?: ScheduleSource;
 }
 
 export const VisualSchedule: React.FC<VisualScheduleProps> = ({
   className = "",
   initialSteps,
+  source,
 }) => {
   const service = createScheduleService();
   const { reducedMotion } = useReducedMotion();
@@ -37,7 +49,7 @@ export const VisualSchedule: React.FC<VisualScheduleProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const data = await service.listSteps();
+      const data = source ? await source.load() : await service.listSteps();
       setSteps(data);
     } catch {
       setError("We could not load your routine schedule right now.");
@@ -51,6 +63,17 @@ export const VisualSchedule: React.FC<VisualScheduleProps> = ({
   }, []);
 
   const handleToggleComplete = async (step: ScheduleStep) => {
+    if (source) {
+      const done = !step.isComplete;
+      setSteps((prev) => prev.map((s) => (s.id === step.id ? { ...s, isComplete: done } : s)));
+      try {
+        await source.setComplete(step.id, done);
+      } catch {
+        setSteps((prev) => prev.map((s) => (s.id === step.id ? { ...s, isComplete: !done } : s)));
+        setError("That step didn't save. Please try again.");
+      }
+      return;
+    }
     try {
       const updated = await service.setComplete(step.id, !step.isComplete);
       setSteps((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
@@ -156,6 +179,7 @@ export const VisualSchedule: React.FC<VisualScheduleProps> = ({
             Follow along step-by-step. Tap any card when you are finished.
           </p>
         </div>
+        {!source && (
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -171,6 +195,7 @@ export const VisualSchedule: React.FC<VisualScheduleProps> = ({
           </button>
           <DeviceOnlyNote compact />
         </div>
+        )}
       </div>
 
       {loading ? (
@@ -181,15 +206,19 @@ export const VisualSchedule: React.FC<VisualScheduleProps> = ({
         <>
           {/* Empty State */}
       {steps.length === 0 && (
-        <EmptyState
-          title="No steps in this schedule yet"
-          description="You can build a custom schedule or load a set of friendly morning routine steps to get started."
-          icon="📅"
-          action={{
-            label: "Load sample morning routine",
-            onClick: handleLoadSamples,
-          }}
-        />
+        source ? (
+          <EmptyState title="Nothing on the schedule today" description={source.emptyText} icon="📅" />
+        ) : (
+          <EmptyState
+            title="No steps in this schedule yet"
+            description="You can build a custom schedule or load a set of friendly morning routine steps to get started."
+            icon="📅"
+            action={{
+              label: "Load sample morning routine",
+              onClick: handleLoadSamples,
+            }}
+          />
+        )
       )}
 
       {/* All Done Celebration State */}
@@ -209,11 +238,13 @@ export const VisualSchedule: React.FC<VisualScheduleProps> = ({
           <p className="text-sm text-textMuted font-light max-w-md mx-auto">
             You completed every step in your routine. Take a peaceful breath and enjoy your day.
           </p>
-          <div className="pt-2 flex justify-center">
-            <BigButton variant="gentle" onClick={handleResetAll}>
-              Reset for tomorrow
-            </BigButton>
-          </div>
+          {!source && (
+            <div className="pt-2 flex justify-center">
+              <BigButton variant="gentle" onClick={handleResetAll}>
+                Reset for tomorrow
+              </BigButton>
+            </div>
+          )}
         </div>
       )}
 

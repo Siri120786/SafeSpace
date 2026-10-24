@@ -2,13 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import type { ChildTheme } from "@safespace/shared-types";
 import { useChildSpace } from "./ChildSpaceContext";
+import { CHILD_THEME_LOOKS, childThemeLook } from "./childThemes";
 
-export const THEME_EMOJI: Record<ChildTheme, string> = {
-  space: "🚀",
-  ocean: "🐠",
-  dinosaurs: "🦕",
-  trains: "🚂",
-};
+export const THEME_EMOJI = Object.fromEntries(
+  Object.entries(CHILD_THEME_LOOKS).map(([k, v]) => [k, v.emoji]),
+) as Record<ChildTheme, string>;
 
 interface Props {
   title: string;
@@ -17,15 +15,19 @@ interface Props {
   children: React.ReactNode;
 }
 
-// Frame for every child page: calm background, a big title, a way home.
-// Low-sensory mode drops motion and keeps colours plain.
+// Frame for every child page: the theme's soft background, a big title in
+// the theme's colour, a way home. Low-sensory mode drops motion and always
+// uses the calm look (role-flow 8d).
 export const ChildPageShell: React.FC<Props> = ({ title, backTo, actions, children }) => {
   const { child, lowSensory } = useChildSpace();
+  const look = childThemeLook(child.theme, lowSensory);
   const accent = child.theme ? THEME_EMOJI[child.theme] : null;
   return (
     <div
       data-low-sensory={lowSensory ? "on" : "off"}
-      className={`min-h-screen bg-[#FAF7F2] text-charcoal ${lowSensory ? "[&_*]:!transition-none [&_*]:!animate-none" : ""}`}
+      data-theme={lowSensory || !child.theme ? "calm" : child.theme}
+      style={{ backgroundColor: look.background }}
+      className={`min-h-screen text-charcoal ${lowSensory ? "[&_*]:!transition-none [&_*]:!animate-none" : ""}`}
     >
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
         <header className="flex flex-wrap items-center justify-between gap-3">
@@ -38,7 +40,7 @@ export const ChildPageShell: React.FC<Props> = ({ title, backTo, actions, childr
                 &larr; Home
               </Link>
             )}
-            <h1 className="font-display text-2xl sm:text-3xl font-bold">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold" style={{ color: look.accent }}>
               {title} {accent && !backTo && <span aria-hidden="true">{accent}</span>}
             </h1>
           </div>

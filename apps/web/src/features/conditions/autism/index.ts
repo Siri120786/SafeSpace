@@ -60,7 +60,7 @@ export { TransitionCountdown } from "./components/TransitionCountdown";
 export type { TransitionCountdownProps } from "./components/TransitionCountdown";
 
 export { VisualSchedule } from "./components/VisualSchedule";
-export type { VisualScheduleProps } from "./components/VisualSchedule";
+export type { VisualScheduleProps, ScheduleSource } from "./components/VisualSchedule";
 
 export { AacBoard } from "./components/AacBoard";
 export type { AacBoardProps } from "./components/AacBoard";

@@ -17,6 +17,8 @@ import {
   openReminders,
   reminderWhen,
 } from "../src/features/child-space/childHome.ts";
+import { CHILD_THEME_LOOKS, childThemeLook, contrastRatio } from "../src/features/child-space/childThemes.ts";
+import { CHILD_THEMES } from "@safespace/shared-types";
 
 let passed = 0;
 const test = (name: string, fn: () => void) => {
@@ -128,6 +130,23 @@ test("a child's spaces: only assigned modules with a child screen, never Cycle C
   assert.deepEqual(childModuleKeys(["anxiety", "autism", "pcos_pcod", "ptsd"]), ["anxiety", "ptsd"]);
   assert.deepEqual(childModuleKeys(["pcos_pcod"]), []);
   assert.deepEqual(childModuleKeys([]), []);
+});
+
+test("themes (8d): every theme has a look; none, or low-sensory, gives the calm look", () => {
+  assert.deepEqual(Object.keys(CHILD_THEME_LOOKS).sort(), [...CHILD_THEMES].sort());
+  assert.ok(["calm", "animals", "nature"].every((t) => (CHILD_THEMES as readonly string[]).includes(t)));
+  assert.equal(childThemeLook("space", false), CHILD_THEME_LOOKS.space);
+  assert.equal(childThemeLook("space", true), CHILD_THEME_LOOKS.calm);
+  assert.equal(childThemeLook(null, false), CHILD_THEME_LOOKS.calm);
+});
+
+test("themes stay readable: titles and body text meet WCAG AA on every background", () => {
+  const TEXT = "#1C2826"; // charcoal, the child space's text colour
+  for (const [name, look] of Object.entries(CHILD_THEME_LOOKS)) {
+    assert.ok(contrastRatio(look.accent, look.background) >= 4.5, `${name} title ${contrastRatio(look.accent, look.background).toFixed(2)}`);
+    assert.ok(contrastRatio(TEXT, look.background) >= 7, `${name} text ${contrastRatio(TEXT, look.background).toFixed(2)}`);
+  }
+  assert.ok(Math.abs(contrastRatio("#000000", "#FFFFFF") - 21) < 0.01);
 });
 
 console.log(`${passed} child-home checks`);
