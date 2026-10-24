@@ -11,10 +11,7 @@ import {
   GRATITUDE_PROMPT,
   HOBBY_IDEAS,
   MODULES,
-  MOVEMENT_IDEAS,
-  MYTHS_NOTE,
   PCOS_CHECKLIST,
-  PCOS_MYTHS,
   RELAXATION_STEPS,
   REVIEW_NOTICE,
   SLEEP_STRESS_IDEAS,
@@ -22,6 +19,11 @@ import {
   canOpenCycleCare,
   type ModuleInfo,
 } from "../lib/content";
+import { useCondition } from "./useCondition";
+import { visitQuestionsFor } from "../lib/condition";
+import { MedicineReminders } from "./MedicineReminders";
+import type { AppSession } from "@safespace/shared-types";
+import { BodyKindness, DailyCheckIn, DoctorVisitPrep, MedicationNotes } from "./CycleCareExtras";
 
 export interface ModuleScreenProps {
   lowSensory: boolean;
@@ -43,7 +45,7 @@ const linkClass = "block rounded-3xl focus:outline-none focus:ring-2 focus:ring-
 const fieldClass =
   "w-full rounded-2xl border border-olive-200 bg-white px-4 py-3 text-base text-textBody focus:outline-none focus:ring-2 focus:ring-olive-500";
 
-const Notes: React.FC<{ extra?: string }> = ({ extra }) => (
+export const Notes: React.FC<{ extra?: string }> = ({ extra }) => (
   <div className="space-y-2">
     <p role="note" className="rounded-2xl bg-white/80 border border-olive-200 px-4 py-3 text-sm text-textBody">
       {REVIEW_NOTICE} Your entries stay on this page only and are not saved yet.
@@ -243,8 +245,9 @@ export const SafeHarbor: React.FC<ModuleScreenProps> = ({ onExit, notice, paths 
   );
 };
 
-export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = ({ role, ...p }) => {
+export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; session?: AppSession }> = ({ role, session, ...p }) => {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [condition] = useCondition();
 
   if (!canOpenCycleCare(role)) {
     return (
@@ -261,6 +264,10 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
   return (
     <CalmToolShell title="Cycle Care" {...p}>
       <div className="space-y-4">
+        <Link to={`${p.paths?.base ?? "/modules"}/pcos-pcod`} className="underline text-deepGreen text-sm">
+          Back to PCOS / PCOD
+        </Link>
+        <DailyCheckIn />
         <Card className="space-y-3">
           <h2 className="font-display text-xl text-textHeading">Today's self-care</h2>
           <ul className="space-y-2">
@@ -281,24 +288,9 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
           </ul>
           <p className="text-sm text-textMuted">This checklist does not send reminders. It resets when you leave the page.</p>
         </Card>
-        <Card className="space-y-3">
-          <h2 className="font-display text-xl text-textHeading">PCOS myths and facts</h2>
-          {PCOS_MYTHS.map((m) => (
-            <details key={m.myth} className="rounded-2xl border border-olive-200 bg-white px-4 py-3">
-              <summary className="cursor-pointer text-base text-textHeading">Myth: {m.myth}</summary>
-              <p className="mt-2 text-base text-textBody">Fact: {m.fact}</p>
-            </details>
-          ))}
-          <p className="text-sm text-textMuted">{MYTHS_NOTE}</p>
-        </Card>
-        <Card className="space-y-2">
-          <h2 className="font-display text-xl text-textHeading">Gentle movement</h2>
-          <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-            {MOVEMENT_IDEAS.map((m) => (
-              <li key={m}>{m}</li>
-            ))}
-          </ul>
-        </Card>
+        <MedicationNotes />
+        <MedicineReminders session={session} />
+        <DoctorVisitPrep prompts={visitQuestionsFor(condition)} />
         <Card className="space-y-2">
           <h2 className="font-display text-xl text-textHeading">Sleep and stress</h2>
           <ul className="list-disc pl-5 text-base text-textBody space-y-1">
@@ -310,6 +302,7 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null }> = 
             Open the breathing exercise
           </Link>
         </Card>
+        <BodyKindness />
         <Notes extra="There is no cycle tracking in this version. Always follow your own doctor's advice." />
       </div>
     </CalmToolShell>

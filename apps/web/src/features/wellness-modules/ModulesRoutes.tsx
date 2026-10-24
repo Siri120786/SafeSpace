@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import { useLowSensory } from "../calm-tools";
 import { BrightDays, CalmSpace, CycleCare, ModulesHome, SafeHarbor } from "./components/ModuleScreens";
+import { FoodModule, PcosPcodHub, PhysicalExercise } from "./components/PcosScreens";
 import type { ModuleInfo } from "./lib/content";
 
 interface ModulesRoutesProps {
@@ -36,7 +37,11 @@ export const ModulesRoutes: React.FC<ModulesRoutesProps> = ({
       <Route path="calm-space" element={<CalmSpace {...common} />} />
       <Route path="bright-days" element={<BrightDays {...common} />} />
       <Route path="safe-harbor" element={<SafeHarbor {...common} />} />
-      <Route path="cycle-care" element={<CycleCare {...common} role={role} />} />
+      <Route path="pcos-pcod" element={<PcosPcodHub {...common} role={role} />} />
+      <Route path="pcos-pcod/cycle-care" element={<CycleCare {...common} role={role} session={session} />} />
+      <Route path="pcos-pcod/exercise" element={<PhysicalExercise {...common} role={role} />} />
+      <Route path="pcos-pcod/food" element={<FoodModule {...common} role={role} />} />
+      <Route path="cycle-care" element={<Navigate to={`${basePath}/pcos-pcod/cycle-care`} replace />} />
       <Route path="*" element={<Navigate to={basePath} replace />} />
     </Routes>
   );

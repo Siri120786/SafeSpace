@@ -4,13 +4,16 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_provider.dart';
 import '../calm_tools/calm_tool_scaffold.dart';
 import '../calm_tools/low_sensory.dart';
+import 'condition.dart';
+import 'cycle_care_extras.dart';
+import 'cycle_care_health.dart';
 import 'module_content.dart';
 
 const TextStyle _heading = TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
 
-class _Notes extends StatelessWidget {
+class ModuleNotes extends StatelessWidget {
   final String? extra;
-  const _Notes({this.extra});
+  const ModuleNotes({super.key, this.extra});
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +43,13 @@ Widget _card(List<Widget> children) => Card(
 void _push(BuildContext context, String path) => context.push(path);
 
 /// Shared wrapper that reads low-sensory info and wires Exit.
-class _ModuleFrame extends ConsumerWidget {
+class ModuleFrame extends ConsumerWidget {
   final String title;
   final VoidCallback? onExit;
   final bool forceLowSensory;
   final Widget child;
-  const _ModuleFrame({
+  const ModuleFrame({
+    super.key,
     required this.title,
     required this.child,
     this.onExit,
@@ -80,7 +84,7 @@ class ModulesHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ModuleFrame(
+    return ModuleFrame(
       title: 'Wellness modules',
       onExit: onExit,
       child: Column(
@@ -88,7 +92,7 @@ class ModulesHomeScreen extends StatelessWidget {
           _tile(context, 'Calm Space', 'Breathing, grounding and calming tips.', '/modules/calm-space'),
           _tile(context, 'Bright Days', 'Small goals and gratitude notes.', '/modules/bright-days'),
           _tile(context, 'Safe Harbor', 'A quiet space with text relaxation steps.', '/modules/safe-harbor'),
-          _tile(context, 'Cycle Care', 'Daily self-care checklist (adults only).', '/modules/cycle-care'),
+          _tile(context, 'PCOS / PCOD', 'Cycle Care, Physical Exercise and Food in one place (adults only).', '/modules/pcos-pcod'),
           _tile(context, 'Story workflow', 'For caregivers: write, check, approve and read stories.', '/story-workflow'),
         ],
       ),
@@ -102,7 +106,7 @@ class CalmSpaceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ModuleFrame(
+    return ModuleFrame(
       title: 'Calm Space',
       onExit: onExit,
       child: Column(
@@ -124,7 +128,7 @@ class CalmSpaceScreen extends StatelessWidget {
           ]),
           _card(<Widget>[const Text('Gentle tips', style: _heading), const SizedBox(height: 8), _bullets(anxietyTips)]),
           const SizedBox(height: 8),
-          const _Notes(),
+          const ModuleNotes(),
         ],
       ),
     );
@@ -195,7 +199,7 @@ class _BrightDaysScreenState extends State<BrightDaysScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _ModuleFrame(
+    return ModuleFrame(
       title: 'Bright Days',
       onExit: widget.onExit,
       child: Column(
@@ -246,7 +250,7 @@ class _BrightDaysScreenState extends State<BrightDaysScreen> {
           if (_error != null)
             Semantics(liveRegion: true, child: Text(_error!, style: const TextStyle(color: Color(0xFFB00020)))),
           const SizedBox(height: 8),
-          const _Notes(),
+          const ModuleNotes(),
         ],
       ),
     );
@@ -268,7 +272,7 @@ class _SafeHarborScreenState extends State<SafeHarborScreen> {
   @override
   Widget build(BuildContext context) {
     final bool last = _step == relaxationSteps.length - 1;
-    return _ModuleFrame(
+    return ModuleFrame(
       title: 'Safe Harbor',
       onExit: widget.onExit,
       forceLowSensory: true,
@@ -305,7 +309,7 @@ class _SafeHarborScreenState extends State<SafeHarborScreen> {
             const Text(careBridgingText),
           ]),
           const SizedBox(height: 8),
-          const _Notes(extra: 'This is not treatment.'),
+          const ModuleNotes(extra: 'This is not treatment.'),
         ],
       ),
     );
@@ -324,12 +328,21 @@ class CycleCareScreen extends ConsumerStatefulWidget {
 
 class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
   final Map<String, bool> _checked = <String, bool>{};
+  Condition? _condition;
+
+  @override
+  void initState() {
+    super.initState();
+    loadCondition().then((c) {
+      if (mounted) setState(() => _condition = c);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final String? role = widget.role ?? ref.watch(authProvider).role;
     if (!canOpenCycleCare(role)) {
-      return _ModuleFrame(
+      return ModuleFrame(
         title: 'Cycle Care',
         onExit: widget.onExit,
         child: const Card(
@@ -340,12 +353,17 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
         ),
       );
     }
-    return _ModuleFrame(
+    return ModuleFrame(
       title: 'Cycle Care',
       onExit: widget.onExit,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(onPressed: () => context.go('/modules/pcos-pcod'), child: const Text('Back to PCOS / PCOD')),
+          ),
+          const DailyCheckInCard(),
           _card(<Widget>[
             const Text('Today\'s self-care', style: _heading),
             for (final List<String> item in pcosChecklist)
@@ -357,19 +375,9 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
               ),
             const Text('This checklist does not send reminders. It resets when you leave the screen.'),
           ]),
-          _card(<Widget>[
-            const Text('PCOS myths and facts', style: _heading),
-            const SizedBox(height: 8),
-            for (final List<String> m in pcosMyths)
-              ExpansionTile(
-                title: Text('Myth: ${m[0]}'),
-                childrenPadding: const EdgeInsets.all(12),
-                expandedAlignment: Alignment.centerLeft,
-                children: <Widget>[Text('Fact: ${m[1]}')],
-              ),
-            const Text(mythsNote),
-          ]),
-          _card(<Widget>[const Text('Gentle movement', style: _heading), const SizedBox(height: 8), _bullets(movementIdeas)]),
+          const MedicationNotesCard(),
+          const MedicineRemindersNote(),
+          DoctorVisitPrepCard(prompts: visitQuestionsFor(_condition)),
           _card(<Widget>[
             const Text('Sleep and stress', style: _heading),
             const SizedBox(height: 8),
@@ -380,8 +388,8 @@ class _CycleCareScreenState extends ConsumerState<CycleCareScreen> {
               child: const Text('Open the breathing exercise'),
             ),
           ]),
-          const SizedBox(height: 8),
-          const _Notes(extra: 'There is no cycle tracking in this version. Always follow your own doctor\'s advice.'),
+          const BodyKindnessNote(),
+          const ModuleNotes(extra: 'There is no cycle tracking in this version. Always follow your own doctor\'s advice.'),
         ],
       ),
     );
