@@ -46,5 +46,7 @@ export {
   setDeviceStoreOwner,
   getDeviceStoreOwner,
   clearDeviceStore,
+  setCloudSaving,
+  isCloudSaving,
 } from "./store/LocalDeviceStore";
 export type { StorageOptions } from "./store/LocalDeviceStore";

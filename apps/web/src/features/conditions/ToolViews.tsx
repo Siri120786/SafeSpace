@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { listMyRoutines, setRoutineStepCompleted } from "@safespace/api-client";
+import { listMyRoutines, raiseHelpAlert, setRoutineStepCompleted } from "@safespace/api-client";
 import type { AppSession } from "@safespace/shared-types";
 import { AdhdFocusZone } from "./adhd";
 import { EmotionCards, TransitionCountdown, VisualSchedule, type ScheduleSource } from "./autism";
@@ -11,9 +11,10 @@ type Guard = <T>(p: Promise<T>) => Promise<T>;
 const noGuard: Guard = (p) => p;
 
 // One ADHD or autism tool, the same for children and Individuals (role-flow
-// 8c). The schedule shows the person's own routines (8d); the other tools save
-// on this device for the signed-in person until step 8e moves them to the
-// database. `guard` signs a child out when their session has ended.
+// 8c). The schedule shows the person's own routines (8d); the other tools
+// save to the person's account (8e). A child's "I want a grown-up" raises a
+// caregiver alert and they don't edit their own star goal; an Individual has
+// no "I want a grown-up". `guard` signs a child out when their session ends.
 export const ConditionToolView: React.FC<{
   toolKey: ConditionToolKey;
   session: AppSession;
@@ -28,13 +29,19 @@ export const ConditionToolView: React.FC<{
     }),
     [session, guard, scheduleEmptyText],
   );
+  const child = session?.kind === "child";
+  // Not guarded: if the alert fails, the child stays and reads what to do.
+  const grownUp = useMemo(
+    () => (child ? { raise: () => raiseHelpAlert(session, "feelings_cards") } : ("hidden" as const)),
+    [child, session],
+  );
   switch (toolKey) {
     case "schedule":
       return <VisualSchedule source={scheduleSource} />;
     case "focus":
-      return <AdhdFocusZone />;
+      return <AdhdFocusZone canEditGoal={!child} />;
     case "feelings":
-      return <EmotionCards />;
+      return <EmotionCards grownUp={grownUp} canClearHistory={!child} />;
     case "countdown":
       return <TransitionCountdown />;
   }

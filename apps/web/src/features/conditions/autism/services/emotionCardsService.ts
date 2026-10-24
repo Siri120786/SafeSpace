@@ -1,3 +1,5 @@
+import { getToolsSession } from "../../toolsSession";
+import { RemoteEmotionCardsService } from "./remoteServices";
 import { createLocalDeviceStore, LocalDeviceStore } from "../../../wellness-ui";
 import type { EmotionCardItem, EmotionSelection } from "../types";
 
@@ -79,5 +81,7 @@ export class LocalEmotionCardsService implements EmotionCardsService {
  * with `return new ApiEmotionCardsService();`.
  */
 export function createEmotionCardsService(): EmotionCardsService {
-  return new LocalEmotionCardsService();
+  // Role-flow 8e: the signed-in person's account, else this device.
+  const session = getToolsSession();
+  return session ? new RemoteEmotionCardsService(session) : new LocalEmotionCardsService();
 }

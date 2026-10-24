@@ -22,11 +22,14 @@ import { INITIAL_REWARD_STATE } from "../types";
 export interface RewardsProgressProps {
   className?: string;
   refreshTrigger?: number;
+  // False for a child: a caregiver sets their goal (role-flow 8e).
+  canEditGoal?: boolean;
 }
 
 export const RewardsProgress: React.FC<RewardsProgressProps> = ({
   className = "",
   refreshTrigger = 0,
+  canEditGoal = true,
 }) => {
   const rewardService = createRewardService();
   const { reducedMotion } = useReducedMotion();
@@ -104,6 +107,7 @@ export const RewardsProgress: React.FC<RewardsProgressProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {canEditGoal ? (
           <button
             type="button"
             onClick={() => setIsEditingGoal((prev) => !prev)}
@@ -111,12 +115,15 @@ export const RewardsProgress: React.FC<RewardsProgressProps> = ({
           >
             {isEditingGoal ? "Cancel" : "🎯 Change Goal"}
           </button>
+          ) : (
+            <span className="text-xs text-textMuted">Your grown-up chooses your goal.</span>
+          )}
           <DeviceOnlyNote compact />
         </div>
       </div>
 
       {/* Goal Customizer Form */}
-      {isEditingGoal && (
+      {canEditGoal && isEditingGoal && (
         <form
           onSubmit={handleSaveGoal}
           className="p-5 rounded-3xl bg-olive-50/60 border border-olive-200 space-y-3"

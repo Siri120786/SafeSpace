@@ -3,19 +3,24 @@
  * Sprint 3 Workstream B
  *
  * Provides factory swap points for ADHD module persistence (Focus Stats, Tasks, Habits, Rewards).
- * Currently backed by LocalDeviceStore (localStorage).
- * When Siri's backend API is available, swap the factory return lines below.
+ * Role-flow 8e: whenever someone is signed in, the factories return the
+ * database-backed services (./remoteServices.ts), saving to that person's
+ * account; with nobody signed in, the device-only services (which save
+ * nothing without an owner, 8b).
  */
 
 import { FocusStatsService, LocalFocusStatsService } from "./focusStatsService";
 import { HabitService, LocalHabitService } from "./habitService";
 import { RewardService, LocalRewardService } from "./rewardService";
 import { LocalTaskService, TaskService } from "./taskService";
+import { RemoteFocusStatsService, RemoteHabitService, RemoteRewardService, RemoteTaskService } from "./remoteServices";
+import { getToolsSession } from "../../toolsSession";
 
 export * from "./focusStatsService";
 export * from "./taskService";
 export * from "./habitService";
 export * from "./rewardService";
+export * from "./remoteServices";
 
 /**
  * Factory for FocusStatsService.
@@ -23,7 +28,8 @@ export * from "./rewardService";
  * Return new RemoteFocusStatsService(apiClient) once backend persistence is ready.
  */
 export function createFocusStatsService(): FocusStatsService {
-  return new LocalFocusStatsService();
+  const s = getToolsSession();
+  return s ? new RemoteFocusStatsService(s) : new LocalFocusStatsService();
 }
 
 /**
@@ -32,7 +38,8 @@ export function createFocusStatsService(): FocusStatsService {
  * Return new RemoteTaskService(apiClient) once backend persistence is ready.
  */
 export function createTaskService(): TaskService {
-  return new LocalTaskService();
+  const s = getToolsSession();
+  return s ? new RemoteTaskService(s) : new LocalTaskService();
 }
 
 /**
@@ -41,7 +48,8 @@ export function createTaskService(): TaskService {
  * Return new RemoteHabitService(apiClient) once backend persistence is ready.
  */
 export function createHabitService(): HabitService {
-  return new LocalHabitService();
+  const s = getToolsSession();
+  return s ? new RemoteHabitService(s) : new LocalHabitService();
 }
 
 /**
@@ -50,5 +58,6 @@ export function createHabitService(): HabitService {
  * Return new RemoteRewardService(apiClient) once backend persistence is ready.
  */
 export function createRewardService(): RewardService {
-  return new LocalRewardService();
+  const s = getToolsSession();
+  return s ? new RemoteRewardService(s) : new LocalRewardService();
 }

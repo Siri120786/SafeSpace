@@ -7,99 +7,45 @@ import {
 } from "../../../wellness-ui";
 import { createEmotionCardsService } from "../services";
 import type { EmotionCardItem, EmotionSelection } from "../types";
+import { DEFAULT_EMOTION_CARDS } from "../emotionCardsData";
+import { helpFailed, helpMessage, type HelpState } from "../../../child-space/talkBoard";
 
-// Content needing review: non-clinical supportive prompt
-export const DEFAULT_EMOTION_CARDS: EmotionCardItem[] = [
-  {
-    id: "happy",
-    label: "Happy",
-    emoji: "😊",
-    sharedMoodValue: "happy",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "It feels wonderful to have a smiling heart today.",
-  },
-  {
-    id: "calm",
-    label: "Calm",
-    emoji: "🌿",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "Your body is peaceful and resting like a gentle leaf.",
-  },
-  {
-    id: "ecstatic",
-    label: "Very Joyful",
-    emoji: "✨",
-    sharedMoodValue: "ecstatic",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "So much sparkle and energy inside you today!",
-  },
-  {
-    id: "neutral",
-    label: "In-Between",
-    emoji: "☁️",
-    sharedMoodValue: "neutral",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "It is completely okay to simply feel okay or in-between.",
-  },
-  {
-    id: "sad",
-    label: "Sad",
-    emoji: "🌧️",
-    sharedMoodValue: "sad",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "It's okay to feel sad. You don't have to rush your feelings.",
-  },
-  {
-    id: "tired",
-    label: "Tired",
-    emoji: "🌙",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "Rest is gentle and productive. Take all the quiet time you need.",
-  },
-  {
-    id: "stressed",
-    label: "A Bit Full",
-    emoji: "🫧",
-    sharedMoodValue: "stressed",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "Things feel full right now. One slow, easy breath at a time.",
-  },
-  {
-    id: "overwhelmed",
-    label: "Too Much Noise",
-    emoji: "🎧",
-    sharedMoodValue: "overwhelmed",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "When things feel too big, it is okay to pause and soften the room.",
-  },
-  {
-    id: "proud",
-    label: "Proud",
-    emoji: "⭐",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "You tried your best or did something kind, and that matters.",
-  },
-  {
-    id: "curious",
-    label: "Curious",
-    emoji: "🔍",
-    // Content needing review: non-clinical supportive prompt
-    reassurance: "Your wondering mind is ready to explore gently.",
-  },
-];
+// The card list lives in ../emotionCardsData.ts (role-flow 8e), so the
+// database-backed service can use it too; re-exported here as before.
+export { DEFAULT_EMOTION_CARDS } from "../emotionCardsData";
 
 export interface EmotionCardsProps {
   cards?: EmotionCardItem[];
   className?: string;
   onCardSelected?: (card: EmotionCardItem) => void;
+  // "I want a grown-up" (role-flow 8e): for a child, raises the same caregiver
+  // alert as the talk board's "I need help"; "hidden" for an Individual, who
+  // has no caregiver. Without it, the button only shows a note on screen.
+  grownUp?: { raise: () => Promise<unknown> } | "hidden";
+  // Children can't clear their feelings choices (like mood check-ins).
+  canClearHistory?: boolean;
 }
 
 export const EmotionCards: React.FC<EmotionCardsProps> = ({
   cards = DEFAULT_EMOTION_CARDS,
   className = "",
   onCardSelected,
+  grownUp,
+  canClearHistory = true,
 }) => {
   const service = createEmotionCardsService();
+  const [help, setHelp] = useState<HelpState>({ kind: "idle" });
+  const askGrownUp = async () => {
+    if (!grownUp || grownUp === "hidden") return;
+    setHelp({ kind: "sending" });
+    try {
+      await grownUp.raise();
+      setHelp({ kind: "sent" });
+    } catch (e) {
+      setHelp(helpFailed(e));
+    }
+  };
+  const helpText = helpMessage(help);
   const [selectedCard, setSelectedCard] = useState<EmotionCardItem | null>(null);
   const [recentSelections, setRecentSelections] = useState<EmotionSelection[]>([]);
   const [showGrownUpMessage, setShowGrownUpMessage] = useState(false);
@@ -207,14 +153,17 @@ export const EmotionCards: React.FC<EmotionCardsProps> = ({
       {/* Grown-Up Message Button (Visual support only — no alerts or emergency calls) */}
       <div className="pt-2 border-t border-olive-100/80 space-y-3">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <BigButton
-            variant="gentle"
-            icon={<span>🤝</span>}
-            onClick={() => setShowGrownUpMessage((prev) => !prev)}
-            ariaLabel="Show helpful note about asking a grown-up"
-          >
-            I want a grown-up
-          </BigButton>
+          {grownUp !== "hidden" && (
+            <BigButton
+              variant="gentle"
+              icon={<span>🤝</span>}
+              onClick={grownUp ? askGrownUp : () => setShowGrownUpMessage((prev) => !prev)}
+              disabled={help.kind === "sending"}
+              ariaLabel={grownUp ? "Tell my grown-up I want them" : "Show helpful note about asking a grown-up"}
+            >
+              I want a grown-up
+            </BigButton>
+          )}
 
           {recentSelections.length > 0 && (
             <div className="flex items-center gap-2 text-xs text-textMuted">
@@ -226,16 +175,29 @@ export const EmotionCards: React.FC<EmotionCardsProps> = ({
                   </SoftBadge>
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={handleClearHistory}
-                className="underline hover:text-textHeading ml-1 text-[11px]"
-              >
-                Clear
-              </button>
+              {canClearHistory && (
+                <button
+                  type="button"
+                  onClick={handleClearHistory}
+                  className="underline hover:text-textHeading ml-1 text-[11px]"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           )}
         </div>
+
+        {/* After "I want a grown-up" raised an alert: what happened, never silent */}
+        {helpText && (
+          <div
+            role={help.kind === "failed" ? "alert" : "status"}
+            aria-live="polite"
+            className={`p-4 rounded-2xl text-sm font-semibold ${help.kind === "failed" ? "bg-red-50 text-red-800 border border-red-300" : "bg-olive-50 text-deepGreen border border-olive-200"}`}
+          >
+            {helpText}
+          </div>
+        )}
 
         {/* Purely on-screen gentle reassurance message */}
         {showGrownUpMessage && (

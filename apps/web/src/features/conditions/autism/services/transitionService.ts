@@ -1,3 +1,5 @@
+import { getToolsSession } from "../../toolsSession";
+import { RemoteTransitionService } from "./remoteServices";
 import { createLocalDeviceStore, LocalDeviceStore } from "../../../wellness-ui";
 import type { TransitionConfig } from "../types";
 
@@ -57,5 +59,7 @@ export class LocalTransitionService implements TransitionService {
  * with `return new ApiTransitionService();`.
  */
 export function createTransitionService(): TransitionService {
-  return new LocalTransitionService();
+  // Role-flow 8e: the signed-in person's account, else this device.
+  const session = getToolsSession();
+  return session ? new RemoteTransitionService(session) : new LocalTransitionService();
 }

@@ -1,3 +1,5 @@
+import { getToolsSession } from "../../toolsSession";
+import { RemoteAacService } from "./remoteServices";
 import { createLocalDeviceStore, LocalDeviceStore } from "../../../wellness-ui";
 import type { AacConfig, AacTile } from "../types";
 
@@ -79,5 +81,7 @@ export class LocalAacService implements AacService {
  * with `return new ApiAacService();`.
  */
 export function createAacService(): AacService {
-  return new LocalAacService();
+  // Role-flow 8e: the signed-in person's account, else this device.
+  const session = getToolsSession();
+  return session ? new RemoteAacService(session) : new LocalAacService();
 }

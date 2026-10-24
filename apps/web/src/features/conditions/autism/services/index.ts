@@ -32,3 +32,6 @@ export {
   resolveActiveTheme,
 } from "./themeService";
 export type { ThemeService } from "./themeService";
+
+export { RemoteEmotionCardsService, RemoteTransitionService, RemoteAacService, toSelection } from "./remoteServices";
+export type { AutismToolsApi } from "./remoteServices";

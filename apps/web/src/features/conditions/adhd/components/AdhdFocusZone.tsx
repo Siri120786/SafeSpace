@@ -23,12 +23,15 @@ import { TaskBreakdown } from "./TaskBreakdown";
 
 export interface AdhdFocusZoneProps {
   className?: string;
+  // False for a child: a caregiver sets their star goal (role-flow 8e).
+  canEditGoal?: boolean;
 }
 
 export type FocusZoneTab = "timers" | "tasks" | "habits" | "rewards";
 
 export const AdhdFocusZone: React.FC<AdhdFocusZoneProps> = ({
   className = "",
+  canEditGoal = true,
 }) => {
   const [activeTab, setActiveTab] = useState<FocusZoneTab>("timers");
   const [timerSubTab, setTimerSubTab] = useState<"quick" | "pomodoro">("quick");
@@ -177,7 +180,7 @@ export const AdhdFocusZone: React.FC<AdhdFocusZoneProps> = ({
 
       {/* Tab: Rewards */}
       {activeTab === "rewards" && (
-        <RewardsProgress refreshTrigger={refreshTrigger} />
+        <RewardsProgress refreshTrigger={refreshTrigger} canEditGoal={canEditGoal} />
       )}
     </div>
   );

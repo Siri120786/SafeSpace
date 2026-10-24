@@ -28,6 +28,18 @@ export function getDeviceStoreOwner(): string | null {
   return currentOwner;
 }
 
+// Role-flow 8e: while someone is signed in, the tools save to their account
+// in the database, so the "saved on this device only" notes are hidden.
+let cloudSaving = false;
+
+export function setCloudSaving(on: boolean): void {
+  cloudSaving = on;
+}
+
+export function isCloudSaving(): boolean {
+  return cloudSaving;
+}
+
 /** Removes every tool key on this device (all people). Used on sign-out. */
 export function clearDeviceStore(): void {
   try {

@@ -15,6 +15,7 @@ import {
 } from "../../../lib/childSessionStorage";
 import { clearDeviceStore, setDeviceStoreOwner } from "../../wellness-ui/store/LocalDeviceStore";
 import { deviceOwnerFor } from "../roleRouting";
+import { setToolsSession } from "../../conditions/toolsSession";
 
 export interface AuthContextType {
   session: AppSession;
@@ -41,10 +42,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [session, setSessionState] = useState<AppSession>(null);
-  // The on-device tool data follows the session. Set before React renders the
-  // new session, so the tools never read another person's data (8b).
+  // The tools' data follows the session. Set before React renders the new
+  // session, so the tools never read another person's data (8b), and save to
+  // the signed-in person's account (8e).
   const setSession = useCallback((s: AppSession) => {
     setDeviceStoreOwner(deviceOwnerFor(s));
+    setToolsSession(s);
     setSessionState(s);
   }, []);
   const [loading, setLoading] = useState<boolean>(true);
@@ -169,6 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Cleared first, so a failed sign-out call can't leave tool data behind.
     clearDeviceStore();
     setDeviceStoreOwner(null);
+    setToolsSession(null);
     try {
       await logOut();
       clearStoredChildSession();

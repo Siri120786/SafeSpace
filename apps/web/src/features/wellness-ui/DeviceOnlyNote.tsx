@@ -1,4 +1,5 @@
 import React from "react";
+import { isCloudSaving } from "./store/LocalDeviceStore";
 
 export interface DeviceOnlyNoteProps {
   /** Optional feature name to customize the notice context. */
@@ -17,6 +18,8 @@ export const DeviceOnlyNote: React.FC<DeviceOnlyNoteProps> = ({
   compact = false,
   className = "",
 }) => {
+  // Saved to the person's account (role-flow 8e): nothing to warn about.
+  if (isCloudSaving()) return null;
   const explanation =
     customExplanation ??
     (featureName
