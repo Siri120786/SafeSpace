@@ -137,10 +137,10 @@ test("safe harbor is always low-sensory, even when the setting is off", () => {
   assert.match(html, /data-low-sensory="true"/);
 });
 
-test("modules home lists all modules and the story workflow", () => {
+test("modules home lists all modules and links caregivers to Stories", () => {
   const html = render(React.createElement(ModulesHome, common));
   for (const m of MODULES) assert.ok(html.includes(`href="${m.path}"`));
-  assert.match(html, /href="\/story-workflow"/);
+  assert.match(html, /href="\/caregiver\/stories"/);
 });
 
 test("no module screen claims an alert was sent or uses audio", () => {

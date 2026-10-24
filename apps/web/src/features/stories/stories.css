@@ -56,6 +56,10 @@
 
 /* Low-sensory: still pictures; a talking mouth simply stays open. Gestures
    that carry meaning (a raised hand, a wave) are held as still poses. */
+.st-bell { transform-box: fill-box; transform-origin: 50% 0%; animation: st-bell 1.6s ease-in-out infinite; }
+.st-bell-waves { animation: st-bell-waves 1.6s ease-in-out infinite; }
+@keyframes st-bell { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
+@keyframes st-bell-waves { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
 .st-still * { animation: none !important; }
 .st-still .st-raise { transform: rotate(-144deg); }
 .st-still .st-wave { transform: rotate(-138deg); }

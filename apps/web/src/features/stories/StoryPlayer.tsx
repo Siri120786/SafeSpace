@@ -12,6 +12,7 @@ import {
   lookTowards,
   speakerLabel,
   type Story,
+  type StoryEffect,
   type StoryLang,
   type StoryScene,
 } from "./storyScript";
@@ -274,7 +275,7 @@ export const StoryPlayer: React.FC<Props> = ({ story, lowSensory, onExit }) => {
 };
 
 // Calm overlays drawn above the scene (they don't move with the camera).
-const SceneEffect: React.FC<{ effect: "none" | "sparkles" | "breathing"; lang: StoryLang }> = ({ effect, lang }) => {
+const SceneEffect: React.FC<{ effect: StoryEffect; lang: StoryLang }> = ({ effect, lang }) => {
   if (effect === "sparkles") {
     const spots = [[220, 160], [480, 90], [760, 140], [1040, 80], [1320, 170], [1450, 330], [140, 380], [1180, 300]];
     return (
@@ -304,6 +305,25 @@ const SceneEffect: React.FC<{ effect: "none" | "sparkles" | "breathing"; lang: S
           <text className="st-breath-in" y={170}>{words.in}</text>
           <text className="st-breath-out" y={170}>{words.out}</text>
           <text className="st-breath-still" y={170}>{words.still}</text>
+        </g>
+      </g>
+    );
+  }
+  if (effect === "bell") {
+    // Shown instead of a sound: the story never plays loud noises.
+    return (
+      <g aria-hidden="true" transform="translate(1040 190) scale(0.8)">
+        <circle r={180} fill="#FFFFFF" opacity={0.75} />
+        <g className="st-bell">
+          <rect x={-8} y={-96} width={16} height={22} rx={6} fill="#C99A2E" />
+          <path d="M-70 40 q0 -110 70 -116 q70 6 70 116 l16 22 h-172 z" fill="#F6C945" stroke="#C99A2E" strokeWidth={6} strokeLinejoin="round" />
+          <circle cx={0} cy={74} r={16} fill="#C99A2E" />
+        </g>
+        <g className="st-bell-waves" fill="none" stroke="#E8963C" strokeWidth={8} strokeLinecap="round">
+          <path d="M-110 -40 q-24 40 0 80" />
+          <path d="M-140 -60 q-36 60 0 120" />
+          <path d="M110 -40 q24 40 0 80" />
+          <path d="M140 -60 q36 60 0 120" />
         </g>
       </g>
     );

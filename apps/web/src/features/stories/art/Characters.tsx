@@ -128,6 +128,23 @@ const Prop: React.FC<{ kind: StoryProp; x: number; y: number }> = ({ kind, x, y 
           <ellipse cx={0} cy={-13} rx={6} ry={4} fill="#7A4E2E" />
         </g>
       );
+    case "stethoscope":
+      return (
+        <g transform={`translate(${x} ${y})`} fill="none" stroke="#5B6B73" strokeWidth={6} strokeLinecap="round">
+          <path d="M-14 -6 q-6 50 14 62 q20 -12 14 -62" />
+          <path d="M0 56 q0 36 30 40" />
+          <circle cx={36} cy={98} r={12} fill="#B8C4C6" stroke="#5B6B73" />
+        </g>
+      );
+    case "backpack":
+      return (
+        <g transform={`translate(${x} ${y})`}>
+          <path d="M-14 -2 q14 -22 28 0" fill="none" stroke="#C0392B" strokeWidth={7} strokeLinecap="round" />
+          <rect x={-34} y={0} width={68} height={86} rx={20} fill="#E06C5A" />
+          <rect x={-24} y={40} width={48} height={34} rx={10} fill="#C9564A" />
+          <rect x={-6} y={46} width={12} height={6} rx={3} fill="#F5D46B" />
+        </g>
+      );
   }
 };
 
@@ -317,6 +334,28 @@ const LOOKS: Record<Exclude<StoryCharacterId, "pip">, PersonLook> = {
       </g>
     ),
   },
+  asha: {
+    height: "adult",
+    top: "#7FB8A4",
+    topShade: "#679F8B",
+    bottom: "#F3E6C8",
+    shoes: "#8A5A44",
+    long: true,
+    hair: (r) => (
+      <g fill={HAIR}>
+        <circle cx={-r * 0.55} cy={-r * 0.85} r={r * 0.4} />
+        <path d={`M${-r - 4} 10 q0 ${-r - 18} ${r + 4} ${-r - 10} q${r + 8} -8 ${r + 4} ${r + 18} q-${r * 0.4} -${r * 0.9} -${r + 4} -${r * 0.8} q-${r * 0.6} 0 -${r + 4} ${r * 0.8} z`} />
+      </g>
+    ),
+    // Glasses.
+    extras: () => (
+      <g fill="none" stroke="#5A3E2B" strokeWidth={4}>
+        <circle cx={-22} cy={-6} r={18} />
+        <circle cx={22} cy={-6} r={18} />
+        <path d="M-4 -8 q4 -4 8 0" />
+      </g>
+    ),
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -363,7 +402,7 @@ const Pip: React.FC<Omit<PoseProps, "look"> & { gaze: -1 | 0 | 1 }> = ({ express
 // ---------------------------------------------------------------------------
 
 // Sized so faces are easy to read on a phone.
-export const CHARACTER_SCALE: Record<StoryCharacterId, number> = { kai: 1.55, amma: 1.42, papa: 1.48, maya: 1.42, pip: 1.5 };
+export const CHARACTER_SCALE: Record<StoryCharacterId, number> = { kai: 1.55, amma: 1.42, papa: 1.48, maya: 1.42, asha: 1.42, pip: 1.5 };
 
 // Roughly where each face is above the floor (stage units), for the camera.
 export function faceHeight(id: StoryCharacterId, pose: StoryPose): number {

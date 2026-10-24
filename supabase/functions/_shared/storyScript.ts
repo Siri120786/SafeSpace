@@ -6,7 +6,7 @@
 // Shared by the web app (re-exported from apps/web/src/features/stories) and
 // the Edge Functions, so: plain TypeScript, no imports.
 
-export const STORY_CHARACTERS = ["kai", "amma", "papa", "maya", "pip"] as const;
+export const STORY_CHARACTERS = ["kai", "amma", "papa", "maya", "asha", "pip"] as const;
 export type StoryCharacterId = (typeof STORY_CHARACTERS)[number];
 
 export const CHARACTER_NAMES: Record<StoryCharacterId, { en: string; te: string }> = {
@@ -14,10 +14,13 @@ export const CHARACTER_NAMES: Record<StoryCharacterId, { en: string; te: string 
   amma: { en: "Amma", te: "అమ్మ" },
   papa: { en: "Papa", te: "నాన్న" },
   maya: { en: "Dr. Maya", te: "డాక్టర్ మాయ" },
+  asha: { en: "Ms. Asha", te: "ఆశా టీచర్" },
   pip: { en: "Pip", te: "పిప్" },
 };
 
-export const STORY_BACKGROUNDS = ["home", "front_door", "clinic_outside", "waiting_room", "dental_room"] as const;
+export const STORY_BACKGROUNDS = [
+  "home", "front_door", "clinic_outside", "waiting_room", "dental_room", "doctor_room", "classroom", "playground",
+] as const;
 export type StoryBackground = (typeof STORY_BACKGROUNDS)[number];
 
 // Where someone stands, left to right.
@@ -37,7 +40,7 @@ export const STORY_POSES = ["stand", "sit"] as const;
 export type StoryPose = (typeof STORY_POSES)[number];
 
 // Something held in the hand that moves.
-export const STORY_PROPS = ["mirror", "toothbrush", "teddy"] as const;
+export const STORY_PROPS = ["mirror", "toothbrush", "teddy", "stethoscope", "backpack"] as const;
 export type StoryProp = (typeof STORY_PROPS)[number];
 
 // How the scene is framed. "wide" shows the whole room (and gently leans
@@ -45,8 +48,9 @@ export type StoryProp = (typeof STORY_PROPS)[number];
 export const STORY_SHOTS = ["wide", "medium", "close"] as const;
 export type StoryShot = (typeof STORY_SHOTS)[number];
 
-// A calm overlay for the scene.
-export const STORY_EFFECTS = ["none", "sparkles", "breathing"] as const;
+// A calm overlay for the scene. "bell": a ringing bell, shown instead of
+// playing a sound (school bells, a fire-drill alarm).
+export const STORY_EFFECTS = ["none", "sparkles", "breathing", "bell"] as const;
 export type StoryEffect = (typeof STORY_EFFECTS)[number];
 
 export type StoryLang = "en" | "te";

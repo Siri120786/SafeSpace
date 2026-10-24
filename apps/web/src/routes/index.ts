@@ -28,6 +28,9 @@ export const ROUTES = {
   CAREGIVER_CHILD_REMINDERS: "/caregiver/children/:childId/reminders",
   CAREGIVER_CHILD_SETTINGS: "/caregiver/children/:childId/settings",
   CAREGIVER_CHILD_CAREGIVERS: "/caregiver/children/:childId/caregivers",
+  CAREGIVER_STORIES: "/caregiver/stories",
+  CAREGIVER_STORY_NEW: "/caregiver/stories/new",
+  CAREGIVER_STORY: "/caregiver/stories/:storyId",
 
   // Child
   CHILD_PIN: "/child/pin",

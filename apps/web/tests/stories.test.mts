@@ -11,9 +11,16 @@ import {
   lookTowards,
   speakerLabel,
   validateStory,
+  STORY_ACTIONS,
+  STORY_BACKGROUNDS,
+  STORY_EFFECTS,
+  STORY_PROPS,
   type Story,
 } from "../src/features/stories/storyScript.ts";
 import { DENTIST_STORY } from "../src/features/stories/library/dentist.ts";
+import { STORY_TEMPLATES, findTemplate, scriptFromTemplate } from "../src/features/stories/templates.ts";
+import { checkScript } from "../../../supabase/functions/_shared/stories.ts";
+import * as E from "../src/features/stories/editor.ts";
 
 let passed = 0;
 const test = (name: string, fn: () => void) => {
@@ -153,6 +160,97 @@ test("the camera zooms around a point but never shows past the edges", () => {
   assert.deepEqual(corner, { scale: 2, x: 0, y: 0 });
   const far = frameAround(1600, 900, 2, 1600, 900);
   assert.deepEqual(far, { scale: 2, x: -1600, y: -900 });
+});
+
+test("every template is a valid script the server would accept", () => {
+  for (const t of STORY_TEMPLATES) {
+    assert.deepEqual(validateStory(t.script), [], t.key);
+    assert.deepEqual(checkScript(t.script), [], t.key);
+    assert.match(t.key, /^[a-z_]{1,40}$/);
+  }
+  assert.equal(new Set(STORY_TEMPLATES.map((t) => t.key)).size, STORY_TEMPLATES.length);
+});
+
+test("every template has a coping step and a calm, proud ending, in 1 to 3.5 minutes", () => {
+  for (const t of STORY_TEMPLATES) {
+    const sc = t.script.scenes;
+    const coping = sc.some((s) => s.effect === "breathing" || s.cast.some((c) => c.action === "raise_hand" || c.action === "breathe"));
+    assert.ok(coping, `${t.key}: coping step`);
+    assert.equal(sc.at(-1)?.effect, "sparkles", `${t.key}: ending`);
+    for (const lang of ["en", "te"] as const) {
+      const secs = estimateStorySeconds(t.script, lang);
+      assert.ok(secs >= 60 && secs <= 210, `${t.key} ${lang}: ${secs}s`);
+    }
+  }
+});
+
+test("the new places, the teacher and the bell are used by the templates", () => {
+  const scenes = STORY_TEMPLATES.flatMap((t) => t.script.scenes);
+  for (const bg of ["classroom", "playground", "doctor_room"]) assert.ok(scenes.some((s) => s.background === bg), bg);
+  assert.ok(scenes.some((s) => s.cast.some((c) => c.id === "asha")));
+  assert.ok(scenes.some((s) => s.effect === "bell"));
+});
+
+test("a template copy can be edited without changing the template", () => {
+  const t = findTemplate("new_school")!;
+  const copy = scriptFromTemplate(t);
+  copy.scenes[0].lines[0].en = "Changed";
+  assert.notEqual(t.script.scenes[0].lines[0].en, "Changed");
+  assert.equal(findTemplate("nope"), undefined);
+});
+
+test("editor: scenes move, delete and add without touching the original", () => {
+  const base = clone();
+  const moved = E.moveScene(base, 0, 1);
+  assert.equal(moved.scenes[0].id, base.scenes[1].id);
+  assert.equal(base.scenes[0].id, DENTIST_STORY.scenes[0].id);
+  assert.equal(E.moveScene(base, 0, -1), base);
+  assert.equal(E.removeScene(base, 2).scenes.length, base.scenes.length - 1);
+  const one = { ...base, scenes: [base.scenes[0]] };
+  assert.equal(E.removeScene(one, 0).scenes.length, 1);
+  const added = E.addScene(base, 0);
+  assert.equal(added.scenes[1].background, base.scenes[0].background);
+  assert.equal(new Set(added.scenes.map((x) => x.id)).size, added.scenes.length);
+  assert.match(validateStory(added).join(" "), /Scene 2, line 1: needs English and Telugu/);
+});
+
+test("editor: removing someone hands their lines to the narrator and drops the camera on them", () => {
+  const sc = clone().scenes[9]; // a-break: camera close on Kai
+  const out = E.removeCast(sc, "kai");
+  assert.ok(out.lines.every((l) => l.speaker !== "kai"));
+  assert.equal(out.camera, undefined);
+  assert.deepEqual(validateStory({ ...clone(), scenes: [out] }), []);
+});
+
+test("editor: moving onto a taken place swaps; defaults stay out of the script", () => {
+  const sc = clone().scenes[0]; // amma left, kai center, papa right
+  const out = E.updateCast(sc, "kai", { slot: "left" });
+  assert.equal(out.cast.find((m) => m.id === "kai")?.slot, "left");
+  assert.equal(out.cast.find((m) => m.id === "amma")?.slot, "center");
+  const calm = E.updateCast(sc, "amma", { expression: "calm", action: "idle", pose: "stand", holding: undefined });
+  assert.deepEqual(calm.cast.find((m) => m.id === "amma"), { id: "amma", slot: "left" });
+});
+
+test("editor: adding people and lines respects the limits", () => {
+  let sc = clone().scenes[0];
+  sc = E.addCast(sc, "pip");
+  assert.equal(sc.cast.length, 4);
+  assert.equal(E.addCast(sc, "maya").cast.length, 4);
+  assert.equal(E.addCast(sc, "pip"), sc);
+  let lines = sc;
+  for (let i = 0; i < 10; i++) lines = E.addLine(lines);
+  assert.equal(lines.lines.length, 6);
+  assert.equal(E.removeLine({ ...sc, lines: [sc.lines[0]] }, 0).lines.length, 1);
+  assert.equal(E.singleScene(clone(), 3).scenes[0].id, DENTIST_STORY.scenes[3].id);
+});
+
+test("editor: every background, action, prop and effect has a friendly label", () => {
+  for (const b of STORY_BACKGROUNDS) assert.ok(E.BACKGROUND_LABELS[b]);
+  for (const a of STORY_ACTIONS) assert.ok(E.ACTION_LABELS[a]);
+  for (const p of STORY_PROPS) assert.ok(E.PROP_LABELS[p]);
+  for (const f of STORY_EFFECTS) assert.ok(E.EFFECT_LABELS[f]);
+  assert.equal(E.storyErrorText(new Error("too_many_stories")), "You have 100 stories. Delete one to make another.");
+  assert.equal(E.storyErrorText(new Error("weird")), "That didn't save. Please try again.");
 });
 
 console.log(`${passed} stories checks`);

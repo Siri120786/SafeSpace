@@ -182,6 +182,141 @@ const DentalRoom: React.FC = () => (
   </g>
 );
 
+// The examination bed, centre stage: Kai sits here.
+const DoctorRoom: React.FC = () => (
+  <g>
+    <rect width={STAGE_W} height={STAGE_H} fill="#EEF1F8" />
+    <Window x={110} y={130} w={260} h={230} />
+    {/* Eye chart */}
+    <g transform="translate(1160 140)">
+      <rect x={0} y={0} width={170} height={240} rx={8} fill="#FFFFFF" stroke="#C9D2E3" strokeWidth={6} />
+      {[[34, 50, 46], [26, 110, 36], [20, 160, 30], [14, 200, 26]].map(([size, y, w], i) => (
+        <rect key={i} x={85 - w} y={y - size / 2} width={w * 2} height={size * 0.6} rx={3} fill="#5B6B8C" opacity={0.75} />
+      ))}
+    </g>
+    {/* Height chart */}
+    <g transform="translate(470 180)">
+      <rect x={0} y={0} width={46} height={560} rx={8} fill="#F7E3B5" />
+      {Array.from({ length: 10 }, (_, i) => (
+        <rect key={i} x={0} y={30 + i * 52} width={i % 2 ? 18 : 28} height={5} fill="#C9A86A" />
+      ))}
+    </g>
+    {/* Sink cabinet */}
+    <g transform="translate(1250 560)">
+      <rect x={0} y={0} width={290} height={200} rx={10} fill="#DCE3EF" />
+      <rect x={0} y={0} width={290} height={24} rx={8} fill="#C9D2E3" />
+      <rect x={60} y={-46} width={12} height={50} rx={6} fill="#9AA6B8" />
+      <rect x={140} y={40} width={10} height={140} fill="#C9D2E3" />
+    </g>
+    <g transform={`translate(${SLOT_X.center} ${FLOOR_Y})`}>
+      <rect x={-230} y={-SEAT_HEIGHT} width={460} height={60} rx={22} fill="#8FB5E0" />
+      <rect x={-230} y={-SEAT_HEIGHT - 14} width={460} height={20} rx={10} fill="#FFFFFF" opacity={0.9} />
+      <path d={`M-230 ${-SEAT_HEIGHT - 4} q-20 -70 30 -110 h80 q-40 40 -20 110 z`} fill="#8FB5E0" />
+      <rect x={-200} y={-SEAT_HEIGHT + 60} width={20} height={SEAT_HEIGHT - 60} fill="#9AA6B8" />
+      <rect x={180} y={-SEAT_HEIGHT + 60} width={20} height={SEAT_HEIGHT - 60} fill="#9AA6B8" />
+    </g>
+    <Floor fill="#DCE1EA" line="#C9D0DC" />
+  </g>
+);
+
+// Children sit on the small chairs at midleft and midright.
+const Classroom: React.FC = () => (
+  <g>
+    <rect width={STAGE_W} height={STAGE_H} fill="#FBF1DC" />
+    {/* The board */}
+    <g transform="translate(470 110)">
+      <rect x={-14} y={-14} width={688} height={348} rx={12} fill="#B98A5E" />
+      <rect x={0} y={0} width={660} height={320} rx={6} fill="#3F6B5A" />
+      <path d="M60 90 q40 -40 80 0 t80 0" fill="none" stroke="#F4F1E6" strokeWidth={6} strokeLinecap="round" opacity={0.85} />
+      <text x={330} y={210} textAnchor="middle" fontSize={64} fontFamily="sans-serif" fill="#F4F1E6" opacity={0.85}>1 2 3</text>
+      <rect x={480} y={300} width={60} height={12} rx={4} fill="#F4F1E6" />
+    </g>
+    {/* Alphabet strip */}
+    <g>
+      {["#E06C5A", "#F5C26B", "#7FB26A", "#6FA3D9", "#B9A7D9", "#F2A7A0"].map((c, i) => (
+        <rect key={i} x={60 + i * 62} y={60} width={52} height={52} rx={8} fill={c} />
+      ))}
+      {["#6FA3D9", "#B9A7D9", "#F2A7A0", "#E06C5A", "#F5C26B", "#7FB26A"].map((c, i) => (
+        <rect key={i} x={1180 + i * 62} y={60} width={52} height={52} rx={8} fill={c} />
+      ))}
+    </g>
+    {/* Clock */}
+    <g transform="translate(1300 230)">
+      <circle r={62} fill="#FFFFFF" stroke="#B98A5E" strokeWidth={10} />
+      <path d="M0 0 V-38 M0 0 L28 14" stroke="#2B1D17" strokeWidth={7} strokeLinecap="round" />
+    </g>
+    <Window x={90} y={180} w={260} h={220} />
+    {/* Shelf with books */}
+    <g transform="translate(1180 520)">
+      <rect x={0} y={0} width={340} height={240} rx={10} fill="#D9B48F" />
+      <rect x={10} y={110} width={320} height={10} fill="#C29A74" />
+      {[["#E06C5A", 30], ["#6FA3D9", 70], ["#F5C26B", 110], ["#7FB26A", 150], ["#B9A7D9", 220], ["#F2A7A0", 260]].map(([c, x]) => (
+        <rect key={x as number} x={x as number} y={30} width={30} height={80} rx={4} fill={c as string} />
+      ))}
+    </g>
+    <Chair x={SLOT_X.midleft} color="#F5C26B" />
+    <Chair x={SLOT_X.midright} color="#8CCFC6" />
+    <Floor fill="#E3C9A2" line="#D2B48A" />
+  </g>
+);
+
+// Someone can sit on the bench at the left.
+const Playground: React.FC = () => (
+  <g>
+    <defs>
+      <linearGradient id="st-sky-pg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#BFE3F6" />
+        <stop offset="1" stopColor="#F1F9FC" />
+      </linearGradient>
+    </defs>
+    <rect width={STAGE_W} height={STAGE_H} fill="url(#st-sky-pg)" />
+    <circle cx={1420} cy={130} r={60} fill="#FFE7A0" />
+    <ellipse cx={380} cy={130} rx={120} ry={40} fill="#fff" opacity={0.9} />
+    <ellipse cx={980} cy={90} rx={100} ry={34} fill="#fff" opacity={0.9} />
+    {/* School building, far back */}
+    <g transform="translate(560 300)">
+      <rect x={0} y={0} width={480} height={440} rx={10} fill="#F2D7B6" />
+      <path d="M-30 10 L240 -90 L510 10 z" fill="#D98C6A" />
+      {[40, 190, 340].map((x) => <rect key={x} x={x} y={70} width={100} height={90} rx={6} fill="#CFE8F5" />)}
+      <rect x={190} y={260} width={100} height={180} rx={6} fill="#B98A5E" />
+    </g>
+    {/* Tree */}
+    <g transform="translate(150 740)">
+      <rect x={-22} y={-260} width={44} height={260} rx={12} fill="#9C6B47" />
+      <circle cx={0} cy={-300} r={120} fill="#7FB26A" />
+      <circle cx={-80} cy={-240} r={80} fill="#6E9E5A" />
+      <circle cx={80} cy={-250} r={86} fill="#86BC70" />
+    </g>
+    {/* Swings */}
+    <g transform="translate(330 300)" stroke="#C0392B" strokeWidth={14} strokeLinecap="round" fill="none">
+      <path d="M0 440 L60 0 H300 L360 440" />
+      <g stroke="#7A7A7A" strokeWidth={4}>
+        <path d="M110 0 V300 M170 0 V300 M200 0 V300 M260 0 V300" />
+      </g>
+      <rect x={100} y={300} width={80} height={14} rx={6} fill="#F5C26B" stroke="none" />
+      <rect x={190} y={300} width={80} height={14} rx={6} fill="#6FA3D9" stroke="none" />
+    </g>
+    {/* Slide */}
+    <g transform="translate(1180 330)">
+      <rect x={0} y={0} width={20} height={410} fill="#6FA3D9" />
+      <rect x={110} y={0} width={20} height={410} fill="#6FA3D9" />
+      {[60, 130, 200, 270, 340].map((y) => <rect key={y} x={0} y={y} width={130} height={12} fill="#9CC7F0" />)}
+      <rect x={-10} y={-20} width={150} height={30} rx={8} fill="#F5C26B" />
+      <path d="M130 0 Q260 120 330 410 L280 410 Q220 160 130 50 z" fill="#F2A65A" />
+    </g>
+    {/* Bench at the left slot */}
+    <g transform={`translate(${SLOT_X.left} ${FLOOR_Y})`}>
+      <rect x={-130} y={-SEAT_HEIGHT - 110} width={260} height={26} rx={10} fill="#B98A5E" />
+      <rect x={-130} y={-SEAT_HEIGHT - 70} width={260} height={26} rx={10} fill="#B98A5E" />
+      <rect x={-140} y={-SEAT_HEIGHT} width={280} height={34} rx={12} fill="#C99A6E" />
+      <rect x={-110} y={-SEAT_HEIGHT + 30} width={18} height={SEAT_HEIGHT - 30} fill="#8A6A4E" />
+      <rect x={92} y={-SEAT_HEIGHT + 30} width={18} height={SEAT_HEIGHT - 30} fill="#8A6A4E" />
+    </g>
+    <Floor fill="#A9D18E" line="#94C079" />
+    <ellipse cx={1340} cy={FLOOR_Y + 20} rx={220} ry={40} fill="#F1DDB0" />
+  </g>
+);
+
 export const StoryBackdrop: React.FC<{ id: StoryBackground }> = ({ id }) => {
   switch (id) {
     case "home":
@@ -194,5 +329,11 @@ export const StoryBackdrop: React.FC<{ id: StoryBackground }> = ({ id }) => {
       return <WaitingRoom />;
     case "dental_room":
       return <DentalRoom />;
+    case "doctor_room":
+      return <DoctorRoom />;
+    case "classroom":
+      return <Classroom />;
+    case "playground":
+      return <Playground />;
   }
 };

@@ -65,10 +65,10 @@ export const ModulesHome: React.FC<ModuleScreenProps> = (p) => (
         </Link>
       ))}
       {p.showStoryWorkflow !== false && (
-        <Link to="/story-workflow" className={linkClass}>
+        <Link to="/caregiver/stories" className={linkClass}>
           <Card hoverable className="space-y-1">
-            <h2 className="font-display text-xl text-textHeading">Story workflow</h2>
-            <p className="text-sm text-textBody">For caregivers: write, check, approve and read stories.</p>
+            <h2 className="font-display text-xl text-textHeading">Stories</h2>
+            <p className="text-sm text-textBody">For caregivers: make animated social stories and publish them to your children.</p>
           </Card>
         </Link>
       )}

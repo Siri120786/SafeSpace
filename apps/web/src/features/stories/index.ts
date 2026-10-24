@@ -5,7 +5,10 @@ import type { Story } from "./storyScript";
 export const STORIES_FEATURE_NAME = "stories";
 
 export { StoryPlayer } from "./StoryPlayer";
+export { StoryEditor } from "./StoryEditor";
 export * from "./storyScript";
+export * from "./editor";
+export * from "./templates";
 
 // Stories built into the app. Caregiver-made stories join these in step 6b.
 export const STORY_LIBRARY: readonly Story[] = [DENTIST_STORY];

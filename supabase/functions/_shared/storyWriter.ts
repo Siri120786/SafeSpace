@@ -51,6 +51,7 @@ const CHARACTER_NOTES: Record<(typeof STORY_CHARACTERS)[number], string> = {
   amma: "Amma: Kai's mother.",
   papa: "Papa: Kai's father.",
   maya: "maya = Dr. Maya: a kind doctor and dentist in a white coat. Only in clinic scenes.",
+  asha: "asha = Ms. Asha: Kai's kind teacher. Only in school scenes (classroom, playground).",
   pip: "Pip: Kai's small blue bird friend, cheerful, good at calm breathing.",
 };
 
@@ -60,6 +61,9 @@ const BACKGROUND_NOTES: Record<(typeof STORY_BACKGROUNDS)[number], string> = {
   clinic_outside: "clinic_outside: outside a clinic",
   waiting_room: "waiting_room: a clinic waiting room with chairs (people can sit at left and midleft)",
   dental_room: "dental_room: a dentist's room with the chair at center (only Kai sits there)",
+  doctor_room: "doctor_room: a doctor's room with the examination bed at center (only Kai sits there)",
+  classroom: "classroom: a school classroom with a board; children sit at midleft and midright",
+  playground: "playground: the school playground with a slide and swings; someone can sit on the bench at left",
 };
 
 const AGE_NOTES: Record<AgeBand, string> = {
@@ -79,6 +83,7 @@ export function buildWriterSystemPrompt(ageBand: AgeBand): string {
     "- Every line in English (en) and Telugu (te). The Telugu is simple, natural spoken Telugu in Telugu script.",
     "- A speaker must be in the scene's cast, or 'narrator'. Two characters never share a slot, and nobody appears twice in a scene.",
     "- Characters face the middle; use left/midleft/center/midright/right to place them. Use actions sparingly: walk_in when someone arrives, walk_out when leaving, raise_hand for asking for a break, breathe or the breathing effect for calm breathing, point when showing something, hop for joy.",
+    "- effect 'bell' shows a ringing bell for a school bell or fire-drill alarm (there is no sound); 'sparkles' for a proud ending; 'breathing' for calm breathing.",
     "- camera: 'wide' unless a moment is about Kai's feelings, then 'medium' or 'close' with focus 'kai'.",
     "- Don't mention real names, places, brands or medicines.",
     AGE_NOTES[ageBand],
