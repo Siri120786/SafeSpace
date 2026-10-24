@@ -503,7 +503,7 @@ export const HELP_ALERT_REPEAT_WINDOW_SECONDS = 120;
 
 // An alert as caregivers see it (an emergency_events row). Always visible to
 // every caregiver of the child, whatever the sharing choice.
-export type AlertSource = "aac_tap" | "check_in" | "journal_flag";
+export type AlertSource = "aac_tap" | "check_in" | "journal_flag" | "feelings_card";
 
 export interface CaregiverAlert {
   id: string;

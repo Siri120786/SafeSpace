@@ -47,5 +47,7 @@ verify_jwt = true    # caregiver-only; the function also checks the caller is th
 verify_jwt = true    # caregiver-only
 [functions.stories]
 verify_jwt = false   # checks the user JWT (auth.getUser) or child-session token itself
+[functions.focus-tools]
+verify_jwt = false   # child-only; authenticated by the signed child-session token
 [functions.story-writer]
 verify_jwt = true    # adults only; the function also checks the JWT itself

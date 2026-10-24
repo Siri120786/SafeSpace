@@ -125,3 +125,38 @@ export {
   listMyStories,
 } from "./stories";
 export type { StorySummary, StorySource, StoryAgeBand, SaveStoryInput } from "./stories";
+
+export {
+  listFocusSessions,
+  addFocusSession,
+  clearMyFocusSessions,
+  listFocusTasks,
+  createFocusTask,
+  updateFocusTask,
+  deleteFocusTask,
+  listHabits,
+  addHabit,
+  archiveHabit,
+  setHabitCheck,
+  getStars,
+  awardStars,
+  claimStarGoal,
+  setMyStarGoal,
+  listEmotionChoices,
+  addEmotionChoice,
+  clearMyEmotionChoices,
+  getToolSettings,
+  saveMyToolSettings,
+  starTotalsOf,
+} from "./focusTools";
+export type {
+  FocusSessionRecordRow,
+  FocusTask,
+  FocusTaskStep,
+  Habit,
+  HabitCheck,
+  StarGoal,
+  StarTotals,
+  EmotionChoice,
+  ToolSettings,
+} from "./focusTools";
