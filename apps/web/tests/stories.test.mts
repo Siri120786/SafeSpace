@@ -21,6 +21,8 @@ import { DENTIST_STORY } from "../src/features/stories/library/dentist.ts";
 import { STORY_TEMPLATES, findTemplate, scriptFromTemplate } from "../src/features/stories/templates.ts";
 import { checkScript } from "../../../supabase/functions/_shared/stories.ts";
 import * as E from "../src/features/stories/editor.ts";
+import { CHARACTER_VOICES } from "../src/features/stories/voices.ts";
+import { STORY_CHARACTERS } from "../src/features/stories/storyScript.ts";
 
 let passed = 0;
 const test = (name: string, fn: () => void) => {
@@ -258,6 +260,18 @@ test("AI draft errors read kindly, and anything unknown is 'not available'", () 
   assert.match(E.aiDraftErrorText(new Error("daily_limit_reached")), /10 drafts/);
   assert.equal(E.aiDraftErrorText(new Error("weird")), E.aiDraftErrorText(new Error("ai_unavailable")));
   assert.deepEqual(Object.keys(E.AGE_BAND_LABELS), ["young", "middle", "teen"]);
+});
+
+test("every character sounds different, even with one voice", () => {
+  const ids = [...STORY_CHARACTERS, "narrator"] as const;
+  for (const id of ids) {
+    const v = CHARACTER_VOICES[id];
+    assert.ok(v.pitch >= 0.8 && v.pitch <= 2 && v.rate >= 0.8 && v.rate <= 1.15, id);
+  }
+  const women = ids.filter((id) => CHARACTER_VOICES[id].gender === "female").map((id) => CHARACTER_VOICES[id].pitch).sort();
+  for (let i = 1; i < women.length; i++) assert.ok(women[i] - women[i - 1] >= 0.1, `pitches ${women.join(", ")}`);
+  assert.equal(CHARACTER_VOICES.papa.gender, "male");
+  assert.ok(CHARACTER_VOICES.pip.pitch > CHARACTER_VOICES.kai.pitch && CHARACTER_VOICES.kai.pitch > CHARACTER_VOICES.amma.pitch);
 });
 
 console.log(`${passed} stories checks`);

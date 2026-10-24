@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { LANG_TAGS, pickWarmVoice, speakText, type Speaker, type Utterance, type VoiceInfo } from "./speech";
+import {
+  LANG_TAGS,
+  pickProfileVoice,
+  pickWarmVoice,
+  profileTone,
+  speakText,
+  type Speaker,
+  type Utterance,
+  type VoiceInfo,
+  type VoiceProfile,
+} from "./speech";
 
 // One thing speaks at a time across the whole page: starting a new read stops
 // the last one, and every button shows whether it is the one speaking.
@@ -44,6 +54,22 @@ export function speakWarm(text: string, lang?: string, onEnd?: () => void, onWor
   return speakText(text, speaker(), (t) => new SpeechSynthesisUtterance(t) as unknown as Utterance, {
     lang: tag,
     voice: pickWarmVoice(voices, tag),
+    onEnd,
+    onWord,
+  });
+}
+
+// Says `text` in a character's voice (story player): the device's voice that
+// best fits the profile, with its pitch and speed.
+export function speakAs(text: string, lang: string, profile: VoiceProfile, onEnd?: () => void, onWord?: () => void): boolean {
+  if (voices.length === 0 && canReadAloud()) voices = window.speechSynthesis.getVoices();
+  const { voice, matched } = pickProfileVoice(voices, lang, profile);
+  const tone = profileTone(profile, matched);
+  return speakText(text, speaker(), (t) => new SpeechSynthesisUtterance(t) as unknown as Utterance, {
+    lang,
+    voice,
+    pitch: tone.pitch,
+    rate: tone.rate,
     onEnd,
     onWord,
   });

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { hasVoiceFor, langTag, speakWarm, stopReading } from "../speech";
+import { hasVoiceFor, langTag, speakAs, stopReading } from "../speech";
 import { StoryBackdrop, FLOOR_Y, STAGE_H, STAGE_W } from "./art/Backgrounds";
 import { CHARACTER_SCALE, StoryCharacter, faceHeight, type MouthMode } from "./art/Characters";
 import {
@@ -16,6 +16,7 @@ import {
   type StoryLang,
   type StoryScene,
 } from "./storyScript";
+import { CHARACTER_VOICES } from "./voices";
 import "./stories.css";
 
 const SCENE_INTRO_MS = 1100;   // let characters arrive before the first line
@@ -76,7 +77,8 @@ export const StoryPlayer: React.FC<Props> = ({ story, lowSensory, onExit }) => {
     } else if (lineIdx >= scene.lines.length) {
       setPhase(last ? "finished" : "scene-end");
     } else {
-      const text = scene.lines[lineIdx][lang];
+      const current = scene.lines[lineIdx];
+      const text = current[lang];
       let moved = false;
       const moveOn = (delay: number) => {
         if (moved || token.current !== my) return;
@@ -91,7 +93,7 @@ export const StoryPlayer: React.FC<Props> = ({ story, lowSensory, onExit }) => {
         if (wordTimer.current) clearTimeout(wordTimer.current);
         wordTimer.current = setTimeout(() => token.current === my && setWordOpen(false), WORD_MOUTH_MS);
       };
-      const spoke = speaking && speakWarm(text, langTag(lang), () => moveOn(LINE_GAP_MS), onWord);
+      const spoke = speaking && speakAs(text, langTag(lang), CHARACTER_VOICES[current.speaker], () => moveOn(LINE_GAP_MS), onWord);
       // Without a voice the words stay up for a reading time. With one, a
       // safety timer still moves on if the browser never says speech ended.
       timer = setTimeout(() => moveOn(0), spoke ? lineDurationMs(text) * 2 + 3000 : lineDurationMs(text) + LINE_GAP_MS);
