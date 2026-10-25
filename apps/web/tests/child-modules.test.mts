@@ -27,7 +27,7 @@ const render = (el: React.ReactElement) => renderToStaticMarkup(React.createElem
 const child = {
   lowSensory: false,
   onExit: () => {},
-  paths: { base: "/child/modules", calmTools: "/child/calm-tools" },
+  paths: { base: "/child/modules" },
   showStoryWorkflow: false,
 };
 
@@ -51,8 +51,8 @@ test("calm tool links stay inside the child's space", () => {
   assert.match(calm, /href="\/child\/modules\/calm-space\/(breathing|grounding)"/);
   assert.doesNotMatch(calm, /href="\/(calm-tools|modules)\//);
   const harbor = render(React.createElement(SafeHarbor, child));
-  assert.match(harbor, /href="\/child\/calm-tools\/(breathing|grounding)"/);
-  assert.doesNotMatch(harbor, /href="\/calm-tools\//);
+  assert.match(harbor, /href="\/child\/modules\/calm-space\/(breathing|grounding)"/);
+  assert.doesNotMatch(harbor, /href="\/(calm-tools|modules)\//);
 });
 
 console.log(`${passed} child-modules checks`);

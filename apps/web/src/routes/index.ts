@@ -11,7 +11,8 @@ export const ROUTES = {
   // Individual
   DASHBOARD: "/dashboard",
   MOOD_CHECK_IN: "/mood/check-in",
-  CALM_TOOLS: "/calm-tools",
+  CALM_TOOLS: "/calm-tools",   // forwards to Calm Space
+  CALM_SPACE: "/modules/calm-space",
   GAMES: "/games",
   ROUTINES: "/routines",
   JOURNAL: "/journal",
@@ -40,7 +41,8 @@ export const ROUTES = {
   CHILD_PIN: "/child/pin",
   CHILD_HOME: "/child",
   CHILD_MOOD: "/child/mood",
-  CHILD_CALM_TOOLS: "/child/calm-tools",
+  CHILD_CALM_TOOLS: "/child/calm-tools",   // forwards to Calm Space
+  CHILD_CALM_SPACE: "/child/modules/calm-space",
   CHILD_GAMES: "/child/games",
   CHILD_SETTINGS: "/child/settings",
   CHILD_ROUTINES: "/child/routines",

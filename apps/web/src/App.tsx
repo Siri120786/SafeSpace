@@ -1,7 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AuthProvider, RoleRoute, GuestRoute, roleOf, useAuth } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
-import { CalmToolsRoutes } from "./features/calm-tools";
 import { GamesRoutes } from "./features/games";
 import { ModulesRoutes } from "./features/wellness-modules";
 import { ROUTES } from "./routes";
@@ -76,6 +75,14 @@ function ChildSpaceLayout() {
   );
 }
 
+// Calm tools moved into Calm Space (the anxiety module's ocean): old links,
+// including /calm-tools/breathing and /calm-tools/grounding, land there.
+function ToCalmSpace({ base }: { base: string }) {
+  const rest = useParams()["*"];
+  const page = rest === "breathing" || rest === "grounding" ? `/${rest}` : "";
+  return <Navigate to={`${base}${page}`} replace />;
+}
+
 // The mini-player for whoever is signed in: children and Individuals have
 // Music (role-flow 9a). On the Individual dashboard it sits above the bottom bar.
 function MusicMiniPlayer() {
@@ -120,11 +127,7 @@ export default function App() {
             />
             <Route
               path={`${ROUTES.CALM_TOOLS}/*`}
-              element={
-                <RoleRoute allow={["individual"]}>
-                  <CalmToolsRoutes basePath={ROUTES.CALM_TOOLS} homePath={ROUTES.DASHBOARD} />
-                </RoleRoute>
-              }
+              element={<RoleRoute allow={["individual"]}><ToCalmSpace base={ROUTES.CALM_SPACE} /></RoleRoute>}
             />
 
             <Route
@@ -217,7 +220,7 @@ export default function App() {
               <Route path="mood" element={<MoodCheckInPageWrapper />} />
               <Route
                 path="calm-tools/*"
-                element={<CalmToolsRoutes basePath={ROUTES.CHILD_CALM_TOOLS} homePath={ROUTES.CHILD_HOME} />}
+                element={<ToCalmSpace base={ROUTES.CHILD_CALM_SPACE} />}
               />
               <Route
                 path="games/*"

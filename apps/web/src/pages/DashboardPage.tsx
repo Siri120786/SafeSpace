@@ -30,7 +30,7 @@ const TOOL_TILES = [
   { to: ROUTES.ROUTINES, label: "Routines", icon: "✅" },
   { to: ROUTES.JOURNAL, label: "Journal", icon: "📓" },
   { to: ROUTES.REMINDERS, label: "Reminders", icon: "⏰" },
-  { to: ROUTES.CALM_TOOLS, label: "Calm tools", icon: "🍃" },
+  { to: ROUTES.CALM_SPACE, label: "Calm Space", icon: "🌊" },
   { to: ROUTES.GAMES, label: "Games Corner", icon: "🎲" },
   { to: ROUTES.MUSIC, label: "Music", icon: "🎵" },
   { to: ROUTES.MODULES, label: "Wellness modules", icon: "🌈" },
@@ -156,7 +156,7 @@ export const DashboardPage: React.FC = () => {
                   { id: "routines", label: "Routines", icon: "✅", route: ROUTES.ROUTINES },
                   { id: "journal", label: "Journal", icon: "📓", route: ROUTES.JOURNAL },
                   { id: "reminders", label: "Reminders", icon: "⏰", route: ROUTES.REMINDERS },
-                  { id: "calm", label: "Calm Tools", icon: "🍃", route: "/calm-tools" },
+                  { id: "calm", label: "Calm Space", icon: "🌊", route: ROUTES.CALM_SPACE },
                   { id: "profile", label: "Profile Settings", icon: "👤", route: "/profile" },
                 ].map((item) => (
                   <button
@@ -330,8 +330,8 @@ export const DashboardPage: React.FC = () => {
                       Guided Calming Resets
                     </h3>
                     <span className="text-xs text-textMuted font-light">3 exercises</span>
-                    <Button variant="outline" size="sm" onClick={() => navigate("/calm-tools")}>
-                      Open calm tools
+                    <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.CALM_SPACE)}>
+                      Open Calm Space
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => navigate("/modules")}>
                       Open modules

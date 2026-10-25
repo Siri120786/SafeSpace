@@ -54,7 +54,6 @@ export const ChildModulesPage: React.FC = () => {
     <ModulesRoutes
       basePath={ROUTES.CHILD_MODULES}
       homePath={ROUTES.CHILD_HOME}
-      calmToolsPath={ROUTES.CHILD_CALM_TOOLS}
       onlyKeys={childModuleKeys(child.assignedModules)}
       showStoryWorkflow={false}
     />

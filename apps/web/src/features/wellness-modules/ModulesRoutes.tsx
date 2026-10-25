@@ -14,7 +14,6 @@ interface ModulesRoutesProps {
   // space mounts these at /child/modules and exits to /child (role-flow 5b).
   basePath?: string;
   homePath?: string;
-  calmToolsPath?: string;
   onlyKeys?: readonly ModuleInfo["key"][];
   showStoryWorkflow?: boolean;
 }
@@ -23,7 +22,6 @@ interface ModulesRoutesProps {
 export const ModulesRoutes: React.FC<ModulesRoutesProps> = ({
   basePath = "/modules",
   homePath = "/dashboard",
-  calmToolsPath = "/calm-tools",
   onlyKeys,
   showStoryWorkflow,
 }) => {
@@ -34,7 +32,7 @@ export const ModulesRoutes: React.FC<ModulesRoutesProps> = ({
   // Calm Space's own exercises go back to Calm Space.
   const backToCalmSpace = useCallback(() => navigate(calmSpacePath(basePath)), [navigate, basePath]);
   const role = session?.kind === "auth_user" ? session.profile.role : null;
-  const common = { lowSensory, onExit, notice: preferenceError, paths: { base: basePath, calmTools: calmToolsPath } };
+  const common = { lowSensory, onExit, notice: preferenceError, paths: { base: basePath } };
 
   return (
     <Routes>

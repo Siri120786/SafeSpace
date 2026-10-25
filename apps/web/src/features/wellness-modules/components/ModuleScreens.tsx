@@ -32,7 +32,7 @@ export interface ModuleScreenProps {
   notice?: string | null;
   // Where these screens are mounted. Defaults are the adult routes; the
   // child's space passes its own (role-flow 5b).
-  paths?: { base: string; calmTools: string };
+  paths?: { base: string };
   // Modules to list on the home screen (default: all).
   onlyKeys?: readonly ModuleInfo["key"][];
   // The caregiver story workflow link (default: shown).
@@ -40,7 +40,8 @@ export interface ModuleScreenProps {
 }
 
 const modulePath = (p: ModuleScreenProps, m: ModuleInfo) => (p.paths ? `${p.paths.base}${m.path.slice("/modules".length)}` : m.path);
-const calmPath = (p: Pick<ModuleScreenProps, "paths">, tool: "breathing" | "grounding") => `${p.paths?.calmTools ?? "/calm-tools"}/${tool}`;
+// The breathing and grounding exercises live in Calm Space (the ocean).
+const calmPath = (p: Pick<ModuleScreenProps, "paths">, tool: "breathing" | "grounding") => `${p.paths?.base ?? "/modules"}/calm-space/${tool}`;
 
 const linkClass = "block rounded-3xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:ring-offset-2";
 const fieldClass =
