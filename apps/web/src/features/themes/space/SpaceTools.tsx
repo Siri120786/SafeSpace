@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import type { ConditionTool, ConditionToolKey } from "../../conditions/conditionTools";
+import type { ThemeFrameProps, ThemeHomeProps, ThemeTile, ThemeToolItem, ThemeToolsHomeProps } from "../kitTypes";
 import { NOVA_HEAD_CLIP, SPACE_CARD_CLIPS, SPACE_ASTRONAUT, SPACE_HELMET, SPACE_PLATE, SPACE_TOGETHER, type SpaceClip } from "./media";
 import { IDLE_MS, SPACE_PLAYBACK_RATE, driftTarget, easeToward, headTarget } from "./spaceMotion";
 
@@ -15,10 +15,8 @@ import { IDLE_MS, SPACE_PLAYBACK_RATE, driftTarget, easeToward, headTarget } fro
 // keeps it still again. The helmet button works either way. Low-sensory mode
 // never reaches here (it always shows the calm look).
 
-export interface SpaceToolItem {
-  tool: ConditionTool;
-  mine: boolean;
-}
+export type SpaceToolItem = ThemeToolItem;
+export type SpaceTile = ThemeTile;
 
 interface BarProps {
   playing: boolean;
@@ -212,17 +210,8 @@ const Chevron = () => (
   </svg>
 );
 
-interface HomeProps {
-  items: SpaceToolItem[];
-  pathFor: (key: ConditionToolKey) => string;
-  eyebrow: string;
-  backTo: string;
-  backLabel: string;
-  picker?: React.ReactNode;
-}
-
 // The tools page in the Space theme.
-export const SpaceToolsHome: React.FC<HomeProps> = ({ items, pathFor, eyebrow, backTo, backLabel, picker }) => {
+export const SpaceToolsHome: React.FC<ThemeToolsHomeProps> = ({ items, pathFor, eyebrow, backTo, backLabel, picker }) => {
   const [playing, togglePlaying] = usePlaying();
   const bar = <SpaceBar playing={playing} onTogglePlay={togglePlaying} backTo={backTo} backLabel={backLabel} />;
   return (
@@ -295,12 +284,6 @@ export const SpaceClosing: React.FC<{ playing: boolean }> = ({ playing }) => (
   </section>
 );
 
-export interface SpaceTile {
-  to: string;
-  label: string;
-  emoji: string;
-}
-
 // Everything else, as glass tiles.
 export const SpaceTiles: React.FC<{ tiles: SpaceTile[]; label: string }> = ({ tiles, label }) => (
   <nav aria-label={label} className="sp-tiles">
@@ -315,21 +298,8 @@ export const SpaceTiles: React.FC<{ tiles: SpaceTile[]; label: string }> = ({ ti
   </nav>
 );
 
-interface SpaceHomeProps {
-  eyebrow: string;
-  greeting: string;
-  line: string;
-  barExtra?: React.ReactNode;
-  // Next to the "Your space today" heading (the theme picker).
-  picker?: React.ReactNode;
-  // The day's things, on a light panel.
-  children: React.ReactNode;
-  // Below the panel, on the sky (tiles).
-  after?: React.ReactNode;
-}
-
 // A child's home or an Individual's dashboard in the Space theme.
-export const SpaceHome: React.FC<SpaceHomeProps> = ({ eyebrow, greeting, line, barExtra, picker, children, after }) => {
+export const SpaceHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, barExtra, picker, tiles, tilesLabel, children }) => {
   const [playing, togglePlaying] = usePlaying();
   return (
     <div className="sp" data-playing={playing ? "true" : "false"}>
@@ -354,7 +324,7 @@ export const SpaceHome: React.FC<SpaceHomeProps> = ({ eyebrow, greeting, line, b
             {picker}
           </div>
           <div className="sp-panel sp-stack">{children}</div>
-          {after}
+          <SpaceTiles tiles={tiles} label={tilesLabel} />
         </div>
       </section>
 
@@ -363,21 +333,10 @@ export const SpaceHome: React.FC<SpaceHomeProps> = ({ eyebrow, greeting, line, b
   );
 };
 
-interface FrameProps {
-  eyebrow: string;
-  title: string;
-  subtitle?: string;
-  backTo?: string;
-  backLabel?: string;
-  // Beside the title (e.g. a page's own buttons).
-  actions?: React.ReactNode;
-  children: React.ReactNode;
-}
-
 // A page in the Space theme (one tool, routines, journal, music...): the sky
 // and glass around it, the page itself on a light panel so it reads as
 // clearly as everywhere else.
-export const SpaceToolFrame: React.FC<FrameProps> = ({ eyebrow, title, subtitle, backTo, backLabel, actions, children }) => {
+export const SpaceToolFrame: React.FC<ThemeFrameProps> = ({ eyebrow, title, subtitle, backTo, backLabel, actions, children }) => {
   const [playing, togglePlaying] = usePlaying();
   return (
     <div className="sp sp-page" data-playing={playing ? "true" : "false"}>

@@ -16,7 +16,7 @@ import { ROUTES } from "../routes";
 import { childToolPath, splitConditionTools } from "../features/conditions";
 import { ReadAloudButton, reminderSpeech } from "../features/speech";
 import { useMusicPlayer } from "../features/music";
-import { SpaceHome, SpaceTiles, ToolThemePicker, useAppTheme } from "../features/themes";
+import { ThemedHome, ToolThemePicker, useAppTheme } from "../features/themes";
 
 const REFRESH_MS = 60_000;
 
@@ -35,12 +35,21 @@ const MUSIC_TILE = { to: ROUTES.CHILD_MUSIC, label: "Music", emoji: "🎵" };
 const MODULES_TILE = { to: ROUTES.CHILD_MODULES, label: "My spaces", emoji: "🌈" };
 const SETTINGS_TILE = { to: ROUTES.CHILD_SETTINGS, label: "Settings", emoji: "⚙️" };
 
+// A short word about today, for a theme's guide to say.
+export function dayStatus(plan: { steps: DayStep[]; allDone: boolean } | null): string | undefined {
+  if (!plan) return undefined;
+  if (plan.steps.length === 0) return "Nothing planned today. Pick anything you like!";
+  if (plan.allDone) return "All done for today. Well done!";
+  const left = plan.steps.filter((s) => !s.done).length;
+  return `${left} ${left === 1 ? "step" : "steps"} left today. You've got this!`;
+}
+
 const emojiFor = (s: DayStep) => (s.icon ? ROUTINE_STEP_ICONS[s.icon]?.emoji : null) ?? "⭐";
 
 // /child: Today. Now / Next from the routine schedule (P1), steps to tick off,
 // reminders that are due or in their heads-up (P2), and a tile for every tool.
-// In a designed theme (Space, for the ADHD or autism module) the same day
-// sits on a light panel under the theme's greeting, with glass tiles.
+// In a designed theme (Space, Animals: for the ADHD or autism module) the
+// same day sits on a light panel under the theme's greeting, with its tiles.
 export const ChildHomePage: React.FC = () => {
   const { session, child, guard } = useChildSpace();
   const tools = splitConditionTools(child.assignedModules);
@@ -188,17 +197,20 @@ export const ChildHomePage: React.FC = () => {
     </>
   );
 
-  if (theme.active === "space") {
+  if (theme.active !== "calm") {
     return (
-      <SpaceHome
+      <ThemedHome
+        theme={theme.active}
         eyebrow="My space"
         greeting={`Hi ${child.name}!`}
         line="Here's your day. One little step at a time."
-        picker={theme.canChoose ? <ToolThemePicker look="space" value={theme.chosen} onChange={theme.choose} /> : undefined}
-        after={<SpaceTiles tiles={tiles} label="My tools" />}
+        status={dayStatus(plan)}
+        picker={theme.canChoose ? <ToolThemePicker look="bold" value={theme.chosen} onChange={theme.choose} /> : undefined}
+        tiles={tiles}
+        tilesLabel="My tools"
       >
         {today}
-      </SpaceHome>
+      </ThemedHome>
     );
   }
 

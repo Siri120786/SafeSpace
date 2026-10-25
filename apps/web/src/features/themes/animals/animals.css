@@ -1,0 +1,788 @@
+/* The Animals theme (see AnimalsKit.tsx). Everything is scoped to .an.
+   Warm cream and rust around Rusty; lavender and violet around the bee.
+   Still by default; the clips, Rusty, the bee and the bobbing pictures move
+   only while playing (data-playing="true"), and always slowly. */
+
+.an {
+  --an-ink: #1a1410;
+  --an-cream: #fbf3ea;
+  --an-paper: #fffaf4;
+  --an-rust: #b4531f;
+  --an-orange: #e8742a;
+  --an-muted: #6b5a4d;
+  --an-lilac: #e7e3fb;
+  --an-violet: #3a1f8c;
+  --an-lavender-ink: #4a4568;
+  position: relative;
+  min-height: 100vh;
+  color: var(--an-ink);
+  background: var(--an-cream);
+  font-family: "Inter", system-ui, sans-serif;
+  overflow-x: clip;
+  /* The bold theme picker, in this theme's colours. */
+  --sp-cream: var(--an-ink);
+  --sp-mint: var(--an-orange);
+}
+.an-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+}
+.an-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.an :focus-visible {
+  outline: 3px solid var(--an-orange);
+  outline-offset: 3px;
+}
+.an .sp-themes {
+  --sp-cream: var(--an-ink);
+  color: var(--an-ink);
+  background: #fff;
+  box-shadow: 0 20px 50px -20px rgba(70, 25, 0, 0.35);
+}
+.an .sp-theme:hover:not(:disabled) {
+  background: rgba(232, 116, 42, 0.1);
+}
+.an .sp-theme[aria-pressed="true"] {
+  background: rgba(232, 116, 42, 0.16);
+}
+.an .sp-theme:disabled {
+  color: #9a8a7d;
+}
+
+/* ---------------------------------------------------------------- bar */
+.an-bar {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px clamp(16px, 3vw, 28px) 0;
+}
+.an-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 18px 0 6px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--an-ink);
+  box-shadow: 0 6px 24px rgba(80, 30, 0, 0.12);
+}
+.an-brand-logo {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--an-orange);
+  color: var(--an-ink);
+}
+.an-brand-name {
+  font-family: "Questrial", "Inter", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+}
+.an-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.an-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--an-ink);
+  font-family: "Questrial", "Inter", sans-serif;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(80, 30, 0, 0.12);
+  transition: background-color 0.3s ease;
+}
+.an-pill:hover {
+  background: #fff1e4;
+}
+.an-pill-icon {
+  font-size: 10px;
+  color: var(--an-rust);
+}
+
+/* ---------------------------------------------------------------- media */
+.an-media {
+  position: absolute;
+  inset: 0;
+}
+.an-media img,
+.an-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.an-media video {
+  animation: an-fade 1.2s ease both;
+}
+@keyframes an-fade {
+  from {
+    opacity: 0;
+  }
+}
+.an-media[data-bob="true"] img {
+  animation: an-bob 6s ease-in-out infinite;
+}
+@keyframes an-bob {
+  50% {
+    transform: translateY(-4%) rotate(-1deg);
+  }
+}
+
+/* ---------------------------------------------------------------- home */
+.an-hero {
+  position: relative;
+  height: max(100svh, 560px);
+  overflow: hidden;
+  background: #7a3510;
+  color: #fff;
+}
+/* The forest's last quarter fades into the warm brown the section below
+   starts with, so the two meet without a line. */
+.an-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(122, 53, 16, 0) 62%, #7a3510 94%, #7a3510 100%),
+    linear-gradient(90deg, rgba(60, 22, 4, 0.5) 0%, rgba(60, 22, 4, 0.16) 32%, rgba(0, 0, 0, 0) 55%),
+    linear-gradient(180deg, rgba(40, 14, 2, 0.22) 0%, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, 0) 70%, rgba(40, 14, 2, 0.35) 100%);
+}
+.an-rusty {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.an-rusty[data-ready="true"] {
+  opacity: 1;
+}
+/* Rusty's bubble sits on the left, above the greeting, pointing his way,
+   so it never covers his face. */
+.an-bubble {
+  position: absolute;
+  z-index: 3;
+  left: clamp(18px, 4vw, 56px);
+  top: max(96px, calc(46% - 150px));
+  max-width: 260px;
+  min-height: 3.4em;
+  margin: 0;
+  padding: 12px 16px;
+  border: 1.5px solid var(--an-ink);
+  border-radius: 18px 18px 4px 18px;
+  background: #fff;
+  color: var(--an-ink);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 13.5px;
+  line-height: 1.45;
+  box-shadow: 4px 4px 0 rgba(26, 20, 16, 0.85);
+}
+.an-bubble-name {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--an-rust);
+}
+.an-hero-copy {
+  position: absolute;
+  z-index: 2;
+  left: clamp(18px, 4vw, 56px);
+  top: 46%;
+}
+.an-eyebrow {
+  margin: 0 0 10px;
+  font-family: "Questrial", "Inter", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--an-rust);
+}
+.an-eyebrow--light {
+  color: #ffe2c6;
+}
+.an-hello {
+  margin: 0;
+  font-family: "Questrial", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: clamp(38px, 4.4vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.005em;
+  text-shadow: 0 2px 18px rgba(70, 25, 0, 0.3);
+}
+.an-hello span {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+}
+.an-u {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 8px;
+}
+.an-indent {
+  margin-left: 1.6em;
+}
+.an-hero-line {
+  margin: 22px 0 0;
+  max-width: 34ch;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.5;
+  color: #fff3e8;
+  text-shadow: 0 2px 12px rgba(70, 25, 0, 0.45);
+}
+@media (max-width: 720px) {
+  .an-hero-copy {
+    top: auto;
+    bottom: 56px;
+  }
+  .an-bubble {
+    left: 16px;
+    top: 84px;
+    max-width: 210px;
+  }
+  .an-brand-name {
+    letter-spacing: 0.3em;
+  }
+}
+
+/* Below the hero the forest's warm orange carries on, softly, behind the
+   day and the tiles. */
+.an-body {
+  position: relative;
+  padding: clamp(40px, 6vw, 80px) 0 clamp(56px, 8vw, 96px);
+  color: #fff;
+  margin-top: -1px;
+  background: linear-gradient(180deg, #7a3510 0, #7a3510 40px, rgba(122, 53, 16, 0.9) 140px, rgba(150, 66, 18, 0.86) 34%, rgba(214, 112, 42, 0.84) 92%, #d6702a 100%),
+    #7a3510 url("./media/forest.webp") center / cover no-repeat;
+  --sp-cream: #fff;
+  --sp-mint: #ffd2a8;
+}
+.an-body .an-h2 {
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(60, 22, 4, 0.35);
+}
+.an-body .an-dot {
+  color: #ffd2a8;
+}
+.an-body .an-tile {
+  box-shadow: 0 14px 34px -18px rgba(60, 22, 4, 0.7);
+}
+.an-body .an-panel {
+  box-shadow: 0 30px 60px -28px rgba(60, 22, 4, 0.7);
+}
+.an-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(24px, 4vw, 44px);
+}
+.an-h2 {
+  margin: 0;
+  font-family: "Poppins", "Inter", sans-serif;
+  font-weight: 800;
+  font-size: clamp(36px, 5vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--an-ink);
+}
+.an-dot {
+  color: var(--an-orange);
+}
+.an-panel {
+  padding: clamp(16px, 3vw, 32px);
+  border-radius: 28px;
+  background: var(--an-paper);
+  color: var(--an-ink);
+  box-shadow: 0 24px 60px -24px rgba(110, 50, 10, 0.35);
+}
+.an-stack > * + * {
+  margin-top: 20px;
+}
+.an-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: clamp(28px, 4vw, 48px);
+}
+.an-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 116px;
+  padding: 18px 12px;
+  border-radius: 24px;
+  background: #fff;
+  color: var(--an-ink);
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 10px 30px -18px rgba(110, 50, 10, 0.45);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.an-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px -18px rgba(110, 50, 10, 0.55);
+}
+.an-tile-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+.an-tile-label {
+  font-family: "Questrial", "Inter", sans-serif;
+  font-size: 15px;
+}
+
+/* ---------------------------------------------------------------- tools */
+.an-tools {
+  --an-above: #2a1670;
+  --an-between: #1d3aa6;
+  background: var(--an-lilac);
+  --sp-mint: #5b3bd1;
+}
+.an-bee {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: max(100svh, 560px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.an-bee[data-ready="true"] {
+  opacity: 1;
+}
+.an-tools[data-playing="true"] .an-bee {
+  position: fixed;
+  height: 100%;
+}
+.an-flower {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  max-width: none;
+}
+.an-meadow {
+  position: relative;
+  height: max(100svh, 560px);
+  overflow: hidden;
+  background: #e4e0fa url("./media/lavender.webp") center / cover no-repeat;
+}
+.an-flower--cosmos {
+  z-index: 1;
+  width: clamp(360px, 52vw, 820px);
+  left: -12vw;
+  bottom: -20vw;
+  filter: drop-shadow(0 30px 40px rgba(80, 50, 160, 0.18));
+}
+.an-meadow-copy {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  top: 17vh;
+  text-align: center;
+}
+.an-big {
+  margin: 0;
+  font-family: "Poppins", "Inter", sans-serif;
+  font-weight: 800;
+  font-size: clamp(40px, 6vw, 104px);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: #0d0b1a;
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.35);
+}
+.an-big span {
+  display: block;
+}
+.an-tools .an-eyebrow {
+  color: #5b3bd1;
+}
+.an-meadow-side {
+  position: absolute;
+  z-index: 2;
+  right: clamp(24px, 6.5vw, 120px);
+  top: 60vh;
+  width: min(270px, 80vw);
+}
+.an-meadow-side p {
+  margin: 0;
+  font-size: clamp(15px, 1.3vw, 19px);
+  line-height: 1.4;
+  color: var(--an-lavender-ink);
+}
+.an-join {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 28px;
+  color: #0d0b1a;
+  font-family: "Poppins", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: clamp(15px, 1.3vw, 18px);
+  text-decoration: none;
+}
+.an-join i {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 32px;
+  border: 1.8px solid currentColor;
+  border-radius: 10px;
+  transition: transform 0.35s ease;
+}
+.an-join:hover i {
+  transform: translateX(4px);
+}
+@media (max-width: 760px) {
+  .an-meadow-copy {
+    top: 15vh;
+  }
+  .an-meadow-side {
+    top: auto;
+    bottom: 12vh;
+    right: 18px;
+    width: 62vw;
+  }
+  .an-flower--cosmos {
+    width: 100vw;
+    left: -38vw;
+    bottom: -40vw;
+  }
+}
+
+.an-cards {
+  position: relative;
+  padding: clamp(72px, 10vw, 140px) 0 clamp(80px, 10vw, 140px);
+  overflow: hidden;
+  color: #fff;
+  background: #3a1f8c url("./media/violet.webp") center / cover no-repeat;
+}
+.an-cards::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(25, 10, 70, 0.55) 0%, rgba(25, 10, 70, 0.2) 60%);
+}
+.an-cards .an-wrap {
+  z-index: 2;
+}
+.an-cards {
+  --sp-cream: #fff;
+  --sp-mint: #d9ccff;
+}
+.an-cards .sp-themes {
+  color: var(--an-ink);
+  --sp-cream: var(--an-ink);
+}
+.an-flower--hanging {
+  z-index: 1;
+  width: clamp(280px, 34vw, 600px);
+  left: -9vw;
+  top: -12vw;
+  opacity: 0.85;
+}
+.an-flower--iris {
+  z-index: 1;
+  width: clamp(300px, 36vw, 640px);
+  right: -9vw;
+  bottom: -16vw;
+  filter: drop-shadow(0 40px 60px rgba(20, 0, 60, 0.45));
+}
+.an-num {
+  margin: 0;
+  font-family: "Poppins", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: clamp(80px, 11vw, 180px);
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: rgba(214, 203, 255, 0.55);
+}
+.an-h2--light {
+  margin-top: 18px;
+  color: #fff;
+}
+.an-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.an-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 14px 14px 18px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #0d0b1a;
+  text-decoration: none;
+  box-shadow: 0 30px 60px -30px rgba(10, 0, 40, 0.6);
+  transition: transform 0.4s ease;
+}
+.an-card:hover {
+  transform: translateY(-3px);
+}
+.an-card-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  margin-bottom: 8px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.an-card-tag {
+  padding: 0 4px;
+  font-family: "Questrial", "Inter", sans-serif;
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5b3bd1;
+}
+.an-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px;
+  font-family: "Poppins", "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+.an-card-title i {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 32px;
+  border: 1.8px solid currentColor;
+  border-radius: 10px;
+  transition: transform 0.35s ease;
+}
+.an-card:hover .an-card-title i {
+  transform: translateX(4px);
+}
+.an-card-blurb {
+  padding: 0 4px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--an-lavender-ink);
+}
+
+/* ---------------------------------------------------------------- closing */
+/* The whole clip shows (the cub is never cut). Above it, the colour of the
+   part before (--an-above) fades into the clip's own blue. */
+.an-closing {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding-top: clamp(110px, 14vw, 220px);
+  --an-fade: clamp(110px, 14vw, 220px);
+  background: linear-gradient(
+    180deg,
+    var(--an-above, #d6702a) 0%,
+    var(--an-between, #a4508f) calc(var(--an-fade) * 0.5),
+    #0256cd var(--an-fade),
+    #0256cd 100%
+  );
+}
+.an-closing .an-closing-media {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  aspect-ratio: 1600 / 1080;
+  min-height: 380px;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 7%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 7%);
+}
+.an-closing-media img,
+.an-closing-media video {
+  object-position: 70% 0%;
+}
+.an-closing-veil {
+  position: absolute;
+  inset: clamp(110px, 14vw, 220px) 0 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 22%);
+  background: linear-gradient(90deg, rgba(8, 24, 90, 0.55) 0%, rgba(8, 24, 90, 0.15) 40%, rgba(8, 24, 90, 0) 60%);
+}
+.an-closing-text {
+  position: absolute;
+  left: clamp(18px, 6vw, 110px);
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+}
+.an-closing-text .an-eyebrow {
+  color: #ffd9b8;
+}
+.an-closing-lines {
+  margin: 0;
+  font-family: "Poppins", "Inter", sans-serif;
+  font-weight: 800;
+  font-size: clamp(24px, 3.4vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 18px rgba(8, 24, 90, 0.5);
+}
+.an-closing-lines span {
+  display: block;
+}
+.an-closing-first {
+  margin-bottom: clamp(10px, 1.6vw, 26px);
+}
+@media (max-width: 640px) {
+  .an-closing-text {
+    top: auto;
+    bottom: 28px;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------- one page */
+.an-page-light {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 460px;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 20%, transparent);
+  mask-image: linear-gradient(#000 20%, transparent);
+  opacity: 0.55;
+}
+.an-page-main {
+  padding-top: 104px;
+  padding-bottom: 72px;
+  max-width: 920px;
+}
+.an-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.an-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.an-h1 {
+  margin: 0;
+  font-family: "Poppins", "Inter", sans-serif;
+  font-weight: 800;
+  font-size: clamp(38px, 5.6vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(70, 25, 0, 0.35);
+}
+.an-page .an-eyebrow {
+  color: #fff3e8;
+  text-shadow: 0 1px 8px rgba(70, 25, 0, 0.5);
+}
+.an-sub {
+  margin: 12px 0 0;
+  max-width: 52ch;
+  color: #fff3e8;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.5;
+  text-shadow: 0 1px 10px rgba(70, 25, 0, 0.55);
+}
+.an-page .an-panel {
+  margin-top: 28px;
+}
+
+/* Inside the light panel, the calm look's greens become warm rust, so pages
+   blend in without changing their own code. */
+.an-panel .bg-botanical-700,
+.an-panel .bg-darkBtn,
+.an-panel .bg-olive-500,
+.an-panel .bg-deepGreen {
+  background-color: var(--an-rust);
+}
+.an-panel .hover\:bg-botanical-800:hover,
+.an-panel .hover\:bg-olive-600:hover {
+  background-color: #96421a;
+}
+.an-panel .text-botanical-800,
+.an-panel .text-botanical-700,
+.an-panel .text-deepGreen,
+.an-panel .text-olive-700 {
+  color: #8a3d14;
+}
+.an-panel .bg-botanical-50,
+.an-panel .bg-olive-50,
+.an-panel .bg-deepGreen-50 {
+  background-color: #fbe9da;
+}
+.an-panel .bg-botanical-100 {
+  background-color: #f7dcc6;
+}
+.an-panel .border-olive-100,
+.an-panel .border-olive-200,
+.an-panel .border-botanical-200 {
+  border-color: #f0d9c6;
+}
+.an-panel .border-botanical-700 {
+  border-color: var(--an-rust);
+}
+.an-panel .accent-botanical-700,
+.an-panel .accent-deepGreen {
+  accent-color: var(--an-rust);
+}
+.an-panel .focus\:ring-botanical-700:focus,
+.an-panel .focus\:ring-olive-500:focus {
+  --tw-ring-color: var(--an-rust);
+}
+
+/* ---------------------------------------------------------------- calm */
+@media (prefers-reduced-motion: reduce) {
+  .an *,
+  .an *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}

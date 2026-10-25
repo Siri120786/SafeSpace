@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { LeafCluster } from "../../components/vectors/LeafFrame";
 import { useAppTheme } from "../themes/useAppTheme";
-import { SpaceToolFrame } from "../themes/space/SpaceTools";
+import { ThemedFrame } from "../themes/ThemeKit";
 
 interface Props {
   title: string;
@@ -16,13 +16,14 @@ interface Props {
 const DEFAULT_BACK = "Back to your dashboard";
 
 // Frame for an Individual's tool pages: back to the dashboard, a title, the
-// page. With the ADHD or autism module in a designed theme (Space), that
+// page. With the ADHD or autism module in a designed theme (Space, Animals), that
 // theme's frame instead.
 export const MyToolsShell: React.FC<Props> = ({ title, subtitle, backTo, backLabel = DEFAULT_BACK, actions, children }) => {
   const { active } = useAppTheme();
-  if (active === "space") {
+  if (active !== "calm") {
     return (
-      <SpaceToolFrame
+      <ThemedFrame
+        theme={active}
         eyebrow="Your space"
         title={title}
         subtitle={subtitle}
@@ -31,7 +32,7 @@ export const MyToolsShell: React.FC<Props> = ({ title, subtitle, backTo, backLab
         actions={actions}
       >
         {children}
-      </SpaceToolFrame>
+      </ThemedFrame>
     );
   }
   return (

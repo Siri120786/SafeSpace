@@ -12,40 +12,42 @@ import {
   splitConditionTools,
 } from "../features/conditions";
 import { ROUTES } from "../routes";
-import { SpaceToolFrame, SpaceToolsHome, ToolThemePicker, useAppTheme, useSupportAreas, type SpaceToolItem } from "../features/themes";
+import { ThemedFrame, ThemedToolsHome, ToolThemePicker, useAppTheme, useSupportAreas, type ThemeToolItem } from "../features/themes";
 import type { ConditionTool } from "../features/conditions/conditionTools";
 import "../features/themes/space/space.css";
+import "../features/themes/animals/animals.css";
 
 // The ADHD and autism tools (role-flow 8c): a list page ("Your tools", then
 // "More tools") and one page per tool, for children and for Individuals.
 // Each shows in the person's theme (calm when low-sensory mode is on, or
 // without the ADHD or autism module).
 
-const spaceItems = (mine: ConditionTool[], more: ConditionTool[]): SpaceToolItem[] => [
+const themedItems = (mine: ConditionTool[], more: ConditionTool[]): ThemeToolItem[] => [
   ...mine.map((tool) => ({ tool, mine: true })),
   ...more.map((tool) => ({ tool, mine: false })),
 ];
 
 // The theme picker, for people who may choose (a child unless a caregiver
 // locked their theme).
-function useThemePicker(): { space: boolean; picker: React.ReactNode } {
+function useThemePicker() {
   const theme = useAppTheme();
-  const space = theme.active === "space";
+  const themed = theme.active !== "calm";
   const picker = theme.canChoose ? (
-    <ToolThemePicker look={space ? "space" : "plain"} value={theme.chosen} onChange={theme.choose} lowSensory={theme.lowSensory} />
+    <ToolThemePicker look={themed ? "bold" : "plain"} value={theme.chosen} onChange={theme.choose} lowSensory={theme.lowSensory} />
   ) : null;
-  return { space, picker };
+  return { active: theme.active, themed, picker };
 }
 
 // /child/tools
 export const ChildConditionToolsPage: React.FC = () => {
   const { child } = useChildSpace();
   const { mine, more } = splitConditionTools(child.assignedModules);
-  const { space, picker } = useThemePicker();
-  if (space) {
+  const { active, themed, picker } = useThemePicker();
+  if (themed) {
     return (
-      <SpaceToolsHome
-        items={spaceItems(mine, more)}
+      <ThemedToolsHome
+        theme={active}
+        items={themedItems(mine, more)}
         pathFor={childToolPath}
         eyebrow="My tools"
         backTo={ROUTES.CHILD_HOME}
@@ -68,16 +70,16 @@ export const ChildConditionToolPage: React.FC = () => {
   const { session, guard } = useChildSpace();
   const { active } = useAppTheme();
   const tool = findConditionTool(toolKey);
-  if (tool && active === "space") {
+  if (tool && active !== "calm") {
     return (
-      <SpaceToolFrame eyebrow="My tools" title={tool.label} subtitle={tool.blurb} backTo={ROUTES.CHILD_TOOLS} backLabel="My tools">
+      <ThemedFrame theme={active} eyebrow="My tools" title={tool.label} subtitle={tool.blurb} backTo={ROUTES.CHILD_TOOLS} backLabel="My tools">
         <ConditionToolView
           toolKey={tool.key}
           session={session}
           guard={guard}
           scheduleEmptyText="No routine steps for today. Your grown-up sets these up."
         />
-      </SpaceToolFrame>
+      </ThemedFrame>
     );
   }
   if (!tool) {
@@ -103,11 +105,12 @@ export const ChildConditionToolPage: React.FC = () => {
 export const IndividualConditionToolsPage: React.FC = () => {
   const areas = useSupportAreas();
   const { mine, more } = splitConditionTools(areas ?? []);
-  const { space, picker } = useThemePicker();
-  if (areas !== null && space) {
+  const { active, themed, picker } = useThemePicker();
+  if (areas !== null && themed) {
     return (
-      <SpaceToolsHome
-        items={spaceItems(mine, more)}
+      <ThemedToolsHome
+        theme={active}
+        items={themedItems(mine, more)}
         pathFor={individualToolPath}
         eyebrow="Focus and feelings tools"
         backTo={ROUTES.DASHBOARD}
@@ -134,15 +137,15 @@ export const IndividualConditionToolPage: React.FC = () => {
   const { session } = useAuth();
   const tool = findConditionTool(toolKey);
   const { active } = useAppTheme();
-  if (tool && active === "space") {
+  if (tool && active !== "calm") {
     return (
-      <SpaceToolFrame eyebrow="Focus and feelings tools" title={tool.label} subtitle={tool.blurb} backTo={ROUTES.TOOLS} backLabel="All tools">
+      <ThemedFrame theme={active} eyebrow="Focus and feelings tools" title={tool.label} subtitle={tool.blurb} backTo={ROUTES.TOOLS} backLabel="All tools">
         <ConditionToolView
           toolKey={tool.key}
           session={session}
           scheduleEmptyText="No routine steps for today. Set them up in My routines."
         />
-      </SpaceToolFrame>
+      </ThemedFrame>
     );
   }
   return (

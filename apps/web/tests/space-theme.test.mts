@@ -12,7 +12,7 @@ import { StaticRouter } from "react-router-dom/server";
 import { CONDITION_TOOLS } from "../src/features/conditions/conditionTools.ts";
 import { activeToolTheme, isToolTheme, themesOffered, TOOL_THEMES } from "../src/features/themes/toolThemes.ts";
 import { DRIFT_PERIOD_MS, driftTarget, easeToward, headTarget, SPACE_PLAYBACK_RATE } from "../src/features/themes/space/spaceMotion.ts";
-import { SpaceHome, SpaceTiles, SpaceToolFrame, SpaceToolsHome } from "../src/features/themes/space/SpaceTools.tsx";
+import { SpaceHome, SpaceToolFrame, SpaceToolsHome } from "../src/features/themes/space/SpaceTools.tsx";
 import { ToolThemePicker } from "../src/features/themes/ToolThemePicker.tsx";
 import { SPACE_CARD_CLIPS } from "../src/features/themes/space/media.ts";
 
@@ -47,7 +47,8 @@ test("the seven themes; Space shows only when picked and low-sensory mode is off
   assert.equal(activeToolTheme("space", true), "calm");
   assert.equal(activeToolTheme(null, false), "calm");
   // Themes still being designed show the calm look, never a half-built one.
-  assert.equal(activeToolTheme("animals", false), "calm");
+  assert.equal(activeToolTheme("animals", false), "animals");
+  assert.equal(activeToolTheme("trains", false), "calm");
   assert.ok(isToolTheme("ocean") && !isToolTheme("pirates") && !isToolTheme(3));
 });
 
@@ -64,7 +65,8 @@ test("home and dashboard in Space: Nova greets by name, the day on a light panel
       eyebrow: "My space",
       greeting: "Hi Sam!",
       line: "Here's your day.",
-      after: React.createElement(SpaceTiles, { tiles: [{ to: "/child/music", label: "Music", emoji: "🎵" }], label: "My tools" }),
+      tiles: [{ to: "/child/music", label: "Music", emoji: "🎵" }],
+      tilesLabel: "My tools",
       children: React.createElement("p", null, "today"),
     }),
   );
@@ -124,10 +126,10 @@ test("one tool's page keeps the tool on a light panel, still by default", () => 
   assert.match(html, /href="\/child\/tools"/);
 });
 
-test("the theme picker: Calm and Space ready, the rest marked Soon and not pickable", () => {
+test("the theme picker: Calm, Space and Animals ready, the rest marked Soon and not pickable", () => {
   const html = render(React.createElement(ToolThemePicker, { look: "plain", value: "space", onChange: () => {} }));
-  assert.equal((html.match(/disabled=""/g) ?? []).length, 5);
-  assert.equal((html.match(/Soon/g) ?? []).length, 5);
+  assert.equal((html.match(/disabled=""/g) ?? []).length, 4);
+  assert.equal((html.match(/Soon/g) ?? []).length, 4);
   assert.match(html, /aria-pressed="true"[^>]*>.*Space/);
   const low = render(React.createElement(ToolThemePicker, { look: "plain", value: "space", onChange: () => {}, lowSensory: true }));
   assert.match(low, /Low-sensory mode is on/);

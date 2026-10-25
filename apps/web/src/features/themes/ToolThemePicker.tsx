@@ -4,9 +4,9 @@ import { DESIGNED_TOOL_THEMES, TOOL_THEMES, TOOL_THEME_LABELS, toolThemeEmoji, t
 interface Props {
   value: ToolTheme;
   onChange: (theme: ToolTheme) => void;
-  // "space": the big "Pick a theme" button on the Space tools page.
+  // "bold": the big "Pick a theme" button on a designed theme's pages.
   // "plain": a small chooser for the calm look.
-  look: "space" | "plain";
+  look: "bold" | "plain";
   // Low-sensory mode keeps the calm look whatever is picked.
   lowSensory?: boolean;
 }
@@ -16,7 +16,7 @@ export const ToolThemePicker: React.FC<Props> = ({ value, onChange, look, lowSen
   const [open, setOpen] = useState(false);
   const listId = useId();
   const options = (
-    <ul id={listId} className={look === "space" ? "sp-themes sp-glass" : "mt-2 flex flex-wrap gap-2"} aria-label="Themes">
+    <ul id={listId} className={look === "bold" ? "sp-themes sp-glass" : "mt-2 flex flex-wrap gap-2"} aria-label="Themes">
       {TOOL_THEMES.map((t) => {
         const ready = t === "calm" || DESIGNED_TOOL_THEMES.includes(t);
         const on = t === value;
@@ -31,7 +31,7 @@ export const ToolThemePicker: React.FC<Props> = ({ value, onChange, look, lowSen
                 setOpen(false);
               }}
               className={
-                look === "space"
+                look === "bold"
                   ? "sp-theme"
                   : `rounded-full border px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-olive-500 disabled:opacity-50 ${
                       on ? "border-olive-500 bg-olive-50 font-semibold text-textHeading" : "border-olive-100 bg-white text-textBody"
@@ -39,7 +39,7 @@ export const ToolThemePicker: React.FC<Props> = ({ value, onChange, look, lowSen
               }
             >
               <span aria-hidden="true">{toolThemeEmoji(t)}</span> {TOOL_THEME_LABELS[t]}
-              {!ready && <span className={look === "space" ? "sp-theme-soon" : "ml-1 text-xs text-textMuted"}>Soon</span>}
+              {!ready && <span className={look === "bold" ? "sp-theme-soon" : "ml-1 text-xs text-textMuted"}>Soon</span>}
             </button>
           </li>
         );

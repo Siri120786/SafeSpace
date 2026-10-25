@@ -14,8 +14,9 @@ import { ChatWindow } from "../features/ai-companion";
 import { TodayCard } from "../features/my-tools";
 import { ROUTES } from "../routes";
 import { individualToolPath, splitConditionTools } from "../features/conditions";
-import { SpaceHome, SpaceTiles, ToolThemePicker, useAppTheme, type SpaceTile } from "../features/themes";
+import { ThemedHome, ToolThemePicker, useAppTheme, type ThemeTile } from "../features/themes";
 import { SPACE_CARD_CLIPS } from "../features/themes/space/media";
+import { ANIMALS_CARD_CLIPS } from "../features/themes/animals/media";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -50,9 +51,9 @@ export const DashboardPage: React.FC = () => {
   const { session, logout, loading } = useAuth();
   const [supportAreas, setSupportAreas] = useState<ModuleKey[]>([]);
   const [accessibility, setAccessibility] = useState<ProfileAccessibilityPreferences | null>(null);
-  // Space (or another designed theme) for the ADHD or autism module.
+  // A designed theme (Space, Animals) for the ADHD or autism module.
   const theme = useAppTheme();
-  const space = theme.active === "space";
+  const space = theme.active !== "calm";
 
   // Active Navigation Tab
   const [activeTab, setActiveTab] = useState<NavTab>("home");
@@ -128,7 +129,7 @@ export const DashboardPage: React.FC = () => {
   };
 
   const conditionTools = splitConditionTools(supportAreas);
-  const tiles: SpaceTile[] = [
+  const tiles: ThemeTile[] = [
     // Tools for their support areas first, the rest under More tools (role-flow 8c).
     ...conditionTools.mine.map((t) => ({ to: individualToolPath(t.key), label: t.label, emoji: t.emoji })),
     ...TOOL_TILES.map((t) => ({ to: t.to, label: t.label, emoji: t.icon })),
@@ -217,7 +218,7 @@ export const DashboardPage: React.FC = () => {
       <Card className="p-6 md:p-8 bg-gradient-to-r from-olive-50/80 via-white to-paleLime/40 border border-olive-200/60 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-5">
           {space ? (
-            <img src={SPACE_CARD_CLIPS.feelings.still} alt="" aria-hidden="true" className="h-[110px] w-[110px] shrink-0 rounded-3xl object-cover" />
+            <img src={theme.active === "animals" ? ANIMALS_CARD_CLIPS.focus.still : SPACE_CARD_CLIPS.feelings.still} alt="" aria-hidden="true" className="h-[110px] w-[110px] shrink-0 rounded-3xl object-cover" />
           ) : (
             <BrainMascot stance="meditating" size={110} />
           )}
@@ -303,13 +304,14 @@ export const DashboardPage: React.FC = () => {
     />
   );
 
-  // The dashboard in Space: the greeting over the little astronaut, the day
-  // on a light panel, and every page as a glass tile (Profile included, as
-  // there is no sidebar here).
+  // The dashboard in a designed theme: the theme's greeting, the day on a
+  // light panel, and every page as a tile (Profile included, as there is no
+  // sidebar here).
   if (space) {
     return (
       <>
-        <SpaceHome
+        <ThemedHome
+          theme={theme.active}
           eyebrow="Your space"
           greeting={`Hi, ${displayName}`}
           line="Welcome back. Take your time, breathe, and explore."
@@ -318,12 +320,14 @@ export const DashboardPage: React.FC = () => {
               Sign out
             </button>
           }
-          picker={theme.canChoose ? <ToolThemePicker look="space" value={theme.chosen} onChange={theme.choose} /> : undefined}
-          after={<SpaceTiles tiles={[...tiles, { to: ROUTES.PROFILE, label: "Profile", emoji: "👤" }]} label="Your tools" />}
+          status="Glad you're here. One small step at a time."
+          picker={theme.canChoose ? <ToolThemePicker look="bold" value={theme.chosen} onChange={theme.choose} /> : undefined}
+          tiles={[...tiles, { to: ROUTES.PROFILE, label: "Profile", emoji: "👤" }]}
+          tilesLabel="Your tools"
         >
           <RoleNotice />
           {homeView}
-        </SpaceHome>
+        </ThemedHome>
         {player}
       </>
     );
