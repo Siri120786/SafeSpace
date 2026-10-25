@@ -601,7 +601,10 @@ test("no module screen claims an alert was sent or uses audio", () => {
     render(React.createElement(FoodModule, { ...common, role: "user" })),
     render(React.createElement(StoryWorkflow, { ...common, isCaregiver: true })),
   ].join("\n");
-  assert.doesNotMatch(all, /<audio|<video|autoplay/i);
+  // No sound anywhere; a background video (Bright Days) must be muted and is
+  // never autoplayed by the page markup.
+  assert.doesNotMatch(all, /<audio|autoplay/i);
+  for (const v of all.match(/<video[^>]*>/g) ?? []) assert.match(v, /muted/, v);
   assert.doesNotMatch(all, /alert (was )?sent|notified your/i);
   assert.match(SUPPORT_TEXT, /cannot call anyone/);
 });

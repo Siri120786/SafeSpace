@@ -1,0 +1,470 @@
+/* Bright Days: a night garden with a door in a beam of light (see
+   BrightDaysRoom.tsx). Everything is scoped to .bd. --bd-light (0 to 1) is
+   how many small steps have been taken today: the warm light through the
+   door grows with it. */
+
+.bd {
+  --bd-ink: #fffaf2;
+  --bd-body: rgba(255, 246, 232, 0.86);
+  --bd-muted: rgba(255, 240, 220, 0.62);
+  --bd-amber: #f3c27a;
+  --bd-night: #0c0b09;
+  --bd-panel: rgba(255, 240, 220, 0.045);
+  --bd-line: rgba(255, 230, 200, 0.12);
+  position: relative;
+  min-height: 100vh;
+  color: var(--bd-body);
+  background: #000;
+  font-family: "Inter", system-ui, sans-serif;
+  overflow-x: clip;
+}
+.bd-serif {
+  font-family: "Instrument Serif", "Fraunces", Georgia, serif;
+  font-weight: 400;
+}
+
+/* ---------------------------------------------------------------- scene */
+.bd-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* The video at its true 16:9 shape, covering the screen, so the patch over
+   the tool's watermark always lands on it. */
+.bd-frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100vw, 177.78vh);
+  aspect-ratio: 16 / 9;
+  transform: translate(-50%, -50%);
+  animation: bd-arrive 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.bd-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: fill;
+}
+/* A soft, feathered blur over the small sparkle the video tool stamps near
+   the bottom-right corner of every frame. */
+.bd-mend {
+  /* The sparkle: about 74 px wide, centred at (1740, 900) in the 1920x1080
+     video. */
+  position: absolute;
+  left: 90.6%;
+  top: 83.3%;
+  width: 7.5%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+  -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  pointer-events: none;
+}
+.bd-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0, transparent 22%, transparent 48%, rgba(0, 0, 0, 0.72) 100%);
+}
+
+/* ---------------------------------------------------------------- bar */
+.bd-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 80px;
+  padding: 0 clamp(16px, 4vw, 40px);
+  transition: background 0.5s, height 0.5s;
+}
+.bd-bar[data-scrolled="true"] {
+  height: 64px;
+  background: rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.bd-mark {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.bd-bar-actions {
+  display: flex;
+  gap: 8px;
+}
+.bd-pill {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font: 500 13px/1 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.bd-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.bd :focus-visible {
+  outline: 2px solid var(--bd-amber);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- hero */
+.bd-hero {
+  position: relative;
+  z-index: 3;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: center;
+  padding: 0 24px clamp(64px, 11vh, 110px);
+}
+.bd-title {
+  margin: 0 0 22px;
+  color: #fff;
+  font-size: clamp(40px, 6.2vw, 84px);
+  line-height: 0.95;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+.bd-br {
+  display: none;
+}
+@media (min-width: 640px) {
+  .bd-br {
+    display: block;
+  }
+}
+.bd-lead {
+  margin: 0 0 34px;
+  max-width: 460px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.5;
+}
+.bd-cta {
+  padding: 14px 32px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  font: 500 15px/1 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.bd-cta:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+.bd[data-low-sensory="false"] .bd-hero > * {
+  animation: bd-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.bd[data-low-sensory="false"] .bd-hero > :nth-child(1) {
+  animation-delay: 0.4s;
+}
+.bd[data-low-sensory="false"] .bd-hero > :nth-child(2) {
+  animation-delay: 0.6s;
+}
+.bd[data-low-sensory="false"] .bd-hero > :nth-child(3) {
+  animation-delay: 0.8s;
+}
+
+/* ---------------------------------------------------------------- content */
+.bd-body {
+  position: relative;
+  z-index: 2;
+  padding-top: 240px;
+  margin-top: -240px;
+  background: linear-gradient(to bottom, rgba(12, 11, 9, 0) 0, rgba(12, 11, 9, 0.7) 120px, var(--bd-night) 240px);
+}
+.bd-content {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 4vw, 40px) 64px;
+  scroll-margin-top: 72px;
+}
+.bd-notice {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--bd-panel);
+  border: 1px solid var(--bd-line);
+  color: var(--bd-ink);
+  font-size: 14px;
+}
+.bd-kicker {
+  margin: 0 0 12px;
+  color: var(--bd-amber);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+/* Today's light, with a small view of the door opening beside it. */
+.bd-meter {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--bd-panel);
+  border: 1px solid var(--bd-line);
+}
+.bd-peek {
+  position: relative;
+  flex: none;
+  width: clamp(140px, 28%, 280px);
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+.bd-peek video {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.bd-meter-words {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 560px) {
+  .bd-meter {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  .bd-peek {
+    width: 100%;
+  }
+}
+.bd-meter-bar {
+  max-width: 420px;
+  height: 4px;
+  margin: 0 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 230, 200, 0.12);
+  overflow: hidden;
+}
+.bd-meter-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d99a4e, #ffd89a);
+  transition: width 1s ease;
+}
+.bd-meter-line {
+  margin: 0;
+  color: var(--bd-ink);
+  font-size: clamp(22px, 2.4vw, 30px);
+}
+.bd-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .bd-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}
+.bd-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.bd-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 26px;
+  border-radius: 20px;
+  background: var(--bd-panel);
+  border: 1px solid var(--bd-line);
+}
+.bd-card-title {
+  margin: 0;
+  color: var(--bd-ink);
+  font-size: 28px;
+  line-height: 1.1;
+}
+.bd-small {
+  margin: 0;
+  color: var(--bd-muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.bd-label {
+  width: 100%;
+  color: var(--bd-body);
+}
+.bd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.bd-chip {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px dashed rgba(243, 194, 122, 0.45);
+  background: transparent;
+  color: var(--bd-body);
+  font: 13px/1.3 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+}
+.bd-chip:hover {
+  border-style: solid;
+  color: #fff;
+}
+.bd-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bd-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 230, 200, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font: 14px/1.3 "Inter", system-ui, sans-serif;
+}
+.bd-add input::placeholder {
+  color: rgba(255, 240, 220, 0.42);
+}
+.bd-btn {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bd-amber);
+  color: #241707;
+  font: 600 13.5px/1 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+}
+.bd-btn:hover {
+  background: #ffd598;
+}
+.bd-error {
+  margin: 0;
+  color: #ffc4b4;
+  font-size: 13px;
+}
+.bd-goals {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bd-goals li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 240, 220, 0.04);
+  transition: background 0.4s;
+}
+.bd-goals li[data-done="true"] {
+  background: rgba(243, 194, 122, 0.12);
+}
+.bd-goals input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--bd-amber);
+}
+.bd-goals label {
+  color: var(--bd-ink);
+  font-size: 15px;
+}
+.bd-goals li[data-done="true"] label {
+  color: var(--bd-muted);
+  text-decoration: line-through;
+}
+.bd-cheer {
+  margin: 0;
+  color: var(--bd-amber);
+  font-size: 22px;
+}
+.bd-notes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bd-notes li {
+  padding: 10px 14px;
+  border-left: 2px solid var(--bd-amber);
+  color: var(--bd-ink);
+  font-size: 19px;
+}
+.bd-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--bd-body);
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+.bd-foot {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--bd-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+.bd-foot p {
+  margin: 0;
+}
+
+@keyframes bd-arrive {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+@keyframes bd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd *,
+  .bd *::before,
+  .bd *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

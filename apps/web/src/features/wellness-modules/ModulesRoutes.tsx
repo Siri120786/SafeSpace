@@ -12,6 +12,8 @@ import "../conditions/anxiety/ocean/ocean.css";
 import "../conditions/pcos-pcod/dusk/dusk.css";
 // Safe Harbor's rainy window.
 import "../conditions/ptsd/harbor/harbor.css";
+// Bright Days' night garden.
+import "../conditions/depression/door/door.css";
 
 interface ModulesRoutesProps {
   // Defaults are the adult routes (/modules, exit to /dashboard). The child's

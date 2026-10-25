@@ -27,6 +27,7 @@ import type { AppSession } from "@safespace/shared-types";
 import { BodyKindness, MedicationNotes } from "./CycleCareExtras";
 import { DoctorTopic, TrackerTopic } from "./PcosTopics";
 import { HarborPage } from "../../conditions/ptsd/harbor/HarborPage";
+import { BrightDaysRoom } from "../../conditions/depression/door/BrightDaysRoom";
 import { AdultsOnly, PcosShell } from "./PcosScreens";
 
 export interface ModuleScreenProps {
@@ -88,106 +89,10 @@ export const CalmSpace: React.FC<ModuleScreenProps> = (p) => (
   <OceanCalmSpace lowSensory={p.lowSensory} onExit={p.onExit} notice={p.notice} base={p.paths?.base ?? "/modules"} />
 );
 
-export const BrightDays: React.FC<ModuleScreenProps> = (p) => {
-  const [goals, setGoals] = useState<{ text: string; done: boolean }[]>([]);
-  const [goalText, setGoalText] = useState("");
-  const [gratitude, setGratitude] = useState<string[]>([]);
-  const [gratitudeText, setGratitudeText] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const addGoal = (text: string) => {
-    const t = text.trim();
-    if (!t) return setError("Please type a goal first.");
-    setError(null);
-    setGoals((g) => [...g, { text: t, done: false }]);
-    setGoalText("");
-  };
-  const toggle = (i: number) => {
-    const becameDone = !goals[i].done;
-    setGoals((g) => g.map((x, j) => (j === i ? { ...x, done: !x.done } : x)));
-    setMessage(becameDone ? ENCOURAGEMENTS[i % ENCOURAGEMENTS.length] : null);
-  };
-  const addGratitude = () => {
-    const t = gratitudeText.trim();
-    if (!t) return setError("Please write something first.");
-    setError(null);
-    setGratitude((g) => [...g, t]);
-    setGratitudeText("");
-  };
-
-  return (
-    <CalmToolShell title="Bright Days" {...p}>
-      <div className="space-y-4">
-        <Card className="space-y-3">
-          <h2 className="font-display text-xl text-textHeading">My small goals</h2>
-          <p className="text-sm text-textBody">Pick your own. Skip any you like. Ideas:</p>
-          <div className="flex flex-wrap gap-2">
-            {GOAL_IDEAS.map((g) => (
-              <Button key={g} size="sm" variant="outline" onClick={() => addGoal(g)}>
-                {g}
-              </Button>
-            ))}
-          </div>
-          <label htmlFor="goal-input" className="block text-sm text-textBody">
-            Or write your own
-          </label>
-          <input id="goal-input" className={fieldClass} value={goalText} onChange={(e) => setGoalText(e.target.value)} />
-          <Button size="sm" variant="primary" onClick={() => addGoal(goalText)}>
-            Add goal
-          </Button>
-          <ul className="space-y-2">
-            {goals.map((g, i) => (
-              <li key={`${g.text}-${i}`} className="flex items-center gap-3">
-                <input id={`goal-${i}`} type="checkbox" checked={g.done} onChange={() => toggle(i)} className="h-5 w-5" />
-                <label htmlFor={`goal-${i}`} className={`text-base ${g.done ? "line-through text-textMuted" : "text-textBody"}`}>
-                  {g.text}
-                </label>
-              </li>
-            ))}
-          </ul>
-          {message && (
-            <p role="status" className="text-base text-deepGreen">
-              {message}
-            </p>
-          )}
-        </Card>
-
-        <Card className="space-y-3">
-          <h2 className="font-display text-xl text-textHeading">Gratitude notes</h2>
-          <label htmlFor="gratitude-input" className="block text-sm text-textBody">
-            {GRATITUDE_PROMPT}
-          </label>
-          <input id="gratitude-input" className={fieldClass} value={gratitudeText} onChange={(e) => setGratitudeText(e.target.value)} />
-          <Button size="sm" variant="primary" onClick={addGratitude}>
-            Add note
-          </Button>
-          <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-            {gratitude.map((g, i) => (
-              <li key={`${g}-${i}`}>{g}</li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card className="space-y-2">
-          <h2 className="font-display text-xl text-textHeading">Hobby ideas (optional)</h2>
-          <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-            {HOBBY_IDEAS.map((h) => (
-              <li key={h}>{h}</li>
-            ))}
-          </ul>
-        </Card>
-
-        {error && (
-          <p role="alert" className="text-sm text-red-700">
-            {error}
-          </p>
-        )}
-        <Notes />
-      </div>
-    </CalmToolShell>
-  );
-};
+/** Bright Days (depression) in its night garden: small steps let the light in. */
+export const BrightDays: React.FC<ModuleScreenProps> = ({ lowSensory, onExit, notice }) => (
+  <BrightDaysRoom lowSensory={lowSensory} onExit={onExit} notice={notice} />
+);
 
 /** Safe Harbor (PTSD) in its rainy-window room: still unless the person asks for rain. */
 export const SafeHarbor: React.FC<ModuleScreenProps> = ({ lowSensory, onExit, notice, paths }) => (
