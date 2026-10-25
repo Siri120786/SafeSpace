@@ -24,7 +24,9 @@ import { useCondition } from "./useCondition";
 import { visitQuestionsFor } from "../lib/condition";
 import { MedicineReminders } from "./MedicineReminders";
 import type { AppSession } from "@safespace/shared-types";
-import { BodyKindness, DailyCheckIn, DoctorVisitPrep, MedicationNotes } from "./CycleCareExtras";
+import { BodyKindness, MedicationNotes } from "./CycleCareExtras";
+import { DoctorTopic, TrackerTopic } from "./PcosTopics";
+import { AdultsOnly, PcosShell } from "./PcosScreens";
 
 export interface ModuleScreenProps {
   lowSensory: boolean;
@@ -229,25 +231,13 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; sess
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [condition] = useCondition();
 
-  if (!canOpenCycleCare(role)) {
-    return (
-      <CalmToolShell title="Cycle Care" {...p}>
-        <Card>
-          <p role="status" className="text-base text-textBody">
-            Cycle Care is for adult accounts only for now.
-          </p>
-        </Card>
-      </CalmToolShell>
-    );
-  }
+  if (!canOpenCycleCare(role)) return <AdultsOnly title="Cycle Care" page="cycle-care" {...p} />;
 
   return (
-    <CalmToolShell title="Cycle Care" {...p}>
+    <PcosShell title="Cycle Care" page="cycle-care" lead="Check in with yourself, keep your medicine notes and get ready for your next doctor visit." {...p}>
       <div className="space-y-4">
-        <Link to={`${p.paths?.base ?? "/modules"}/pcos-pcod`} className="underline text-deepGreen text-sm">
-          Back to PCOS / PCOD
-        </Link>
-        <DailyCheckIn />
+        <TrackerTopic />
+        <DoctorTopic prompts={visitQuestionsFor(condition)} />
         <Card className="space-y-3">
           <h2 className="font-display text-xl text-textHeading">Today's self-care</h2>
           <ul className="space-y-2">
@@ -270,21 +260,9 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; sess
         </Card>
         <MedicationNotes />
         <MedicineReminders session={session} />
-        <DoctorVisitPrep prompts={visitQuestionsFor(condition)} />
-        <Card className="space-y-2">
-          <h2 className="font-display text-xl text-textHeading">Sleep and stress</h2>
-          <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-            {SLEEP_STRESS_IDEAS.map((m) => (
-              <li key={m}>{m}</li>
-            ))}
-          </ul>
-          <Link to={calmPath(p, "breathing")} className="underline text-deepGreen">
-            Open the breathing exercise
-          </Link>
-        </Card>
         <BodyKindness />
-        <Notes extra="There is no cycle tracking in this version. Always follow your own doctor's advice." />
+        <Notes extra="Always follow your own doctor's advice." />
       </div>
-    </CalmToolShell>
+    </PcosShell>
   );
 };

@@ -8,6 +8,8 @@ import type { ModuleInfo } from "./lib/content";
 import { OceanBreathing, OceanGrounding, calmSpacePath } from "../conditions/anxiety/ocean/OceanCalmPages";
 // Calm Space's ocean look (loaded here, with the pages that use it).
 import "../conditions/anxiety/ocean/ocean.css";
+// The PCOS / PCOD pages' dusk hillside.
+import "../conditions/pcos-pcod/dusk/dusk.css";
 
 interface ModulesRoutesProps {
   // Defaults are the adult routes (/modules, exit to /dashboard). The child's

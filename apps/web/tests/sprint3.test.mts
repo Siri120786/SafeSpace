@@ -172,15 +172,18 @@ test("modules: four modules listed and the PCOS / PCOD hub is adult-only", () =>
   assert.equal(canOpenCycleCare(null), false);
 });
 
-test("cycle care: caregivers are blocked, adults see the checklist, and there is no cycle tracking", () => {
+test("cycle care: caregivers are blocked; adults see the checklist and their own tracker, which never predicts", () => {
   const blocked = render(React.createElement(CycleCare, { ...common, role: "caregiver" }));
   assert.match(blocked, /adult accounts only/);
   assert.doesNotMatch(blocked, /type="checkbox"/);
   const ok = render(React.createElement(CycleCare, { ...common, role: "user" }));
   assert.match(ok, /type="checkbox"/);
-  assert.match(ok, /no cycle tracking/i);
-  assert.match(ok, /Back to PCOS \/ PCOD/);
-  assert.doesNotMatch(ok, /log (your )?period|last period|cycle day|type="date"/i);
+  assert.match(ok, /My personal health tracker/);
+  assert.match(ok, /does not predict periods or diagnose/);
+  assert.match(ok, /only you can see it/);
+  assert.match(ok, /href="\/modules\/pcos-pcod"[^>]*>Overview</);
+  assert.match(ok, /Go to Exercise/);
+  assert.doesNotMatch(ok, /next period (is|will)|predicted|fertile window|ovulation day/i);
 });
 
 test("cycle care extras: check-in wording is gentle and the summary never ranks or streaks", () => {
@@ -223,7 +226,7 @@ test("cycle care screen has check-in, medicine notes and reminders and doctor pr
   assert.match(ok, /Medicine and supplement reminders/);
   assert.match(ok, /Sign in with your adult account to set reminders/);
   assert.match(ok, /Doctor visit prep/);
-  assert.match(ok, /Sleep and stress/);
+  assert.match(ok, /What a check-up may include/);
   assert.match(ok, /does not set target weights, calorie targets or BMI scores/);
   assert.doesNotMatch(ok, /Diet plan and rewards|Water so far today|Movement for your energy|myths and facts|health profile/i);
   const blocked = render(React.createElement(CycleCare, { ...common, role: "caregiver" }));
@@ -422,7 +425,7 @@ test("physical exercise screen: log, yoga, weekly plan and week summary, for adu
   assert.match(ok, /This week/);
   assert.match(ok, /My own weekly minutes goal \(optional/);
   assert.match(ok, /does not count calories burned/);
-  assert.match(ok, /Back to PCOS \/ PCOD/);
+  assert.match(ok, /Go to Food/);
   assert.doesNotMatch(ok, /<audio|autoplay/i);
   assert.match(render(React.createElement(PhysicalExercise, { ...common, role: "caregiver" })), /adult accounts only/);
 });

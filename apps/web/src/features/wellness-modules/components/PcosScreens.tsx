@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
-import { CalmToolShell } from "../../calm-tools/components/CalmToolShell";
+import { DuskShell, type DuskPage } from "../../conditions/pcos-pcod/dusk/DuskShell";
 import {
   ABOUT,
   CONDITIONS,
@@ -48,28 +47,31 @@ import { Notes, type ModuleScreenProps } from "./ModuleScreens";
 import { useCycleCarePart, useCycleCareStore } from "./useCycleCarePart";
 import { CycleCareAccountNote } from "./CycleCareAccountNote";
 import { useCondition } from "./useCondition";
+import { MythsTopic, SleepTopic, SymptomsTopic, WellbeingTopic } from "./PcosTopics";
 import { canOpenCycleCare } from "../lib/content";
 
-const linkClass = "block rounded-3xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:ring-offset-2";
 const fieldClass =
   "w-full rounded-2xl border border-olive-200 bg-white px-4 py-3 text-base text-textBody focus:outline-none focus:ring-2 focus:ring-olive-500";
 
-const AdultsOnly: React.FC<ModuleScreenProps & { title: string }> = ({ title, ...p }) => (
-  <CalmToolShell title={title} {...p}>
+const baseOf = (p: ModuleScreenProps) => p.paths?.base ?? "/modules";
+
+// The PCOS / PCOD pages sit on the dusk hillside (the module's own look).
+export const PcosShell: React.FC<
+  ModuleScreenProps & { title: string; heading?: string; page: DuskPage; lead?: string; children: React.ReactNode }
+> = ({ title, heading, page, lead, children, ...p }) => (
+  <DuskShell title={title} heading={heading} page={page} lead={lead} base={baseOf(p)} lowSensory={p.lowSensory} onExit={p.onExit} notice={p.notice}>
+    {children}
+  </DuskShell>
+);
+
+export const AdultsOnly: React.FC<ModuleScreenProps & { title: string; page: DuskPage }> = ({ title, page, ...p }) => (
+  <PcosShell title={title} page={page} {...p}>
     <Card>
       <p role="status" className="text-base text-textBody">
         {title} is for adult accounts only for now.
       </p>
     </Card>
-  </CalmToolShell>
-);
-
-const baseOf = (p: ModuleScreenProps) => p.paths?.base ?? "/modules";
-
-const BackToHub: React.FC<{ base: string }> = ({ base }) => (
-  <Link to={`${base}/pcos-pcod`} className="underline text-deepGreen text-sm">
-    Back to PCOS / PCOD
-  </Link>
+  </PcosShell>
 );
 
 // ------------------------------------------------------------------ Physical Exercise
@@ -83,7 +85,7 @@ export const PhysicalExercise: React.FC<ModuleScreenProps & { role: string | nul
   const [error, setError] = useState<string | null>(null);
   const today = dateKey();
 
-  if (!canOpenCycleCare(role)) return <AdultsOnly title="Physical Exercise" {...p} />;
+  if (!canOpenCycleCare(role)) return <AdultsOnly title="Physical Exercise" page="exercise" {...p} />;
 
   const log = (t: ActivityType, m: number | null) => {
     if (m === null) return setError("Please enter minutes between 1 and 300.");
@@ -105,9 +107,8 @@ export const PhysicalExercise: React.FC<ModuleScreenProps & { role: string | nul
   };
 
   return (
-    <CalmToolShell title="Physical Exercise" {...p}>
+    <PcosShell title="Physical Exercise" page="exercise" lead="Daily minutes, yoga time and a weekly plan that moves at your pace." {...p}>
       <div className="space-y-4">
-        <BackToHub base={baseOf(p)} />
         <Card className="space-y-2">
           <Coach stance={reaction.stance} text={reaction.text} lowSensory={p.lowSensory} />
         </Card>
@@ -271,7 +272,7 @@ export const PhysicalExercise: React.FC<ModuleScreenProps & { role: string | nul
         </Card>
         <Notes extra="Always follow your own doctor's advice about exercise." />
       </div>
-    </CalmToolShell>
+    </PcosShell>
   );
 };
 
@@ -279,16 +280,15 @@ export const PhysicalExercise: React.FC<ModuleScreenProps & { role: string | nul
 
 export const FoodModule: React.FC<ModuleScreenProps & { role: string | null }> = ({ role, ...p }) => {
   const [condition] = useCondition();
-  if (!canOpenCycleCare(role)) return <AdultsOnly title="Food" {...p} />;
+  if (!canOpenCycleCare(role)) return <AdultsOnly title="Food" page="food" {...p} />;
   return (
-    <CalmToolShell title="Food" {...p}>
+    <PcosShell title="Food" page="food" lead="Your diet plan, water and meal ideas, one gentle step at a time." {...p}>
       <div className="space-y-4">
-        <BackToHub base={baseOf(p)} />
         <DietSection lowSensory={p.lowSensory} condition={condition} />
         <WaterTally />
         <Notes extra="Always follow the eating plan your own doctor or dietitian gives you." />
       </div>
-    </CalmToolShell>
+    </PcosShell>
   );
 };
 
@@ -300,7 +300,7 @@ export const PcosPcodHub: React.FC<ModuleScreenProps & { role: string | null }> 
   const store = useCycleCareStore();
   const [clearFailed, setClearFailed] = useState(false);
 
-  if (!canOpenCycleCare(role)) return <AdultsOnly title="PCOS / PCOD" {...p} />;
+  if (!canOpenCycleCare(role)) return <AdultsOnly title="PCOS / PCOD" page="hub" {...p} />;
 
   const clearAll = () => {
     setClearFailed(false);
@@ -309,7 +309,13 @@ export const PcosPcodHub: React.FC<ModuleScreenProps & { role: string | null }> 
   const shownAbout = condition === "pcos" || condition === "pcod" ? [ABOUT[condition]] : [ABOUT.pcos, ABOUT.pcod];
 
   return (
-    <CalmToolShell title="PCOS / PCOD" {...p}>
+    <PcosShell
+      title="PCOS / PCOD"
+      heading="Every part of you deserves to be cherished"
+      page="hub"
+      lead="Gentle care for your cycle, body and mind. Learn what your doctor means, keep your own notes, and move and eat in ways that feel kind."
+      {...p}
+    >
       <div className="space-y-4">
         <CycleCareAccountNote />
         <Card className="space-y-3">
@@ -347,36 +353,16 @@ export const PcosPcodHub: React.FC<ModuleScreenProps & { role: string | null }> 
           <p className="text-sm text-textMuted">{DIFFERENCES_NOTE}</p>
         </Card>
 
-        <h2 className="font-display text-xl text-textHeading">Your care spaces</h2>
-        {[
-          { to: `${baseOf(p)}/pcos-pcod/cycle-care`, name: "Cycle Care", blurb: "Check-ins, medicine notes and reminders, doctor-visit prep." },
-          { to: `${baseOf(p)}/pcos-pcod/exercise`, name: "Physical Exercise", blurb: "Daily minutes, yoga time and a weekly workout plan." },
-          { to: `${baseOf(p)}/pcos-pcod/food`, name: "Food", blurb: "Diet plan, rewards, water and meal ideas." },
-        ].map((m) => (
-          <Link key={m.to} to={m.to} className={linkClass}>
-            <Card hoverable className="space-y-1">
-              <h3 className="font-display text-lg text-textHeading">{m.name}</h3>
-              <p className="text-sm text-textBody">{m.blurb}</p>
-            </Card>
-          </Link>
-        ))}
+        <MythsTopic condition={condition} />
+        <SymptomsTopic />
+        <WellbeingTopic base={baseOf(p)} />
+        <SleepTopic base={baseOf(p)} />
 
         <ProfileSection profile={profile} setProfile={setProfile} />
 
-        <Card className="space-y-3">
-          <h2 className="font-display text-xl text-textHeading">{condition === "pcos" ? "PCOS" : condition === "pcod" ? "PCOD" : "PCOS and PCOD"} myths and facts</h2>
-          {mythsFor(condition).map((m) => (
-            <details key={m.myth} className="rounded-2xl border border-olive-200 bg-white px-4 py-3">
-              <summary className="cursor-pointer text-base text-textHeading">Myth: {m.myth}</summary>
-              <p className="mt-2 text-base text-textBody">Fact: {m.fact}</p>
-            </details>
-          ))}
-          <p className="text-sm text-textMuted">{MYTHS_NOTE}</p>
-        </Card>
-
         <Card className="space-y-2">
           <p className="text-sm text-textMuted">
-            Your choices, diet plan, movement and health profile are saved to your account. Only you can see them: not a caregiver, not anyone else.
+            Your choices, diet plan, movement, health profile and tracker are saved to your account. Only you can see them: not a caregiver, not anyone else.
             {saveFailed ? " Your last change didn't save. It will try again with your next change." : ""}
           </p>
           <Button size="sm" variant="outline" onClick={clearAll}>
@@ -384,8 +370,8 @@ export const PcosPcodHub: React.FC<ModuleScreenProps & { role: string | null }> 
           </Button>
           {clearFailed && <p role="alert" className="text-sm text-red-700">That didn't clear. Please try again.</p>}
         </Card>
-        <Notes extra="There is no cycle tracking in this version. Always follow your own doctor's advice." />
+        <Notes extra="Always follow your own doctor's advice." />
       </div>
-    </CalmToolShell>
+    </PcosShell>
   );
 };

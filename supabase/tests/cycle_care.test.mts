@@ -1,4 +1,5 @@
-// Cycle Care in the account (migration 20261029300000): only the person can
+// Cycle Care in the account (migrations 20261029300000 and 20261030100000,
+// the tracker): only the person can
 // read or change their own row, under the hosted project's default privileges.
 // Usage: npx tsx supabase/tests/cycle_care.test.mts
 import { PGlite } from "@electric-sql/pglite";
@@ -70,6 +71,15 @@ ok("each part is an object",
   (await err("authenticated", me, `update cycle_care_data set diet = '[1,2]'::jsonb where profile_id = $1`, [me])).includes("check"));
 ok("and at most 64 KB",
   (await err("authenticated", me, `update cycle_care_data set exercise = jsonb_build_object('x', repeat('a', 70000)) where profile_id = $1`, [me])).includes("check"));
+
+await as("authenticated", me, `update cycle_care_data set tracker = '{"periods":[{"start":"2026-10-01","end":"2026-10-05"}],"days":[],"questions":[]}'::jsonb where profile_id = $1`, [me]);
+ok("the tracker saves and reads back for its owner",
+  (await as<{ tracker: { periods: { start: string }[] } }>("authenticated", me, `select tracker from cycle_care_data`))[0]?.tracker.periods[0].start === "2026-10-01");
+ok("nobody else can read the tracker",
+  (await as("authenticated", other, `select tracker from cycle_care_data where profile_id = $1`, [me])).length === 0);
+ok("the tracker is an object of at most 64 KB too",
+  (await err("authenticated", me, `update cycle_care_data set tracker = '"x"'::jsonb where profile_id = $1`, [me])).includes("check") &&
+  (await err("authenticated", me, `update cycle_care_data set tracker = jsonb_build_object('x', repeat('a', 70000)) where profile_id = $1`, [me])).includes("check"));
 
 await as("authenticated", me, `delete from cycle_care_data where profile_id = $1`, [me]);
 ok("a person can delete all of it", (await rows("authenticated", me)) === 0);
