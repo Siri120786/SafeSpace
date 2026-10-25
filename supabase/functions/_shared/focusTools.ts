@@ -5,6 +5,8 @@
 // the database stays the final gate. Pure: no Deno or esm.sh imports, so the
 // tests run it under Node.
 
+import { parseCalmPlan, type CalmPlan } from "./calmPlan.ts";
+
 export const FOCUS_MODES = ["simple", "pomodoro"] as const;
 export const FOCUS_PHASES = ["focus", "shortBreak", "longBreak"] as const;
 export const EMOTION_CARD_IDS = [
@@ -44,7 +46,9 @@ export type FocusToolsRequest =
   | { action: "settings.get" }
   | { action: "favorites.list" }
   | { action: "favorites.add"; trackId: string }
-  | { action: "favorites.remove"; trackId: string };
+  | { action: "favorites.remove"; trackId: string }
+  | { action: "calmPlan.get" }
+  | { action: "calmPlan.save"; plan: CalmPlan };
 
 type Parsed = { ok: true; token: string; value: FocusToolsRequest } | { ok: false; error: string; status: number };
 
@@ -92,7 +96,13 @@ export function parseFocusToolsRequest(raw: unknown): Parsed {
     case "emotions.list":
     case "settings.get":
     case "favorites.list":
+    case "calmPlan.get":
       return done({ action: r.action });
+
+    case "calmPlan.save": {
+      const plan = parseCalmPlan(r.plan);
+      return plan ? done({ action: "calmPlan.save", plan }) : bad();
+    }
 
     case "sessions.add": {
       const d = r.duration_seconds;

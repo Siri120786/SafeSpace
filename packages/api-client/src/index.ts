@@ -153,6 +153,9 @@ export {
   setChildStarGoal,
   setChildToolSettings,
   DEFAULT_MUSIC_SETTINGS,
+  getCalmPlan,
+  saveCalmPlan,
+  getChildCalmPlan,
 } from "./focusTools";
 export type {
   FocusSessionRecordRow,
@@ -166,6 +169,7 @@ export type {
   ToolSettings,
   MusicSettings,
   ChildToolsOverview,
+  CalmPlanData,
 } from "./focusTools";
 
 export { getGameState, recordGameRound, saveGamePreferences, getChildGameSummary, listGameCreations, saveGameCreation, deleteGameCreation } from "./games";

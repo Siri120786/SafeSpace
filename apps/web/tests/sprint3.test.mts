@@ -574,9 +574,14 @@ test("every module screen has Exit, the review notice and the not-saved warning"
   }
 });
 
-test("safe harbor is always low-sensory, even when the setting is off", () => {
+test("safe harbor opens still: no video until the person asks for rain, and no rain option in low-sensory mode", () => {
   const html = render(React.createElement(SafeHarbor, { ...common, lowSensory: false }));
-  assert.match(html, /data-low-sensory="true"/);
+  assert.match(html, /data-still="true"/);
+  assert.doesNotMatch(html, /<video/);
+  assert.match(html, /Let the rain fall/);
+  assert.match(html, /Nothing moves and there is no sound unless you choose/);
+  const low = render(React.createElement(SafeHarbor, { ...common, lowSensory: true }));
+  assert.doesNotMatch(low, /Let the rain fall/);
 });
 
 test("modules home lists all modules and links caregivers to Stories", () => {

@@ -479,3 +479,41 @@ export async function setChildToolSettings(childId: string, settings: Partial<To
   const { error } = await getSafeSpaceClient().from("tool_settings").upsert(row, { onConflict: "child_id" });
   if (error) fail(error);
 }
+
+// ---------------------------------------------------------------------------
+// Safe Harbor calm plan (migration 20261030200000). The plan is four short
+// lists the web app shapes and checks; this only carries it.
+// ---------------------------------------------------------------------------
+export interface CalmPlanData {
+  signs: string[];
+  helps: string[];
+  people: string[];
+  places: string[];
+}
+
+// Null when nothing is saved yet.
+export async function getCalmPlan(session: AppSession): Promise<unknown | null> {
+  const w = who(session);
+  if (w.kind === "child") return (await call<{ plan: unknown }>(w.token, "calmPlan.get")).plan;
+  const { data, error } = await getSafeSpaceClient().from("calm_plans").select("plan").eq("profile_id", w.profileId).maybeSingle();
+  if (error) fail(error);
+  return data?.plan ?? null;
+}
+
+export async function saveCalmPlan(session: AppSession, plan: CalmPlanData): Promise<void> {
+  const w = who(session);
+  if (w.kind === "child") {
+    await call(w.token, "calmPlan.save", { plan });
+    return;
+  }
+  const { error } = await getSafeSpaceClient().from("calm_plans").upsert({ profile_id: w.profileId, plan }, { onConflict: "profile_id" });
+  if (error) fail(error);
+}
+
+// A caregiver reads a child's plan (null when there is none, or the child is
+// 15 or over and hasn't chosen to share).
+export async function getChildCalmPlan(childId: string): Promise<unknown | null> {
+  const { data, error } = await getSafeSpaceClient().from("calm_plans").select("plan").eq("child_id", childId).maybeSingle();
+  if (error) fail(error);
+  return data?.plan ?? null;
+}

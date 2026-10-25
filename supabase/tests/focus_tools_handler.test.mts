@@ -23,6 +23,7 @@ function makeWorld() {
   const db = {
     sessions: [] as any[], tasks: [] as any[], habits: [] as any[], checks: new Set<string>(),
     stars: [] as any[], emotions: [] as any[], settings: new Map<string, any>(), favorites: [] as { child_id: string; track_id: string }[],
+    calmPlans: new Map<string, unknown>(),
   };
   const fail: { next: any } = { next: null };
   const maybeFail = () => { if (fail.next) { const e = fail.next; fail.next = null; throw e; } };
@@ -50,6 +51,8 @@ function makeWorld() {
     async listFavorites(c: string) { return db.favorites.filter((f) => f.child_id === c).map((f) => f.track_id); },
     async addFavorite(c: string, t: string) { if (!db.favorites.some((f) => f.child_id === c && f.track_id === t)) db.favorites.push({ child_id: c, track_id: t }); },
     async removeFavorite(c: string, t: string) { db.favorites = db.favorites.filter((f) => !(f.child_id === c && f.track_id === t)); },
+    async getCalmPlan(c: string) { maybeFail(); return db.calmPlans.get(c) ?? null; },
+    async saveCalmPlan(c: string, plan: unknown) { maybeFail(); db.calmPlans.set(c, plan); },
   };
   const handler = createFocusToolsHandler({ store, verifyChildToken, log: (e: string, d?: string) => logs.push(`${e} ${d ?? ""}`) });
   const call = async (body: unknown, opts: { raw?: string; method?: string } = {}) => {
@@ -156,6 +159,18 @@ ok("favorites: catalog ids only",
   (await as("favorites.remove", { track_id: "x".repeat(81) })).status === 400);
 ok("favorites: another child sees only their own",
   (await as("favorites.list", {}, otherTok)).json.trackIds.length === 0);
+
+ok("calm plan: empty at first, then saved and read back, trimmed",
+  JSON.stringify((await as("calmPlan.get")).json.plan) === JSON.stringify({ signs: [], helps: [], people: [], places: [] }) &&
+  (await as("calmPlan.save", { plan: { signs: [" My heart races "], helps: ["A warm drink"] } })).status === 200 &&
+  (await as("calmPlan.get")).json.plan.signs[0] === "My heart races" &&
+  (await as("calmPlan.get")).json.plan.people.length === 0);
+ok("calm plan: bad plans are refused",
+  (await as("calmPlan.save", { plan: { other: ["x"] } })).status === 400 &&
+  (await as("calmPlan.save", { plan: { helps: ["x".repeat(121)] } })).status === 400 &&
+  (await as("calmPlan.save", {})).status === 400);
+ok("calm plan: another child sees only their own",
+  (await as("calmPlan.get", {}, otherTok)).json.plan.signs.length === 0);
 
 w.fail.next = Object.assign(new Error("limit_reached"), { code: "P0001" });
 ok("the database cap is limit_reached (409)", (await as("sessions.add", { duration_seconds: 60, mode: "simple" })).status === 409);

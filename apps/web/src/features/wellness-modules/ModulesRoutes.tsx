@@ -10,6 +10,8 @@ import { OceanBreathing, OceanGrounding, calmSpacePath } from "../conditions/anx
 import "../conditions/anxiety/ocean/ocean.css";
 // The PCOS / PCOD pages' dusk hillside.
 import "../conditions/pcos-pcod/dusk/dusk.css";
+// Safe Harbor's rainy window.
+import "../conditions/ptsd/harbor/harbor.css";
 
 interface ModulesRoutesProps {
   // Defaults are the adult routes (/modules, exit to /dashboard). The child's

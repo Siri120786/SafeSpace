@@ -26,6 +26,7 @@ import { MedicineReminders } from "./MedicineReminders";
 import type { AppSession } from "@safespace/shared-types";
 import { BodyKindness, MedicationNotes } from "./CycleCareExtras";
 import { DoctorTopic, TrackerTopic } from "./PcosTopics";
+import { HarborPage } from "../../conditions/ptsd/harbor/HarborPage";
 import { AdultsOnly, PcosShell } from "./PcosScreens";
 
 export interface ModuleScreenProps {
@@ -188,44 +189,16 @@ export const BrightDays: React.FC<ModuleScreenProps> = (p) => {
   );
 };
 
-/** Safe Harbor always runs in low-sensory mode, whatever the other settings say. */
-export const SafeHarbor: React.FC<ModuleScreenProps> = ({ onExit, notice, paths }) => {
-  const [step, setStep] = useState(0);
-  const last = step === RELAXATION_STEPS.length - 1;
-  return (
-    <CalmToolShell title="Safe Harbor" onExit={onExit} lowSensory={true} notice={notice}>
-      <div className="space-y-4">
-        <p className="text-sm text-textBody">This is a quiet space. Nothing moves and there is no sound. You can leave at any time.</p>
-        <Card className="space-y-4">
-          <p className="text-sm text-textMuted">
-            Relaxation, step {step + 1} of {RELAXATION_STEPS.length}
-          </p>
-          <p role="status" aria-live="polite" className="text-lg leading-relaxed text-textBody">
-            {RELAXATION_STEPS[step]}
-          </p>
-          <div className="flex justify-between gap-3">
-            <Button variant="outline" disabled={step === 0} onClick={() => setStep(step - 1)}>
-              Back
-            </Button>
-            <Button variant="primary" disabled={last} onClick={() => setStep(step + 1)}>
-              Next
-            </Button>
-          </div>
-        </Card>
-        <Card className="space-y-2">
-          <Link to={calmPath({ paths }, "grounding")} className="underline text-deepGreen">
-            Try the grounding activity
-          </Link>
-        </Card>
-        <Card className="space-y-2">
-          <h2 className="font-display text-xl text-textHeading">Support from people</h2>
-          <p className="text-base text-textBody">{CARE_BRIDGING_TEXT}</p>
-        </Card>
-        <Notes extra="This is not treatment." />
-      </div>
-    </CalmToolShell>
-  );
-};
+/** Safe Harbor (PTSD) in its rainy-window room: still unless the person asks for rain. */
+export const SafeHarbor: React.FC<ModuleScreenProps> = ({ lowSensory, onExit, notice, paths }) => (
+  <HarborPage
+    lowSensory={lowSensory}
+    onExit={onExit}
+    notice={notice}
+    groundingPath={calmPath({ paths }, "grounding")}
+    forChild={!!paths?.base.startsWith("/child")}
+  />
+);
 
 export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; session?: AppSession }> = ({ role, session, ...p }) => {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
