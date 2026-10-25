@@ -5,11 +5,11 @@ import { useAuth } from "../auth";
 import { useOptionalChildSpace } from "../child-space/ChildSpaceContext";
 import { useLowSensory } from "../calm-tools/hooks/useLowSensory";
 import { useToolTheme } from "./useToolTheme";
-import { activeToolTheme, themesOffered, type ToolTheme } from "./toolThemes";
+import { activeToolTheme, themesOffered, type ActiveLook, type ToolTheme } from "./toolThemes";
 
 export interface AppTheme {
-  // The look to show now.
-  active: ToolTheme;
+  // The look to show now ("plain": the pages' own look).
+  active: ActiveLook;
   // What the person picked (calm when nothing yet).
   chosen: ToolTheme;
   // Only people with the ADHD or autism module get themes.

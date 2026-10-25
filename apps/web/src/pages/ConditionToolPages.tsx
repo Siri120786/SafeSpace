@@ -18,6 +18,7 @@ import "../features/themes/space/space.css";
 import "../features/themes/animals/animals.css";
 import "../features/themes/ocean/ocean-theme.css";
 import "../features/themes/nature/nature.css";
+import "../features/themes/calm/calm.css";
 import "../features/conditions/anxiety/ocean/ocean.css";
 
 // The ADHD and autism tools (role-flow 8c): a list page ("Your tools", then
@@ -34,7 +35,7 @@ const themedItems = (mine: ConditionTool[], more: ConditionTool[]): ThemeToolIte
 // locked their theme).
 function useThemePicker() {
   const theme = useAppTheme();
-  const themed = theme.active !== "calm";
+  const themed = theme.active !== "plain";
   const picker = theme.canChoose ? (
     <ToolThemePicker look={themed ? "bold" : "plain"} value={theme.chosen} onChange={theme.choose} lowSensory={theme.lowSensory} />
   ) : null;
@@ -46,7 +47,7 @@ export const ChildConditionToolsPage: React.FC = () => {
   const { child } = useChildSpace();
   const { mine, more } = splitConditionTools(child.assignedModules);
   const { active, themed, picker } = useThemePicker();
-  if (themed) {
+  if (active !== "plain") {
     return (
       <ThemedToolsHome
         theme={active}
@@ -73,7 +74,7 @@ export const ChildConditionToolPage: React.FC = () => {
   const { session, guard } = useChildSpace();
   const { active } = useAppTheme();
   const tool = findConditionTool(toolKey);
-  if (tool && active !== "calm") {
+  if (tool && active !== "plain") {
     return (
       <ThemedFrame theme={active} eyebrow="My tools" title={tool.label} subtitle={tool.blurb} backTo={ROUTES.CHILD_TOOLS} backLabel="My tools">
         <ConditionToolView
@@ -109,7 +110,7 @@ export const IndividualConditionToolsPage: React.FC = () => {
   const areas = useSupportAreas();
   const { mine, more } = splitConditionTools(areas ?? []);
   const { active, themed, picker } = useThemePicker();
-  if (areas !== null && themed) {
+  if (areas !== null && active !== "plain") {
     return (
       <ThemedToolsHome
         theme={active}
@@ -140,7 +141,7 @@ export const IndividualConditionToolPage: React.FC = () => {
   const { session } = useAuth();
   const tool = findConditionTool(toolKey);
   const { active } = useAppTheme();
-  if (tool && active !== "calm") {
+  if (tool && active !== "plain") {
     return (
       <ThemedFrame theme={active} eyebrow="Focus and feelings tools" title={tool.label} subtitle={tool.blurb} backTo={ROUTES.TOOLS} backLabel="All tools">
         <ConditionToolView

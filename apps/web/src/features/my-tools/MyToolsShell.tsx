@@ -20,7 +20,7 @@ const DEFAULT_BACK = "Back to your dashboard";
 // theme's frame instead.
 export const MyToolsShell: React.FC<Props> = ({ title, subtitle, backTo, backLabel = DEFAULT_BACK, actions, children }) => {
   const { active } = useAppTheme();
-  if (active !== "calm") {
+  if (active !== "plain") {
     return (
       <ThemedFrame
         theme={active}

@@ -24,7 +24,7 @@ interface Props {
 export const ChildPageShell: React.FC<Props> = ({ title, backTo, actions, children }) => {
   const { child, lowSensory } = useChildSpace();
   const { active } = useAppTheme();
-  if (active !== "calm") {
+  if (active !== "plain") {
     return (
       <ThemedFrame theme={active} eyebrow="My space" title={title} backTo={backTo} backLabel="Home" actions={actions}>
         {children}

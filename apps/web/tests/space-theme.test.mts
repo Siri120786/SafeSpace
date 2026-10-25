@@ -41,12 +41,12 @@ const home = (picker?: React.ReactNode) =>
     }),
   );
 
-test("the seven themes; Space shows only when picked and low-sensory mode is off", () => {
+test("the seven themes; Calm is the default, low-sensory mode keeps the plain look", () => {
   assert.deepEqual([...TOOL_THEMES].sort(), ["animals", "calm", "dinosaurs", "nature", "ocean", "space", "trains"]);
   assert.equal(activeToolTheme("space", false), "space");
-  assert.equal(activeToolTheme("space", true), "calm");
-  assert.equal(activeToolTheme(null, false), "calm");
-  // Themes still being designed show the calm look, never a half-built one.
+  assert.equal(activeToolTheme("space", true), "plain");
+  assert.equal(activeToolTheme(null, false), "calm", "Calm is the default");
+  // Themes still being designed show Calm, never a half-built one.
   assert.equal(activeToolTheme("animals", false), "animals");
   assert.equal(activeToolTheme("trains", false), "calm");
   assert.ok(isToolTheme("ocean") && !isToolTheme("pirates") && !isToolTheme(3));
@@ -55,7 +55,8 @@ test("the seven themes; Space shows only when picked and low-sensory mode is off
 test("themes are only for people with the ADHD or autism module", () => {
   assert.ok(themesOffered(["adhd"]) && themesOffered(["autism"]) && themesOffered(["anxiety", "autism"]));
   assert.ok(!themesOffered([]) && !themesOffered(["anxiety", "depression", "ptsd", "pcos_pcod"]));
-  assert.equal(activeToolTheme("space", false, false), "calm");
+  assert.equal(activeToolTheme("space", false, false), "plain");
+  assert.equal(activeToolTheme(null, true, true), "plain");
   assert.equal(activeToolTheme("space", false, true), "space");
 });
 

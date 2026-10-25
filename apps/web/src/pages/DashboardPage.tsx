@@ -14,9 +14,7 @@ import { ChatWindow } from "../features/ai-companion";
 import { TodayCard } from "../features/my-tools";
 import { ROUTES } from "../routes";
 import { individualToolPath, splitConditionTools } from "../features/conditions";
-import { ThemedHome, ToolThemePicker, useAppTheme, type ThemeTile } from "../features/themes";
-import { SPACE_CARD_CLIPS } from "../features/themes/space/media";
-import { ANIMALS_CARD_CLIPS } from "../features/themes/animals/media";
+import { ThemedHome, ToolThemePicker, themeMascot, useAppTheme, type ThemeTile } from "../features/themes";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -53,7 +51,7 @@ export const DashboardPage: React.FC = () => {
   const [accessibility, setAccessibility] = useState<ProfileAccessibilityPreferences | null>(null);
   // A designed theme (Space, Animals) for the ADHD or autism module.
   const theme = useAppTheme();
-  const space = theme.active !== "calm";
+  const space = theme.active !== "plain";
 
   // Active Navigation Tab
   const [activeTab, setActiveTab] = useState<NavTab>("home");
@@ -218,7 +216,7 @@ export const DashboardPage: React.FC = () => {
       <Card className="p-6 md:p-8 bg-gradient-to-r from-olive-50/80 via-white to-paleLime/40 border border-olive-200/60 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-5">
           {space ? (
-            <img src={theme.active === "animals" ? ANIMALS_CARD_CLIPS.focus.still : SPACE_CARD_CLIPS.feelings.still} alt="" aria-hidden="true" className="h-[110px] w-[110px] shrink-0 rounded-3xl object-cover" />
+            <img src={theme.active === "plain" ? "" : themeMascot(theme.active)} alt="" aria-hidden="true" className="h-[110px] w-[110px] shrink-0 rounded-3xl object-cover" />
           ) : (
             <BrainMascot stance="meditating" size={110} />
           )}
@@ -307,7 +305,7 @@ export const DashboardPage: React.FC = () => {
   // The dashboard in a designed theme: the theme's greeting, the day on a
   // light panel, and every page as a tile (Profile included, as there is no
   // sidebar here).
-  if (space) {
+  if (theme.active !== "plain") {
     return (
       <>
         <ThemedHome

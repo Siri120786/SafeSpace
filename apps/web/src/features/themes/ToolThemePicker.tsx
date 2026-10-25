@@ -52,8 +52,8 @@ export const ToolThemePicker: React.FC<Props> = ({ value, onChange, look, lowSen
       <div className="text-left">
         <p className="text-sm font-medium text-textHeading">Theme</p>
         {options}
-        {lowSensory && value !== "calm" && (
-          <p className="mt-2 text-xs text-textMuted">Low-sensory mode is on, so the tools keep the calm look.</p>
+        {lowSensory && (
+          <p className="mt-2 text-xs text-textMuted">Low-sensory mode is on, so pages keep their simple, still look.</p>
         )}
       </div>
     );

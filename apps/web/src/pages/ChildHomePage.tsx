@@ -197,7 +197,7 @@ export const ChildHomePage: React.FC = () => {
     </>
   );
 
-  if (theme.active !== "calm") {
+  if (theme.active !== "plain") {
     return (
       <ThemedHome
         theme={theme.active}

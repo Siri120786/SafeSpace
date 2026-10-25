@@ -1,0 +1,598 @@
+/* The Calm theme (see CalmKit.tsx). Everything is scoped to .cm.
+   Every change of colour is a long soft fade, so there are no lines:
+     home:  the meadow's grass (#3a6c27) -> the day, darkening through
+            green into night (#0b1a2b) -> the camp, fading in from night;
+     tools: the camp's snow fades into night -> the cards on night ->
+            night lifting into the meadow's morning sky (#368aca) -> the
+            meadow, fading in from its own sky.
+   Still by default; clips move only while playing. */
+
+.cm {
+  --cm-night: #0b1a2b;
+  --cm-grass: #3a6c27;
+  --cm-sky: #368aca;
+  --cm-orange: #ec4f30;
+  --cm-ink: #1c2a1c;
+  position: relative;
+  min-height: 100vh;
+  color: #fff;
+  background: var(--cm-night);
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  /* The bold theme picker, in this theme's colours. */
+  --sp-cream: #fff;
+  --sp-mint: #ffe08a;
+}
+.cm h1,
+.cm h2,
+.cm h3 {
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+}
+.cm .cm-display {
+  font-family: "Grandstander", "Lexend Deca", sans-serif;
+  font-weight: 900;
+}
+.cm .cm-serif {
+  font-family: "Gelasio", Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+.cm .sp-themes {
+  --sp-cream: var(--cm-ink);
+  color: var(--cm-ink);
+  background: #fff;
+  box-shadow: 0 20px 50px -20px rgba(10, 30, 20, 0.45);
+}
+.cm .sp-theme:hover:not(:disabled) {
+  background: #eef6e6;
+}
+.cm .sp-theme[aria-pressed="true"] {
+  background: #dfeed2;
+}
+.cm :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+.cm-wrap {
+  position: relative;
+  z-index: 3;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 56px);
+}
+
+/* ---------------------------------------------------------------- bar */
+.cm-bar {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: clamp(16px, 2vw, 24px) clamp(16px, 4vw, 64px);
+}
+.cm-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: clamp(18px, 1.7vw, 23px);
+  color: #fff;
+}
+.cm-bar--meadow .cm-logo {
+  font-family: "Grandstander", "Lexend Deca", sans-serif;
+  font-weight: 900;
+  text-shadow: 0 1px 10px rgba(20, 60, 100, 0.35);
+}
+.cm-bar-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.cm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  font: 500 14px/1 "Outfit", "Inter", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+/* Meadow: the landing page's white pills. Camp: square outlined buttons. */
+.cm-bar--meadow .cm-btn {
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #2f5a30;
+  box-shadow: 0 6px 18px rgba(20, 60, 100, 0.18);
+}
+.cm-bar--meadow .cm-btn:hover {
+  background: #f1f8ea;
+}
+.cm-bar--camp .cm-btn {
+  border: 1.5px solid #fff;
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+}
+.cm-bar--camp .cm-btn:hover {
+  background: #fff;
+  color: var(--cm-night);
+}
+.cm-btn-icon {
+  font-size: 9px;
+}
+
+/* ---------------------------------------------------------------- media */
+.cm-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+}
+.cm-fill {
+  position: absolute;
+  inset: 0;
+}
+.cm-plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+/* The landing page's 9:8 meadow, covering its box with the boy and puppy
+   (62% down, 30% across) kept in view; its square loop sits over the plate
+   exactly (rendered mirror-padded 120/1920 top and bottom). */
+.cm-meadow-box {
+  --mw: max(100cqw, calc(100cqh * 9 / 8));
+  position: absolute;
+  width: var(--mw);
+  height: calc(var(--mw) * 8 / 9);
+  left: calc((100cqw - var(--mw)) * 0.3);
+  top: calc((100cqh - var(--mw) * 8 / 9) * 0.62);
+}
+.cm-meadow-box .cm-plate {
+  object-fit: fill;
+}
+.cm-meadow-video {
+  position: absolute;
+  left: 0;
+  top: -6.25%;
+  width: 100%;
+  height: 112.5%;
+  max-width: none;
+  object-fit: fill;
+}
+.cm-media video {
+  animation: cm-fade 1.4s ease both;
+}
+@keyframes cm-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- heroes */
+.cm-hero {
+  position: relative;
+  height: max(100svh, 620px);
+  overflow: hidden;
+}
+.cm-hero--meadow {
+  background: var(--cm-grass);
+}
+.cm-hero--camp {
+  background: var(--cm-night);
+}
+.cm-hero-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* The grass flows on into the day below. */
+.cm-hero--meadow .cm-hero-shade {
+  background: linear-gradient(180deg, rgba(58, 108, 39, 0) 66%, var(--cm-grass) 96%, var(--cm-grass) 100%),
+    linear-gradient(180deg, rgba(20, 60, 100, 0.22) 0%, rgba(20, 60, 100, 0) 30%);
+}
+/* The camp's snow fades into night; the top darkens for the bar. */
+.cm-hero--camp .cm-hero-shade {
+  background: linear-gradient(180deg, rgba(11, 26, 43, 0) 62%, var(--cm-night) 96%, var(--cm-night) 100%),
+    linear-gradient(180deg, rgba(8, 17, 29, 0.7) 0%, rgba(8, 17, 29, 0.25) 22%, rgba(8, 17, 29, 0) 40%);
+}
+.cm-meadow-copy {
+  position: absolute;
+  z-index: 5;
+  top: clamp(90px, 13vh, 130px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+  text-align: center;
+  text-shadow: 0 2px 18px rgba(20, 60, 100, 0.35);
+}
+.cm-kicker {
+  margin: 0 0 8px;
+  font-size: clamp(14px, 1.5vw, 22px);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.cm-meadow-title {
+  margin: 0;
+  font-size: clamp(44px, 6.6vw, 104px);
+  line-height: 1.02;
+  text-transform: uppercase;
+  color: #fff;
+}
+.cm-meadow-title span {
+  display: block;
+}
+.cm-meadow-line {
+  margin: 16px 0 0;
+  max-width: 36ch;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.5;
+}
+.cm-status {
+  margin: 16px 0 0;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #2f5a30;
+  box-shadow: 0 6px 18px rgba(20, 60, 100, 0.18);
+  font-size: 14.5px;
+  font-weight: 500;
+  text-shadow: none;
+}
+
+.cm-camp img,
+.cm-camp video {
+  object-position: 50% 58%;
+}
+.cm-camp-copy {
+  position: absolute;
+  z-index: 5;
+  left: clamp(20px, 5.6vw, 80px);
+  top: 50%;
+  transform: translateY(-46%);
+  max-width: min(620px, 90vw);
+}
+.cm-camp-eyebrow {
+  margin: 0 0 14px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.92);
+}
+.cm-camp-title {
+  margin: 0;
+  font-size: clamp(56px, 8.2vw, 104px);
+  line-height: 0.97;
+  letter-spacing: 0.016em;
+  color: #fff;
+}
+.cm-camp-title span {
+  display: block;
+}
+.cm-camp-line {
+  margin: 28px 0 0;
+  max-width: 322px;
+  font-size: clamp(15px, 1.3vw, 16.6px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+}
+.cm-explore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 178px;
+  height: 51px;
+  margin-top: 28px;
+  background: var(--cm-orange);
+  color: #fff;
+  font-size: 17px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+.cm-explore:hover {
+  background: #f15a3c;
+}
+@media (max-width: 600px) {
+  .cm-camp img,
+  .cm-camp video {
+    object-position: 72% 50%;
+  }
+  .cm-camp-copy {
+    top: clamp(100px, 16vh, 140px);
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------- the day */
+/* Starts on the grass and darkens into night as evening falls. */
+.cm-day {
+  position: relative;
+  margin-top: -1px;
+  padding: clamp(40px, 6vw, 72px) 0 clamp(120px, 14vw, 200px);
+  background: linear-gradient(180deg, var(--cm-grass) 0, var(--cm-grass) 40px, #2f5a2c 38%, #1d3a33 74%, var(--cm-night) 100%);
+}
+.cm-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+}
+.cm-h2 {
+  margin: 0;
+  font-size: clamp(34px, 4.6vw, 64px);
+  line-height: 1;
+  text-transform: uppercase;
+  color: #fff;
+}
+.cm-panel {
+  padding: clamp(16px, 3vw, 30px);
+  border-radius: 26px;
+  background: #fbfaf5;
+  color: var(--cm-ink);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.55);
+}
+.cm-stack > * + * {
+  margin-top: 20px;
+}
+.cm-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: clamp(28px, 4vw, 44px);
+}
+.cm-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 116px;
+  padding: 18px 12px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2f5a30;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.cm-tile:hover {
+  transform: translateY(-2px);
+  background: #fff;
+}
+.cm-tile-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+.cm-tile-label {
+  font-family: "Grandstander", "Lexend Deca", sans-serif;
+  font-weight: 900;
+  font-size: 15px;
+}
+
+/* ---------------------------------------------------------------- cards */
+.cm-cards {
+  position: relative;
+  margin-top: -1px;
+  padding: clamp(56px, 8vw, 110px) 0 clamp(80px, 10vw, 130px);
+  background: linear-gradient(180deg, var(--cm-night) 0, var(--cm-night) 40px, #11283f 50%, var(--cm-night) 100%);
+}
+.cm-cards-title {
+  margin: 0;
+  font-size: clamp(40px, 5.4vw, 76px);
+  line-height: 1;
+  color: #fff;
+}
+.cm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 0 0 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.cm-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.cm-card-media {
+  aspect-ratio: 1 / 1;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.cm-card-media img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.cm-card-tag {
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffb39f;
+}
+.cm-card-title {
+  padding: 0 16px;
+  font-family: "Gelasio", Georgia, serif;
+  font-weight: 700;
+  font-size: 24px;
+}
+.cm-card-blurb {
+  padding: 0 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ---------------------------------------------------------------- closing */
+/* Home: starts on night and the camp fades in from it. Tools: night lifts
+   into the morning sky first, then the meadow fades in from that sky. */
+.cm-closing {
+  position: relative;
+  margin-top: -1px;
+  overflow: hidden;
+}
+.cm-closing--camp {
+  background: var(--cm-night);
+}
+.cm-closing--meadow {
+  --cm-dawn: clamp(140px, 18vw, 260px);
+  padding-top: var(--cm-dawn);
+  background: linear-gradient(180deg, var(--cm-night) 0, #1d3d68 calc(var(--cm-dawn) * 0.5), var(--cm-sky) var(--cm-dawn), var(--cm-sky) 100%);
+}
+.cm-closing .cm-closing-media {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  min-height: 420px;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 20%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 20%);
+}
+.cm-closing--camp .cm-closing-media {
+  aspect-ratio: 1108 / 828;
+  max-height: 100vh;
+}
+.cm-closing--meadow .cm-closing-media {
+  aspect-ratio: 16 / 10;
+  max-height: 100vh;
+}
+.cm-closing--camp .cm-closing-media img,
+.cm-closing--camp .cm-closing-media video {
+  object-position: 50% 60%;
+}
+.cm-closing-text {
+  position: absolute;
+  z-index: 3;
+  left: clamp(20px, 6vw, 110px);
+  bottom: 18%;
+  text-shadow: 0 2px 18px rgba(0, 10, 25, 0.7);
+}
+.cm-closing--meadow .cm-closing-text {
+  left: auto;
+  right: clamp(20px, 6vw, 110px);
+  bottom: auto;
+  top: calc(var(--cm-dawn) + 12%);
+  text-align: right;
+  text-shadow: 0 2px 16px rgba(20, 60, 100, 0.55);
+}
+.cm-closing-lines {
+  margin: 0;
+  font-family: "Gelasio", Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(26px, 3.4vw, 50px);
+  line-height: 1.12;
+  color: #fff;
+}
+.cm-closing-lines span {
+  display: block;
+}
+.cm-closing-first {
+  margin-bottom: clamp(10px, 1.6vw, 24px);
+}
+@media (max-width: 640px) {
+  .cm-closing-text,
+  .cm-closing--meadow .cm-closing-text {
+    left: 20px;
+    right: 20px;
+    top: auto;
+    bottom: 24px;
+    text-align: left;
+  }
+}
+
+/* ---------------------------------------------------------------- one page */
+.cm-page {
+  background: #f6f4ec;
+  color: var(--cm-ink);
+  --sp-cream: var(--cm-ink);
+}
+.cm-page-light {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 460px;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 25%, transparent);
+  mask-image: linear-gradient(#000 25%, transparent);
+}
+.cm-page-main {
+  padding-top: 110px;
+  padding-bottom: 72px;
+  max-width: 920px;
+}
+.cm-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(20, 60, 100, 0.45);
+}
+.cm-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  text-shadow: none;
+}
+.cm-h1 {
+  margin: 0;
+  font-size: clamp(38px, 5.4vw, 68px);
+  line-height: 1.02;
+  text-transform: uppercase;
+  color: #fff;
+}
+.cm-sub {
+  margin: 10px 0 0;
+  max-width: 52ch;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.5;
+}
+.cm-page .cm-panel {
+  margin-top: 28px;
+}
+
+/* Inside the light panel the calm look's greens stay as they are: this is
+   their home. */
+
+/* ---------------------------------------------------------------- calm */
+@media (prefers-reduced-motion: reduce) {
+  .cm *,
+  .cm *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
