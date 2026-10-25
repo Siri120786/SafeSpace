@@ -1,0 +1,889 @@
+/* The Nature theme (see NatureKit.tsx). Everything is scoped to .nt.
+   Every change of colour is a long soft fade, so there are no lines:
+     home:  white sky; the valley clip fades in from white at its top and
+            back to white at its bottom; the tree's base fades out; the
+            moonlit valley's own sky is white, so it fades in from white;
+     tools: the dome's black -> deep forest -> black; the moonlit valley
+            there wears a dark veil so black never meets its bright sky.
+   Still by default; clips, clouds and petals move only while playing. */
+
+.nt {
+  --nt-ink: #121410;
+  --nt-olive: #4d6a10;
+  --nt-green: #6f9a0c;
+  --nt-lime: #b4cd52;
+  --nt-pill: #e7efcf;
+  --nt-line: #eef0ea;
+  --nt-black: #000;
+  --nt-forest: #0d2214;
+  --nt-night: #263d56;
+  position: relative;
+  min-height: 100vh;
+  color: var(--nt-ink);
+  background: #fff;
+  font-family: "Inter Tight", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  /* The bold theme picker, in this theme's colours. */
+  --sp-cream: var(--nt-ink);
+  --sp-mint: var(--nt-olive);
+}
+/* The app's base styles give headings their own font; here they use ours. */
+.nt h1,
+.nt h2,
+.nt h3 {
+  font-family: "Inter Tight", "Inter", system-ui, sans-serif;
+}
+.nt .nt-serif {
+  font-family: "EB Garamond", "Times New Roman", serif;
+}
+.nt .sp-themes {
+  --sp-cream: var(--nt-ink);
+  color: var(--nt-ink);
+  background: #fff;
+  box-shadow: 0 20px 50px -20px rgba(20, 30, 10, 0.35);
+}
+.nt .sp-theme:hover:not(:disabled) {
+  background: var(--nt-pill);
+}
+.nt .sp-theme[aria-pressed="true"] {
+  background: #dce8b8;
+}
+.nt :focus-visible {
+  outline: 3px solid var(--nt-green);
+  outline-offset: 3px;
+}
+.nt-wrap {
+  position: relative;
+  z-index: 3;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+}
+
+/* ---------------------------------------------------------------- shared */
+.nt-pill {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--nt-pill);
+  color: #2c3a10;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.nt-h2 {
+  margin: 12px 0 0;
+  font-weight: 400;
+  font-size: clamp(28px, 3.1vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+.nt-h2--left {
+  text-align: left;
+}
+.nt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--nt-olive);
+  color: #f3f8e4;
+  font: 600 13px/1 "Inter Tight", "Inter", sans-serif;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 6px rgba(60, 80, 10, 0.25);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.nt-btn:hover {
+  transform: translateY(-1px);
+  background: #5a7c14;
+}
+.nt-btn--soft {
+  background: var(--nt-pill);
+  color: #2c3a10;
+  box-shadow: none;
+}
+.nt-btn--soft:hover {
+  background: #dce8b8;
+}
+.nt-btn-icon {
+  font-size: 9px;
+}
+.nt-media {
+  position: absolute;
+  inset: 0;
+}
+.nt-media img,
+.nt-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.nt-media video {
+  animation: nt-fade 1.4s ease both;
+}
+@keyframes nt-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes nt-drift-a {
+  to {
+    transform: translateX(26px) translateY(4px);
+  }
+}
+@keyframes nt-drift-b {
+  to {
+    transform: translateX(-30px) translateY(6px);
+  }
+}
+.nt-drift-a {
+  animation: nt-drift-a 14s ease-in-out infinite alternate;
+}
+.nt-drift-b {
+  animation: nt-drift-b 17s ease-in-out infinite alternate;
+}
+
+/* ---------------------------------------------------------------- nav */
+.nt-nav {
+  position: absolute;
+  z-index: 20;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 4vw, 44px);
+  padding: 5px 5px 5px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--nt-ink);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 6px 18px rgba(0, 0, 0, 0.06);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+.nt-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.nt-nav-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+@media (max-width: 560px) {
+  .nt-nav {
+    top: 14px;
+    gap: 12px;
+    padding-left: 12px;
+  }
+  .nt-brand {
+    font-size: 17px;
+  }
+}
+
+/* ---------------------------------------------------------------- home hero */
+.nt-hero {
+  position: relative;
+  height: max(100svh, 620px);
+  overflow: hidden;
+  background: #fff;
+}
+.nt-cloud {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+}
+.nt-cloud img {
+  width: 100%;
+  max-width: none;
+}
+.nt-cloud--l {
+  top: -3%;
+  left: -5%;
+  width: min(44vw, 640px);
+}
+.nt-cloud--r {
+  top: 2%;
+  right: -6%;
+  width: min(42vw, 620px);
+}
+.nt-hero-copy {
+  position: absolute;
+  z-index: 6;
+  top: 24%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  text-align: center;
+}
+.nt-title {
+  margin: 0;
+  font-weight: 400;
+  font-size: clamp(34px, 5.2vw, 76px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.nt-title em {
+  color: var(--nt-olive);
+  font-style: italic;
+  font-weight: 500;
+}
+.nt-lead {
+  margin: 0;
+  max-width: 40ch;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.5;
+  color: #3a3f33;
+}
+.nt-status {
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(77, 106, 16, 0.18);
+  color: #2c3a10;
+  font-size: 14px;
+}
+/* The valley: fades in from the white sky above and back into white below. */
+.nt-hero-media {
+  top: auto;
+  height: 72%;
+  z-index: 2;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 24%, #000 76%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 24%, #000 76%, transparent 100%);
+}
+.nt-hero-media img,
+.nt-hero-media video {
+  object-position: center 70%;
+}
+.nt-glass-field {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.nt-glass {
+  position: absolute;
+  width: clamp(36px, 5.4vw, 74px);
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.nt-glass--sm {
+  width: clamp(28px, 3.4vw, 44px);
+}
+@media (max-width: 760px) {
+  .nt-hero-copy {
+    top: 20%;
+  }
+  .nt-hero-media {
+    height: 60%;
+  }
+  .nt-hero-media img,
+  .nt-hero-media video {
+    object-position: 38% 100%;
+  }
+  .nt-glass--wide {
+    display: none;
+  }
+  .nt-cloud--l {
+    width: 70vw;
+    left: -18vw;
+    top: 6%;
+  }
+  .nt-cloud--r {
+    width: 66vw;
+    right: -20vw;
+    top: 10%;
+  }
+}
+
+/* ---------------------------------------------------------------- the day */
+.nt-day {
+  position: relative;
+  padding: clamp(40px, 6vw, 72px) 0 clamp(300px, 34vw, 420px);
+  overflow: hidden;
+  background: #fff;
+}
+.nt-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+}
+.nt-panel-box {
+  padding: clamp(16px, 3vw, 30px);
+  border-radius: 22px;
+  background: #f7f9f2;
+  box-shadow: 0 0 0 1px var(--nt-line), 0 24px 50px -30px rgba(40, 60, 10, 0.35);
+}
+.nt-stack > * + * {
+  margin-top: 20px;
+}
+/* Every page as a lime ticket with notched sides. */
+.nt-tickets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: clamp(28px, 4vw, 44px);
+}
+.nt-ticket {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 118px;
+  padding: 16px 20px;
+  border-radius: 20px;
+  background: var(--nt-lime);
+  color: #151a08;
+  text-decoration: none;
+  -webkit-mask: radial-gradient(circle 13px at 0 55%, #0000 97%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 13px at 100% 55%, #0000 97%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 13px at 0 55%, #0000 97%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 13px at 100% 55%, #0000 97%, #000) right / 51% 100% no-repeat;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.nt-ticket:hover {
+  transform: translateY(-2px);
+  background: #c2d867;
+}
+.nt-ticket-emoji {
+  font-size: 26px;
+  line-height: 1;
+}
+.nt-ticket-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+/* The blossom tree under it all; its flat grassy base fades into white. */
+.nt-tree {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(340px, 62vw);
+  -webkit-mask-image: linear-gradient(#000 70%, transparent 100%);
+  mask-image: linear-gradient(#000 70%, transparent 100%);
+}
+.nt-tree img {
+  width: 100%;
+  max-width: none;
+}
+
+/* ---------------------------------------------------------------- steps */
+.nt-steps {
+  position: relative;
+  height: max(100vh, 680px);
+  overflow: hidden;
+  background: #fff;
+}
+.nt-steps-cloud {
+  position: absolute;
+  z-index: 3;
+  top: 4vh;
+  left: -4vw;
+  width: min(36vw, 520px);
+  pointer-events: none;
+}
+.nt-steps-cloud img {
+  width: 100%;
+  max-width: none;
+}
+.nt-steps-head {
+  position: absolute;
+  z-index: 4;
+  top: 9vh;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+}
+.nt-track {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+}
+.nt-panel {
+  position: relative;
+  flex: 0 0 clamp(96px, 11vw, 170px);
+  height: 100%;
+  overflow: hidden;
+  border-right: 1px solid var(--nt-line);
+  cursor: pointer;
+  outline: none;
+  transition: flex-grow 0.9s cubic-bezier(0.77, 0, 0.18, 1);
+}
+.nt-panel:last-child {
+  border-right: 0;
+}
+.nt-panel.is-active {
+  flex-grow: 1;
+  cursor: default;
+}
+.nt-panel:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--nt-green);
+}
+.nt-panel-in {
+  position: absolute;
+  left: clamp(14px, 1.8vw, 28px);
+  bottom: 10vh;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(16px, 2vw, 30px);
+  width: max-content;
+}
+.nt-num {
+  font-size: clamp(170px, 36vh, 380px);
+  font-weight: 600;
+  line-height: 0.74;
+  letter-spacing: -0.07em;
+}
+.nt-num--1 {
+  color: var(--nt-olive);
+}
+.nt-num--2 {
+  color: var(--nt-green);
+}
+.nt-num--3 {
+  color: var(--nt-lime);
+}
+.nt-step {
+  width: min(400px, 30vw);
+  padding-bottom: 4px;
+  opacity: 0;
+  transform: translateX(-24px);
+  filter: blur(6px);
+  transition: opacity 0.4s, transform 0.5s, filter 0.4s;
+}
+.nt-panel.is-active .nt-step {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition: opacity 0.7s 0.4s, transform 0.9s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.7s 0.4s;
+}
+.nt-step h3 {
+  margin: 0 0 12px;
+  font-weight: 400;
+  font-size: clamp(20px, 1.7vw, 26px);
+  letter-spacing: -0.03em;
+}
+.nt-step p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #2b2e27;
+}
+@media (max-width: 760px) {
+  .nt-steps {
+    height: auto;
+    padding: 10vh 0 40px;
+  }
+  .nt-steps-head {
+    position: relative;
+    top: auto;
+  }
+  .nt-steps-cloud {
+    width: 62vw;
+    left: -14vw;
+    top: 2vh;
+    opacity: 0.9;
+  }
+  .nt-track {
+    position: relative;
+    inset: auto;
+    flex-direction: column;
+    margin-top: 40px;
+  }
+  .nt-panel {
+    flex: none;
+    height: auto;
+    overflow: visible;
+    border-right: 0;
+    border-top: 1px solid var(--nt-line);
+    cursor: auto;
+  }
+  .nt-panel-in {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    padding: 28px 16px;
+    gap: 18px;
+  }
+  .nt-num {
+    font-size: 130px;
+  }
+  .nt-step,
+  .nt-panel.is-active .nt-step {
+    width: auto;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ---------------------------------------------------------------- closing */
+/* The moonlit valley. Its own sky is white, so on the white home it fades
+   in from white; on the dark tools page a dark veil covers that sky so the
+   black above flows straight into the night. */
+.nt-closing {
+  position: relative;
+  min-height: 640px;
+  height: 110vh;
+  overflow: hidden;
+  margin-top: -1px;
+}
+.nt-closing--light {
+  background: #fff;
+}
+.nt-closing--dark {
+  background: var(--nt-black);
+}
+.nt-closing-img {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 82%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 26%);
+}
+.nt-closing-img img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center 60%;
+}
+.nt-closing--dark .nt-closing-img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.85) 18%, rgba(0, 0, 0, 0.25) 42%, rgba(0, 0, 0, 0) 60%);
+}
+.nt-petals {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+.nt-petal {
+  position: absolute;
+  top: -20px;
+  border-radius: 80% 0 80% 0;
+  background: #f6c4d6;
+  opacity: 0.85;
+  animation: nt-fall linear infinite;
+}
+@keyframes nt-fall {
+  to {
+    transform: translate(var(--dx), 115vh) rotate(540deg);
+  }
+}
+.nt-closing-card {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 26%;
+  transform: translateX(-50%);
+  width: min(640px, calc(100% - 32px));
+  padding: 40px 28px 48px;
+  border-radius: 26px;
+  text-align: center;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.78) 40%, rgba(255, 255, 255, 0.2) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  backdrop-filter: blur(16px) saturate(1.1);
+  box-shadow: 0 30px 60px rgba(10, 20, 60, 0.18);
+}
+.nt-closing-lines {
+  margin: 16px auto 0;
+  max-width: 26ch;
+  font-size: clamp(22px, 2.6vw, 34px);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--nt-ink);
+}
+
+/* ---------------------------------------------------------------- tools */
+.nt-tools {
+  background: var(--nt-black);
+  color: #fff;
+  --sp-cream: #fff;
+  --sp-mint: var(--nt-lime);
+}
+.nt-tools .nt-nav {
+  background: rgba(255, 255, 255, 0.9);
+}
+.nt-realm {
+  position: relative;
+  height: max(100svh, 620px);
+  overflow: hidden;
+  background: var(--nt-black);
+}
+.nt-realm-media img,
+.nt-realm-media video {
+  object-position: center bottom;
+}
+/* The dome's last stretch fades into the black the cards start on. */
+.nt-realm::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 78%, #000 98%, #000 100%);
+}
+.nt-realm-copy {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(110px, 16vh, 150px) 20px 0;
+  text-align: center;
+}
+.nt-realm-eyebrow {
+  margin: 0 0 16px;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+.nt-realm-title {
+  margin: 0 0 clamp(20px, 3vw, 32px);
+  font-weight: 400;
+  font-size: clamp(42px, 8vw, 128px);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.nt-realm-sub {
+  margin: 0 0 clamp(24px, 3vw, 36px);
+  max-width: 30rem;
+  font-weight: 300;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.74);
+}
+/* The design's liquid glass button. */
+.nt-liquid {
+  position: relative;
+  overflow: hidden;
+  padding: 15px 36px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+.nt-liquid::before,
+.nt-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 20%, rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.15) 80%, rgba(255, 255, 255, 0.45) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.nt-liquid:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nt-cards {
+  position: relative;
+  margin-top: -1px;
+  padding: clamp(56px, 8vw, 110px) 0 clamp(80px, 10vw, 130px);
+  background: linear-gradient(180deg, #000 0, #000 40px, var(--nt-forest) 50%, #000 100%);
+}
+.nt-cards-title {
+  margin: 0;
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 68px);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: #fff;
+}
+.nt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nt-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 12px 12px 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 0.4s ease, transform 0.4s ease;
+}
+.nt-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateY(-3px);
+}
+.nt-card-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  margin-bottom: 8px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.nt-card-tag {
+  padding: 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--nt-lime);
+}
+.nt-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 6px;
+  font-family: "EB Garamond", "Times New Roman", serif;
+  font-size: 26px;
+}
+.nt-card-blurb {
+  padding: 0 6px;
+  font-size: 14.5px;
+  font-weight: 300;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+/* ---------------------------------------------------------------- one page */
+.nt-page {
+  background: #fff;
+}
+.nt-page-light {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 420px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.55;
+  -webkit-mask-image: linear-gradient(#000 10%, transparent);
+  mask-image: linear-gradient(#000 10%, transparent);
+}
+.nt-page-light img,
+.nt-page-light video {
+  object-position: center 70%;
+}
+.nt-page-main {
+  padding-top: 110px;
+  padding-bottom: 72px;
+  max-width: 920px;
+}
+.nt-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.nt-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.nt-h1 {
+  margin: 12px 0 0;
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  color: var(--nt-ink);
+}
+.nt-sub {
+  margin: 10px 0 0;
+  max-width: 52ch;
+  color: #3a3f33;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.5;
+}
+.nt-page .nt-panel-box {
+  margin-top: 28px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+/* Inside the light panel the calm look's greens become this theme's olive. */
+.nt-panel-box .bg-botanical-700,
+.nt-panel-box .bg-darkBtn,
+.nt-panel-box .bg-olive-500,
+.nt-panel-box .bg-deepGreen {
+  background-color: var(--nt-olive);
+}
+.nt-panel-box .text-botanical-800,
+.nt-panel-box .text-botanical-700,
+.nt-panel-box .text-deepGreen {
+  color: #3d5410;
+}
+.nt-panel-box .accent-botanical-700,
+.nt-panel-box .accent-deepGreen {
+  accent-color: var(--nt-olive);
+}
+
+/* ---------------------------------------------------------------- calm */
+@media (prefers-reduced-motion: reduce) {
+  .nt *,
+  .nt *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -4,6 +4,7 @@ import type { ToolTheme } from "./toolThemes";
 import { SpaceHome, SpaceToolFrame, SpaceToolsHome } from "./space/SpaceTools";
 import { AnimalsFrame, AnimalsHome, AnimalsToolsHome } from "./animals/AnimalsKit";
 import { OceanFrame, OceanHome, OceanToolsHome } from "./ocean/OceanKit";
+import { NatureFrame, NatureHome, NatureToolsHome } from "./nature/NatureKit";
 
 // Each designed theme's kit. Pages ask for "the home", "the tools page" or
 // "the frame" in the active theme; calm is the pages' own look.
@@ -11,6 +12,7 @@ const KITS = {
   space: { Home: SpaceHome, ToolsHome: SpaceToolsHome, Frame: SpaceToolFrame },
   animals: { Home: AnimalsHome, ToolsHome: AnimalsToolsHome, Frame: AnimalsFrame },
   ocean: { Home: OceanHome, ToolsHome: OceanToolsHome, Frame: OceanFrame },
+  nature: { Home: NatureHome, ToolsHome: NatureToolsHome, Frame: NatureFrame },
 } as const;
 
 type Designed = keyof typeof KITS;

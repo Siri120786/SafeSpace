@@ -17,6 +17,7 @@ import type { ConditionTool } from "../features/conditions/conditionTools";
 import "../features/themes/space/space.css";
 import "../features/themes/animals/animals.css";
 import "../features/themes/ocean/ocean-theme.css";
+import "../features/themes/nature/nature.css";
 import "../features/conditions/anxiety/ocean/ocean.css";
 
 // The ADHD and autism tools (role-flow 8c): a list page ("Your tools", then
