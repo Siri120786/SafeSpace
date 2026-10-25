@@ -251,7 +251,8 @@
   background: linear-gradient(#a083ff, #86a2ff 50%, #5560ff);
   box-shadow: 0 0 6px rgba(134, 162, 255, 0.45);
 }
-.hb[data-still="false"] .hb-wave i {
+.hb[data-still="false"] .hb-wave i,
+.hb[data-music="on"] .hb-wave i {
   animation: hb-bar 1.6s ease-in-out var(--d, 0s) infinite alternate;
 }
 .hb-controls {
@@ -936,4 +937,28 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(to bottom, rgba(8, 21, 62, 0) 45%, rgba(8, 21, 62, 0.84));
+}
+
+/* The card's controls: steps on the left, the music button on the right. */
+.hb-steps-nav {
+  display: flex;
+  gap: 8px;
+}
+.hb-music {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hb-music-label {
+  color: var(--hb-label);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+.hb-play[aria-pressed="true"] {
+  box-shadow: 0 0 0 6px rgba(160, 172, 255, 0.22);
+}
+@media (max-width: 420px) {
+  .hb-music-label {
+    display: none;
+  }
 }

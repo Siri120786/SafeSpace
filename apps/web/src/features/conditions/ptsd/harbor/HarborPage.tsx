@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { isExitKey } from "../../../calm-tools/lib/lowSensory";
 import { CARE_BRIDGING_TEXT, RELAXATION_STEPS, REVIEW_NOTICE, SUPPORT_TEXT } from "../../../wellness-modules/lib/content";
 import { CalmPlanCard, HarborTopics, Toolkit } from "./HarborParts";
+import { useOptionalMusicPlayer } from "../../../music";
+import { SOFT_SYMPHONY, findTrack } from "../../../music/catalog";
 
 // Safe Harbor (the PTSD module): a quiet room at blue hour, rain on the
 // window and the city blurred beyond it (the "murmur" plate and loop from the
@@ -44,6 +46,19 @@ export const HarborPage: React.FC<HarborPageProps> = ({ lowSensory, onExit, noti
   const video = useRef<HTMLVideoElement>(null);
   const raining = rain && !lowSensory;
   const last = step === RELAXATION_STEPS.length - 1;
+  // The round button plays the soft symphony, only when tapped (the same
+  // player as the Music page, so it keeps going with the mini player). Not
+  // offered when a caregiver has turned a child's music off.
+  const player = useOptionalMusicPlayer();
+  const symphony = findTrack(SOFT_SYMPHONY.id);
+  const canPlay = !!player && !!symphony && player.supported && !player.musicOff;
+  const isSymphony = player?.nowPlaying?.track.id === SOFT_SYMPHONY.id;
+  const musicOn = !!(isSymphony && player?.nowPlaying?.playing);
+  const toggleMusic = () => {
+    if (!player || !symphony) return;
+    if (isSymphony) player.togglePlay();
+    else player.playPlaylist(symphony.playlist, symphony.playlist.tracks.indexOf(symphony.track));
+  };
   const filled = Math.round(((step + 1) / RELAXATION_STEPS.length) * BARS.length);
 
   useEffect(() => {
@@ -64,7 +79,7 @@ export const HarborPage: React.FC<HarborPageProps> = ({ lowSensory, onExit, noti
   }, [raining]);
 
   return (
-    <div className="hb" data-still={raining ? "false" : "true"}>
+    <div className="hb" data-still={raining ? "false" : "true"} data-music={musicOn && !lowSensory ? "on" : "off"}>
       <div className="hb-scene" aria-hidden="true">
         <div className="hb-plate">
           <img src={HARBOR_PLATE} alt="" />
@@ -121,19 +136,35 @@ export const HarborPage: React.FC<HarborPageProps> = ({ lowSensory, onExit, noti
               ))}
             </div>
             <div className="hb-controls">
-              <button type="button" className="hb-ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>
-                Back
-              </button>
-              {last ? (
-                <button type="button" className="hb-ghost" onClick={() => setStep(0)}>
-                  Start again
+              <div className="hb-steps-nav">
+                <button type="button" className="hb-ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>
+                  Back
                 </button>
-              ) : (
-                <button type="button" className="hb-play" aria-label="Next step" onClick={() => setStep(step + 1)}>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M9 6l7 6-7 6z" />
-                  </svg>
-                </button>
+                {last ? (
+                  <button type="button" className="hb-ghost" onClick={() => setStep(0)}>
+                    Start again
+                  </button>
+                ) : (
+                  <button type="button" className="hb-ghost" onClick={() => setStep(step + 1)}>
+                    Next
+                  </button>
+                )}
+              </div>
+              {canPlay && (
+                <div className="hb-music">
+                  <span className="hb-music-label hb-mono">{musicOn ? "SOFT SYMPHONY" : "PLAY SOFT MUSIC"}</span>
+                  <button
+                    type="button"
+                    className="hb-play"
+                    aria-pressed={musicOn}
+                    aria-label={musicOn ? "Pause the soft symphony" : "Play the soft symphony"}
+                    onClick={toggleMusic}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      {musicOn ? <path d="M8 6h3v12H8zM13 6h3v12h-3z" /> : <path d="M9 6l7 6-7 6z" />}
+                    </svg>
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -144,7 +175,7 @@ export const HarborPage: React.FC<HarborPageProps> = ({ lowSensory, onExit, noti
             ABOUT THIS SPACE
           </h2>
           <p className="hb-mono">
-            This is a quiet space. Nothing moves and there is no sound unless you choose. Go at your own pace, skip any step, and leave whenever you like.
+            This is a quiet space. Nothing moves and there is no sound unless you choose: the round button plays a soft symphony if you'd like music. Go at your own pace, skip any step, and leave whenever you like.
           </p>
         </section>
         </div>
