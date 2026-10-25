@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyChildProfile, getMyChildSettings } from "@safespace/api-client";
-import type { Child, ChildSession, ChildSettings } from "@safespace/shared-types";
+import type { Child, ChildSession, ChildSettings, ChildTheme } from "@safespace/shared-types";
 import { useAuth } from "../auth";
 import { effectiveLowSensory, isSessionEnded, needsSharingQuestion } from "./childHome";
 
@@ -14,6 +14,8 @@ interface ChildSpace {
   lowSensory: boolean;
   setLowSensoryOnThisDevice: (on: boolean | null) => void;
   setSettings: (s: ChildSettings) => void;
+  // After the child picks their own theme (saved through child-settings).
+  setTheme: (theme: ChildTheme) => void;
   // Runs a child api call; if the session has ended, signs out to the PIN page.
   guard: <T>(p: Promise<T>) => Promise<T>;
 }
@@ -117,6 +119,7 @@ export const ChildSpaceProvider: React.FC<ProviderProps> = ({ children, sharingQ
         setDeviceChoice(on);
       },
       setSettings,
+      setTheme: (theme) => setChild((c) => (c ? { ...c, theme } : c)),
       guard,
     };
   }, [childSession, child, settings, deviceChoice, guard]);

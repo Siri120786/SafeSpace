@@ -26,6 +26,7 @@ function makeWorld() {
   const calls: string[] = [];
   const logs: string[] = [];
   const fail = { set: false };
+  const locked = new Set<string>();
   const handler = createChildSettingsHandler({
     store: {
       async getChild(id) { calls.push(`get ${id}`); return rows[id] ?? null; },
@@ -34,6 +35,10 @@ function makeWorld() {
         if (fail.set) throw Object.assign(new Error("db down"), { code: "PGRST301" });
         rows[id].shares_with_caregiver = share;
         rows[id].sharing_decided_at = NOW.toISOString();
+      },
+      async setTheme(id, theme) {
+        calls.push(`theme ${id} ${theme}`);
+        if (locked.has(id)) throw new Error("theme_locked");
       },
     },
     verifyChildToken,
@@ -51,7 +56,7 @@ function makeWorld() {
     try { j = JSON.parse(text); } catch { /* preflight */ }
     return { status: res.status, json: j, text };
   };
-  return { call, calls, logs, fail, rows };
+  return { call, calls, logs, fail, rows, locked };
 }
 
 const tKid = await signChildToken(KID);
@@ -97,4 +102,20 @@ const tTurning = await signChildToken(TURNING);
   const r = await w.call({ action: "set_sharing", share: false, child_session_token: tTeen });
   ok("a store failure is 500 with nothing leaked, logged by code only",
     r.status === 500 && !r.text.includes("db down") && w.logs.length === 1 && w.logs[0] === "unhandled_exception PGRST301");
+}
+{
+  const w = makeWorld();
+  const r = await w.call({ action: "set_theme", theme: "space", child_session_token: tKid });
+  ok("a child picks their own theme", r.status === 200 && r.json.theme === "space" && w.calls.includes(`theme ${KID} space`));
+  ok("only the seven themes, checked before the database",
+    (await w.call({ action: "set_theme", theme: "pirates", child_session_token: tKid })).json.error === "invalid_input" &&
+    (await w.call({ action: "set_theme", child_session_token: tKid })).json.error === "invalid_input" &&
+    !w.calls.some((c) => c.includes("pirates")));
+  ok("a bad token picks nothing",
+    (await w.call({ action: "set_theme", theme: "ocean", child_session_token: "nope" })).status === 401 &&
+    !w.calls.some((c) => c.includes("ocean")));
+  w.locked.add(KID);
+  const l = await w.call({ action: "set_theme", theme: "ocean", child_session_token: tKid });
+  ok("a locked theme is refused with theme_locked (409), not logged as a failure",
+    l.status === 409 && l.json.error === "theme_locked" && w.logs.length === 0);
 }

@@ -14,6 +14,7 @@ import { InputField } from "../../../components/ui/InputField";
 import { Button } from "../../../components/ui/Button";
 import { BrainMascot } from "../../../components/vectors/BrainMascot";
 import { useAccessibility } from "../context/AccessibilityContext";
+import { forgetSupportAreas } from "../../themes/useAppTheme";
 
 const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon: string }[] = [
   { key: "anxiety", label: "Anxiety Support", desc: "Breathing, grounding & gentle reframing", icon: "🌱" },
@@ -131,7 +132,8 @@ export const ProfileScreen: React.FC = () => {
       await updateUserProfile(profileId, { displayName: displayName.trim() });
 
       // 2. Save Support Preferences
-      await saveSupportPreferences({
+      forgetSupportAreas();
+        await saveSupportPreferences({
         profileId,
         supportAreas,
       });

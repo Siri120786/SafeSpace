@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import type { ChildTheme } from "@safespace/shared-types";
 import { useChildSpace } from "./ChildSpaceContext";
 import { CHILD_THEME_LOOKS, childThemeLook } from "./childThemes";
+import { useAppTheme } from "../themes/useAppTheme";
+import { SpaceToolFrame } from "../themes/space/SpaceTools";
 
 export const THEME_EMOJI = Object.fromEntries(
   Object.entries(CHILD_THEME_LOOKS).map(([k, v]) => [k, v.emoji]),
@@ -17,9 +19,18 @@ interface Props {
 
 // Frame for every child page: the theme's soft background, a big title in
 // the theme's colour, a way home. Low-sensory mode drops motion and always
-// uses the calm look (role-flow 8d).
+// uses the calm look (role-flow 8d). A child with the ADHD or autism module
+// in a designed theme (Space) gets that theme's frame instead.
 export const ChildPageShell: React.FC<Props> = ({ title, backTo, actions, children }) => {
   const { child, lowSensory } = useChildSpace();
+  const { active } = useAppTheme();
+  if (active === "space") {
+    return (
+      <SpaceToolFrame eyebrow="My space" title={title} backTo={backTo} backLabel="Home" actions={actions}>
+        {children}
+      </SpaceToolFrame>
+    );
+  }
   const look = childThemeLook(child.theme, lowSensory);
   const accent = child.theme ? THEME_EMOJI[child.theme] : null;
   return (

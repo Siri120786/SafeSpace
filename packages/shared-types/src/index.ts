@@ -52,6 +52,7 @@ export interface Child {
   ageYears: number;               // calculated from birth month/year
   sharing: ChildSharingStatus;    // docs/role-flow/CONTRACT.md section 5
   theme: ChildTheme | null;
+  themeLocked: boolean;           // a caregiver locked the theme; the child can't change it
   lowSensoryDefault: boolean;
   assignedModules: ModuleKey[];
   myRole?: ChildCaregiverRole;    // caregiver views only: the caller's role

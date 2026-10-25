@@ -3,12 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth";
 import { ChildPageShell, SharingChoice, useChildSpace } from "../features/child-space";
 import { ROUTES } from "../routes";
+import { ToolThemePicker, useAppTheme } from "../features/themes";
 
-// /child/settings: the 15+ sharing choice and low-sensory mode on this device.
+// /child/settings: the 15+ sharing choice, low-sensory mode on this device and
+// (with the ADHD or autism module, unless a grown-up locked it) the theme.
 export const ChildSettingsPage: React.FC = () => {
   const { child, settings, setSettings, lowSensory, setLowSensoryOnThisDevice } = useChildSpace();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const theme = useAppTheme();
   const box = "rounded-3xl bg-white p-5 shadow-card space-y-3";
 
   return (
@@ -25,6 +28,17 @@ export const ChildSettingsPage: React.FC = () => {
           </>
         )}
       </section>
+
+      {theme.offered && (
+        <section className={box}>
+          <h2 className="font-display text-xl font-bold">My theme</h2>
+          {theme.canChoose ? (
+            <ToolThemePicker look="plain" value={theme.chosen} onChange={theme.choose} lowSensory={theme.lowSensory} />
+          ) : (
+            <p className="text-sm text-charcoal/80">Your grown-up chose this theme for you.</p>
+          )}
+        </section>
+      )}
 
       <section className={box}>
         <h2 className="font-display text-xl font-bold">Calm mode</h2>

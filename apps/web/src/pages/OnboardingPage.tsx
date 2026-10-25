@@ -18,6 +18,7 @@ import { InputField } from "../components/ui/InputField";
 import { Button } from "../components/ui/Button";
 import { BrainMascot } from "../components/vectors/BrainMascot";
 import { LeafCluster } from "../components/vectors/LeafFrame";
+import { forgetSupportAreas } from "../features/themes/useAppTheme";
 
 const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon: string }[] = [
   { key: "anxiety", label: "Anxiety & Calm", desc: "Breathing, grounding & gentle reframing", icon: "🌱" },
@@ -166,6 +167,7 @@ export const OnboardingPage: React.FC = () => {
       if (currentStep === 1 && displayName.trim() && displayName.trim() !== session.profile.displayName) {
         await updateUserProfile(profileId, { displayName: displayName.trim() });
       } else if (currentStep === 2 && !isCaregiver) {
+        forgetSupportAreas();
         await saveSupportPreferences({ profileId, supportAreas: userSupportAreas }).catch(() => null);
       } else if (currentStep === 3 && !isCaregiver) {
         await saveAccessibilityPreferences({ profileId, ...accessibility }).catch(() => null);
@@ -233,6 +235,7 @@ export const OnboardingPage: React.FC = () => {
         }
       } else {
         // INDIVIDUAL USER FLOW: Save adult support & accessibility preferences
+        forgetSupportAreas();
         await saveSupportPreferences({
           profileId,
           supportAreas: userSupportAreas,

@@ -5,6 +5,7 @@
 // Actions:
 //   get          { child_session_token }
 //   set_sharing  { child_session_token, share: boolean }   (15 or over only)
+//   set_theme    { child_session_token, theme }            (unless a caregiver locked it)
 //
 // set_sharing is the ONLY way the "share with my caregivers" choice changes;
 // caregivers can't change it. No Deno or esm.sh imports here; index.ts wires
@@ -26,7 +27,12 @@ export interface ChildSettingsStore {
   getChild(childId: string): Promise<ChildSettingsRow | null>;
   // Calls set_child_sharing(); throws its errors (sharing_not_available_under_15).
   setSharing(childId: string, share: boolean): Promise<void>;
+  // Calls set_child_own_theme(); throws its errors (theme_locked, invalid_input).
+  setTheme(childId: string, theme: string): Promise<void>;
 }
+
+// The seven themes, as in migration 20261028100000.
+export const CHILD_THEMES = ["space", "ocean", "dinosaurs", "trains", "calm", "animals", "nature"] as const;
 
 export interface ChildSettingsDeps {
   store: ChildSettingsStore;
@@ -56,17 +62,22 @@ export function createChildSettingsHandler(deps: ChildSettingsDeps) {
     try {
       const text = await req.text();
       if (text.length > MAX_BODY_BYTES) return json({ error: "payload_too_large" }, 413);
-      let body: { action?: unknown; child_session_token?: unknown; share?: unknown };
+      let body: { action?: unknown; child_session_token?: unknown; share?: unknown; theme?: unknown };
       try {
         body = JSON.parse(text) ?? {};
       } catch {
         return json({ error: "invalid_request" }, 400);
       }
-      if (body.action !== "get" && body.action !== "set_sharing") return json({ error: "invalid_action" }, 400);
+      if (body.action !== "get" && body.action !== "set_sharing" && body.action !== "set_theme") {
+        return json({ error: "invalid_action" }, 400);
+      }
       if (typeof body.child_session_token !== "string" || !body.child_session_token) {
         return json({ error: "invalid_session" }, 401);
       }
       if (body.action === "set_sharing" && typeof body.share !== "boolean") {
+        return json({ error: "invalid_input" }, 400);
+      }
+      if (body.action === "set_theme" && !(CHILD_THEMES as readonly unknown[]).includes(body.theme)) {
         return json({ error: "invalid_input" }, 400);
       }
 
@@ -77,6 +88,11 @@ export function createChildSettingsHandler(deps: ChildSettingsDeps) {
       if (!row) return json({ error: "not_found" }, 404);
 
       if (body.action === "get") return json({ settings: toSettings(row, now()) });
+
+      if (body.action === "set_theme") {
+        await deps.store.setTheme(childId, body.theme as string);
+        return json({ theme: body.theme });
+      }
 
       // set_sharing: refuse under 15 here for a clear error; the database refuses too.
       if (childAgeYears(row.birth_year, row.birth_month, now()) < CAREGIVER_VISIBILITY_AGE) {
@@ -89,6 +105,7 @@ export function createChildSettingsHandler(deps: ChildSettingsDeps) {
       if ((e as Error)?.message?.includes("sharing_not_available_under_15")) {
         return json({ error: "sharing_not_available_under_15" }, 400);
       }
+      if ((e as Error)?.message?.includes("theme_locked")) return json({ error: "theme_locked" }, 409);
       deps.log("unhandled_exception", errorSummary(e));
       return json({ error: "internal_error" }, 500);
     }

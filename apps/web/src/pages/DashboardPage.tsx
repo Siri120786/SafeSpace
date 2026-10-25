@@ -14,6 +14,8 @@ import { ChatWindow } from "../features/ai-companion";
 import { TodayCard } from "../features/my-tools";
 import { ROUTES } from "../routes";
 import { individualToolPath, splitConditionTools } from "../features/conditions";
+import { SpaceHome, SpaceTiles, ToolThemePicker, useAppTheme, type SpaceTile } from "../features/themes";
+import { SPACE_CARD_CLIPS } from "../features/themes/space/media";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -48,6 +50,9 @@ export const DashboardPage: React.FC = () => {
   const { session, logout, loading } = useAuth();
   const [supportAreas, setSupportAreas] = useState<ModuleKey[]>([]);
   const [accessibility, setAccessibility] = useState<ProfileAccessibilityPreferences | null>(null);
+  // Space (or another designed theme) for the ADHD or autism module.
+  const theme = useAppTheme();
+  const space = theme.active === "space";
 
   // Active Navigation Tab
   const [activeTab, setActiveTab] = useState<NavTab>("home");
@@ -121,6 +126,208 @@ export const DashboardPage: React.FC = () => {
   const closePlayer = () => {
     setActiveSession((prev) => ({ ...prev, isOpen: false }));
   };
+
+  const conditionTools = splitConditionTools(supportAreas);
+  const tiles: SpaceTile[] = [
+    // Tools for their support areas first, the rest under More tools (role-flow 8c).
+    ...conditionTools.mine.map((t) => ({ to: individualToolPath(t.key), label: t.label, emoji: t.emoji })),
+    ...TOOL_TILES.map((t) => ({ to: t.to, label: t.label, emoji: t.icon })),
+    // Always a way to the tools page; named for what it adds.
+    {
+      to: ROUTES.TOOLS,
+      label: conditionTools.more.length === 0 ? "All my tools" : conditionTools.mine.length ? "More tools" : "Focus & feelings",
+      emoji: "🧰",
+    },
+  ];
+
+  const homeView = (
+    <>
+      {/* Active Support Preferences Summary */}
+      <Card className="p-6 md:p-8 space-y-4 border border-white">
+        <div>
+          <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
+            Your Selected Support Areas
+          </span>
+          <p className="text-xs text-textMuted font-light mt-2">
+            Personalized focus areas configured during onboarding.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2.5 pt-1">
+          {supportAreas.length > 0 ? (
+            supportAreas.map((area) => (
+              <Chip
+                key={area}
+                label={SUPPORT_LABELS[area] || area}
+                variant="olive"
+                size="md"
+              />
+            ))
+          ) : (
+            <p className="text-xs text-textMuted italic">No support areas selected yet.</p>
+          )}
+        </div>
+      </Card>
+
+      {!space && theme.canChoose && (
+        <Card className="p-5 border border-olive-100">
+          <ToolThemePicker look="plain" value={theme.chosen} onChange={theme.choose} lowSensory={theme.lowSensory} />
+        </Card>
+      )}
+
+      <TodayCard session={session} routinesPath={ROUTES.ROUTINES} remindersPath={ROUTES.REMINDERS} />
+
+      {!space && (
+      <nav aria-label="Your tools" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {tiles.map((t) => (
+          <button
+            key={t.to}
+            type="button"
+            onClick={() => navigate(t.to)}
+            className="flex flex-col items-center gap-1 rounded-2xl border border-olive-100 bg-white px-3 py-4 text-sm font-medium text-textHeading hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500"
+          >
+            <span aria-hidden="true" className="text-2xl">{t.emoji}</span>
+            {t.label}
+          </button>
+        ))}
+      </nav>
+      )}
+
+      {/* Daily Mood Check-In Entry Card */}
+      <Card className="p-5 border border-olive-100 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-olive-50 text-deepGreen flex items-center justify-center text-xl shrink-0">
+            🌱
+          </div>
+          <div>
+            <h4 className="font-display text-base font-medium text-textHeading">Daily Mood Check-in</h4>
+            <p className="text-xs text-textMuted font-light">How are you feeling right now?</p>
+          </div>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => navigate(ROUTES.MOOD_CHECK_IN)}
+        >
+          Check in
+        </Button>
+      </Card>
+
+      {/* Insight Card: Meditating Mascot */}
+      <Card className="p-6 md:p-8 bg-gradient-to-r from-olive-50/80 via-white to-paleLime/40 border border-olive-200/60 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          {space ? (
+            <img src={SPACE_CARD_CLIPS.feelings.still} alt="" aria-hidden="true" className="h-[110px] w-[110px] shrink-0 rounded-3xl object-cover" />
+          ) : (
+            <BrainMascot stance="meditating" size={110} />
+          )}
+          <div className="space-y-1 text-left">
+            <span className="text-xs font-bold uppercase tracking-wider text-deepGreen bg-white/80 px-2.5 py-0.5 rounded-full shadow-xs">
+              Guided Breathing
+            </span>
+            <h3 className="font-display text-xl font-medium text-textHeading">
+              "Rest is productive too."
+            </h3>
+            <p className="text-xs text-textMuted font-light">
+              Taking 5 minutes to reset clears mental clutter and restores calm.
+            </p>
+          </div>
+        </div>
+
+        <Button
+          variant="primary"
+          size="md"
+          onClick={() => openPlayer("Deep Calm", 5, "Breathing")}
+          className="shrink-0"
+        >
+          Start a quick session
+        </Button>
+      </Card>
+
+      {/* Guided Reset Exercises */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-xl font-medium text-textHeading">
+            Guided Calming Resets
+          </h3>
+          <span className="text-xs text-textMuted font-light">3 exercises</span>
+          <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.CALM_SPACE)}>
+            Open Calm Space
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/modules")}>
+            Open modules
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {SESSIONS_RECOMMENDED.map((sess) => (
+            <Card
+              key={sess.id}
+              hoverable
+              onClick={() => openPlayer(sess.title, sess.duration, sess.category)}
+              className="p-5 flex flex-col justify-between border border-olive-100/80 hover:border-olive-300 gap-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-olive-50 text-deepGreen flex items-center justify-center text-lg shrink-0">
+                  {sess.icon}
+                </div>
+                <div>
+                  <h4 className="font-display text-base font-medium text-textHeading">
+                    {sess.title}
+                  </h4>
+                  <p className="text-xs text-textMuted font-light">
+                    {sess.duration} min • {sess.category}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <div className="w-8 h-8 rounded-full bg-darkBtn text-white flex items-center justify-center text-xs shadow-pill">
+                  ▶
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+
+  const player = (
+    <SessionPlayerModal
+      isOpen={activeSession.isOpen}
+      onClose={closePlayer}
+      title={activeSession.title}
+      durationMinutes={activeSession.duration}
+      category={activeSession.category}
+    />
+  );
+
+  // The dashboard in Space: the greeting over the little astronaut, the day
+  // on a light panel, and every page as a glass tile (Profile included, as
+  // there is no sidebar here).
+  if (space) {
+    return (
+      <>
+        <SpaceHome
+          eyebrow="Your space"
+          greeting={`Hi, ${displayName}`}
+          line="Welcome back. Take your time, breathe, and explore."
+          barExtra={
+            <button type="button" className="sp-pill sp-glass" onClick={logout}>
+              Sign out
+            </button>
+          }
+          picker={theme.canChoose ? <ToolThemePicker look="space" value={theme.chosen} onChange={theme.choose} /> : undefined}
+          after={<SpaceTiles tiles={[...tiles, { to: ROUTES.PROFILE, label: "Profile", emoji: "👤" }]} label="Your tools" />}
+        >
+          <RoleNotice />
+          {homeView}
+        </SpaceHome>
+        {player}
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream via-[#FAF7F2] to-paleLime/30 text-textHeading font-sans pb-24 relative overflow-x-hidden">
@@ -224,153 +431,7 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* TAB: HOME VIEW */}
-            {activeTab === "home" && (
-              <>
-                {/* Active Support Preferences Summary */}
-                <Card className="p-6 md:p-8 space-y-4 border border-white">
-                  <div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-                      Your Selected Support Areas
-                    </span>
-                    <p className="text-xs text-textMuted font-light mt-2">
-                      Personalized focus areas configured during onboarding.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2.5 pt-1">
-                    {supportAreas.length > 0 ? (
-                      supportAreas.map((area) => (
-                        <Chip
-                          key={area}
-                          label={SUPPORT_LABELS[area] || area}
-                          variant="olive"
-                          size="md"
-                        />
-                      ))
-                    ) : (
-                      <p className="text-xs text-textMuted italic">No support areas selected yet.</p>
-                    )}
-                  </div>
-                </Card>
-
-                <TodayCard session={session} routinesPath={ROUTES.ROUTINES} remindersPath={ROUTES.REMINDERS} />
-
-                <nav aria-label="Your tools" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    // Tools for their support areas first, the rest under More tools (role-flow 8c).
-                    ...splitConditionTools(supportAreas).mine.map((t) => ({ to: individualToolPath(t.key), label: t.label, icon: t.emoji })),
-                    ...TOOL_TILES,
-                    ...(splitConditionTools(supportAreas).more.length > 0
-                      ? [{ to: ROUTES.TOOLS, label: splitConditionTools(supportAreas).mine.length ? "More tools" : "Focus & feelings", icon: "🧰" }]
-                      : []),
-                  ].map((t) => (
-                    <button
-                      key={t.to}
-                      type="button"
-                      onClick={() => navigate(t.to)}
-                      className="flex flex-col items-center gap-1 rounded-2xl border border-olive-100 bg-white px-3 py-4 text-sm font-medium text-textHeading hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500"
-                    >
-                      <span aria-hidden="true" className="text-2xl">{t.icon}</span>
-                      {t.label}
-                    </button>
-                  ))}
-                </nav>
-
-                {/* Daily Mood Check-In Entry Card */}
-                <Card className="p-5 border border-olive-100 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-olive-50 text-deepGreen flex items-center justify-center text-xl shrink-0">
-                      🌱
-                    </div>
-                    <div>
-                      <h4 className="font-display text-base font-medium text-textHeading">Daily Mood Check-in</h4>
-                      <p className="text-xs text-textMuted font-light">How are you feeling right now?</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => navigate(ROUTES.MOOD_CHECK_IN)}
-                  >
-                    Check in
-                  </Button>
-                </Card>
-
-                {/* Insight Card: Meditating Mascot */}
-                <Card className="p-6 md:p-8 bg-gradient-to-r from-olive-50/80 via-white to-paleLime/40 border border-olive-200/60 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex items-center gap-5">
-                    <BrainMascot stance="meditating" size={110} />
-                    <div className="space-y-1 text-left">
-                      <span className="text-xs font-bold uppercase tracking-wider text-deepGreen bg-white/80 px-2.5 py-0.5 rounded-full shadow-xs">
-                        Guided Breathing
-                      </span>
-                      <h3 className="font-display text-xl font-medium text-textHeading">
-                        "Rest is productive too."
-                      </h3>
-                      <p className="text-xs text-textMuted font-light">
-                        Taking 5 minutes to reset clears mental clutter and restores calm.
-                      </p>
-                    </div>
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    size="md"
-                    onClick={() => openPlayer("Deep Calm", 5, "Breathing")}
-                    className="shrink-0"
-                  >
-                    Start a quick session
-                  </Button>
-                </Card>
-
-                {/* Guided Reset Exercises */}
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-display text-xl font-medium text-textHeading">
-                      Guided Calming Resets
-                    </h3>
-                    <span className="text-xs text-textMuted font-light">3 exercises</span>
-                    <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.CALM_SPACE)}>
-                      Open Calm Space
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => navigate("/modules")}>
-                      Open modules
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {SESSIONS_RECOMMENDED.map((sess) => (
-                      <Card
-                        key={sess.id}
-                        hoverable
-                        onClick={() => openPlayer(sess.title, sess.duration, sess.category)}
-                        className="p-5 flex flex-col justify-between border border-olive-100/80 hover:border-olive-300 gap-4"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-olive-50 text-deepGreen flex items-center justify-center text-lg shrink-0">
-                            {sess.icon}
-                          </div>
-                          <div>
-                            <h4 className="font-display text-base font-medium text-textHeading">
-                              {sess.title}
-                            </h4>
-                            <p className="text-xs text-textMuted font-light">
-                              {sess.duration} min • {sess.category}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                          <div className="w-8 h-8 rounded-full bg-darkBtn text-white flex items-center justify-center text-xs shadow-pill">
-                            ▶
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </section>
-              </>
-            )}
+            {activeTab === "home" && homeView}
 
             {/* TAB: SESSIONS VIEW */}
             {activeTab === "sessions" && (
@@ -473,13 +534,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Guided Breathing Session Player Modal */}
-      <SessionPlayerModal
-        isOpen={activeSession.isOpen}
-        onClose={closePlayer}
-        title={activeSession.title}
-        durationMinutes={activeSession.duration}
-        category={activeSession.category}
-      />
+      {player}
     </div>
   );
 };

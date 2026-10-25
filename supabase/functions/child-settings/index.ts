@@ -27,6 +27,11 @@ const store: ChildSettingsStore = {
     const { error } = await admin.rpc("set_child_sharing", { p_child_id: childId, p_share: share });
     if (error) throw error;
   },
+
+  async setTheme(childId, theme) {
+    const { error } = await admin.rpc("set_child_own_theme", { p_child_id: childId, p_theme: theme });
+    if (error) throw error;
+  },
 };
 
 serve(createChildSettingsHandler({ store, verifyChildToken, log }));

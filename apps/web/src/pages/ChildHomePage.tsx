@@ -16,6 +16,7 @@ import { ROUTES } from "../routes";
 import { childToolPath, splitConditionTools } from "../features/conditions";
 import { ReadAloudButton, reminderSpeech } from "../features/speech";
 import { useMusicPlayer } from "../features/music";
+import { SpaceHome, SpaceTiles, ToolThemePicker, useAppTheme } from "../features/themes";
 
 const REFRESH_MS = 60_000;
 
@@ -38,10 +39,13 @@ const emojiFor = (s: DayStep) => (s.icon ? ROUTINE_STEP_ICONS[s.icon]?.emoji : n
 
 // /child: Today. Now / Next from the routine schedule (P1), steps to tick off,
 // reminders that are due or in their heads-up (P2), and a tile for every tool.
+// In a designed theme (Space, for the ADHD or autism module) the same day
+// sits on a light panel under the theme's greeting, with glass tiles.
 export const ChildHomePage: React.FC = () => {
   const { session, child, guard } = useChildSpace();
   const tools = splitConditionTools(child.assignedModules);
   const { musicOff } = useMusicPlayer();
+  const theme = useAppTheme();
   const [now, setNow] = useState(() => new Date());
   const [routines, setRoutines] = useState<RoutineWithSteps[] | null>(null);
   const [due, setDue] = useState<DueReminder[]>([]);
@@ -97,8 +101,21 @@ export const ChildHomePage: React.FC = () => {
   const plan = routines ? nowNext(routines, now) : null;
   const reminders = openReminders(due);
 
-  return (
-    <ChildPageShell title={`Hi ${child.name}!`}>
+  const tiles = [
+    // The tools for this child's own modules first (role-flow 8c).
+    ...tools.mine.map((t) => ({ to: childToolPath(t.key), label: t.label, emoji: t.emoji })),
+    ...TILES.slice(0, 2),
+    // Hidden when their caregiver has turned music off (role-flow 9c).
+    ...(musicOff ? [] : [MUSIC_TILE]),
+    ...TILES.slice(2),
+    ...(childModuleKeys(child.assignedModules).length > 0 ? [MODULES_TILE] : []),
+    // Always a way to the tools page; named for what it adds.
+    { to: ROUTES.CHILD_TOOLS, label: tools.more.length === 0 ? "All my tools" : tools.mine.length ? "More tools" : "Focus & feelings", emoji: "🧰" },
+    SETTINGS_TILE,
+  ];
+
+  const today = (
+    <>
       {error && <p role="alert" className="rounded-2xl bg-white px-4 py-3 text-sm text-red-700">{error}</p>}
 
       {reminders.length > 0 && (
@@ -168,18 +185,29 @@ export const ChildHomePage: React.FC = () => {
         </section>
       )}
 
+    </>
+  );
+
+  if (theme.active === "space") {
+    return (
+      <SpaceHome
+        eyebrow="My space"
+        greeting={`Hi ${child.name}!`}
+        line="Here's your day. One little step at a time."
+        picker={theme.canChoose ? <ToolThemePicker look="space" value={theme.chosen} onChange={theme.choose} /> : undefined}
+        after={<SpaceTiles tiles={tiles} label="My tools" />}
+      >
+        {today}
+      </SpaceHome>
+    );
+  }
+
+  return (
+    <ChildPageShell title={`Hi ${child.name}!`}>
+      {today}
+
       <nav aria-label="My tools" className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[
-          // The tools for this child's own modules first (role-flow 8c).
-          ...tools.mine.map((t) => ({ to: childToolPath(t.key), label: t.label, emoji: t.emoji })),
-          ...TILES.slice(0, 2),
-          // Hidden when their caregiver has turned music off (role-flow 9c).
-          ...(musicOff ? [] : [MUSIC_TILE]),
-          ...TILES.slice(2),
-          ...(childModuleKeys(child.assignedModules).length > 0 ? [MODULES_TILE] : []),
-          ...(tools.more.length > 0 ? [{ to: ROUTES.CHILD_TOOLS, label: tools.mine.length ? "More tools" : "Focus & feelings", emoji: "🧰" }] : []),
-          SETTINGS_TILE,
-        ].map((t) => (
+        {tiles.map((t) => (
           <Link
             key={t.to}
             to={t.to}

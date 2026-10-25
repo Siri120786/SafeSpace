@@ -1,0 +1,775 @@
+/* The Space theme for the ADHD and autism tools (see SpaceTools.tsx).
+   Everything is scoped to .sp. Still by default; the clips, the drifting
+   stars and Nova's floating run only while playing (data-playing="true"),
+   and always slowly. */
+
+.sp {
+  --sp-navy: #010828;
+  --sp-cream: #eff4ff;
+  --sp-muted: #c3cbe6;
+  --sp-mint: #b8f5a8;
+  --sp-glow: #8fb4ff;
+  position: relative;
+  min-height: 100vh;
+  color: var(--sp-cream);
+  background: var(--sp-navy);
+  font-family: "Inter", system-ui, sans-serif;
+  overflow-x: clip;
+}
+.sp-script {
+  font-family: "Condiment", cursive;
+  text-transform: none;
+  font-weight: 400;
+}
+.sp-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 48px);
+}
+
+/* ---------------------------------------------------------------- glass */
+.sp-glass {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  border: none;
+}
+.sp-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.12) 20%, rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.12) 80%, rgba(255, 255, 255, 0.4) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- bar */
+.sp-bar {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px clamp(16px, 4vw, 48px);
+}
+.sp-mark {
+  font-family: "Anton", sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sp-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.sp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 10px 18px;
+  color: var(--sp-cream);
+  font-family: "Anton", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  background: rgba(1, 8, 40, 0.45);
+  transition: background-color 0.3s ease;
+}
+.sp-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.sp-pill-icon {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 10px;
+}
+.sp :focus-visible {
+  outline: 3px solid var(--sp-mint);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- hero
+   A 1440x810 frame that covers the section (frame units: --u), resting on
+   its bottom edge. On wide screens the section is the frame's own height, so
+   the sky above Nova is never cut off. On phones it is drawn a little smaller than the screen's
+   height, so the words above Nova sit in clear sky. */
+.sp-hero {
+  position: relative;
+  height: max(100svh, 560px, 56.25vw);
+  overflow: hidden;
+  background: #02030a; /* the plate's own sky, so no seam above it */
+  container-type: size;
+  --u: max(calc(100cqw / 1440), calc(100cqh / 810));
+}
+.sp-frame {
+  position: absolute;
+  width: calc(1440 * var(--u));
+  height: calc(810 * var(--u));
+  left: calc(50% - 720 * var(--u));
+  bottom: 0;
+}
+.sp-plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: block;
+}
+.sp-head {
+  position: absolute;
+  left: calc(510 * var(--u));
+  top: calc(255 * var(--u));
+  width: calc(435 * var(--u));
+  height: calc(450 * var(--u));
+  max-width: none;
+  object-fit: fill;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 46%, #000 72%, transparent 99%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 46%, #000 72%, transparent 99%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.sp-head[data-ready="true"] {
+  opacity: 1;
+}
+.sp-helmet {
+  position: absolute;
+  left: calc(533 * var(--u));
+  top: calc(288 * var(--u));
+  width: calc(360 * var(--u));
+  height: calc(360 * var(--u));
+  max-width: none;
+  mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(#000 76%, transparent 92%);
+  mask-image: linear-gradient(#000 76%, transparent 92%);
+  opacity: 0;
+  transform: translateY(calc(-70 * var(--u)));
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.sp-helmet[data-on="true"] {
+  opacity: 1;
+  transform: none;
+}
+.sp-push {
+  position: absolute;
+  left: calc(675 * var(--u));
+  top: calc(720 * var(--u));
+  width: calc(75 * var(--u));
+  height: calc(75 * var(--u));
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: calc(4 * var(--u)) solid #3a1010;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+  background: radial-gradient(circle at 35% 30%, #ff8a80, #e53935 45%, #a31515 100%);
+  color: #fff;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: max(9px, calc(16.5 * var(--u)));
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.32s ease, box-shadow 0.6s ease;
+}
+.sp-push:active {
+  transform: scale(0.9);
+}
+.sp-push[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35), 0 0 calc(28 * var(--u)) rgba(255, 90, 80, 0.55);
+}
+.sp-hero-copy {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  top: max(80px, calc(100% - 712 * var(--u)));
+  padding: 0 16px;
+  text-align: center;
+  pointer-events: none;
+}
+.sp-eyebrow {
+  margin: 0 0 8px;
+  color: var(--sp-muted);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.sp-hello {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  font-family: "Anton", sans-serif;
+  font-weight: 400;
+  font-size: max(40px, min(calc(84 * var(--u)), 9cqw));
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.35), 0 0 34px rgba(143, 180, 255, 0.35), 0 0 70px rgba(70, 110, 255, 0.35);
+}
+.sp-hello-accent {
+  position: absolute;
+  right: -0.25em;
+  bottom: -0.42em;
+  font-size: 0.72em;
+  line-height: 0.8;
+  color: var(--sp-mint);
+  text-shadow: none;
+  transform: rotate(-4deg);
+  opacity: 0.92;
+}
+.sp-sub {
+  margin: 20px auto 0;
+  max-width: 52ch;
+  color: var(--sp-muted);
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.5;
+}
+@media (max-width: 560px) {
+  .sp-hero {
+    --u: max(calc(100cqw / 1440), calc(100cqh * 0.7 / 810));
+  }
+  .sp-hero-copy {
+    top: 76px;
+  }
+  .sp-hello span:not(.sp-hello-accent) {
+    display: block;
+  }
+  .sp-sub {
+    margin-top: 22px;
+  }
+}
+
+/* ---------------------------------------------------------------- tools */
+.sp-tools {
+  position: relative;
+  padding: clamp(56px, 8vw, 104px) 0;
+  overflow: hidden;
+}
+.sp-sky {
+  position: absolute;
+  inset: -50% 0 0;
+  background-image: radial-gradient(1.2px 1.2px at 12% 18%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1px 1px at 32% 62%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.4px 1.4px at 58% 28%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 78% 74%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(1.2px 1.2px at 90% 12%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 46% 90%, rgba(255, 255, 255, 0.4), transparent 60%);
+  background-size: 420px 420px;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.sp[data-playing="true"] .sp-sky {
+  animation: sp-drift 140s linear infinite;
+}
+@keyframes sp-drift {
+  to {
+    transform: translateY(420px);
+  }
+}
+.sp-tools-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: clamp(32px, 5vw, 64px);
+}
+.sp-h2 {
+  margin: 0;
+  font-family: "Anton", sans-serif;
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.sp-line {
+  display: block;
+}
+.sp-indent {
+  margin-left: clamp(40px, 7vw, 120px);
+}
+.sp-h2-accent {
+  color: var(--sp-mint);
+  font-size: 1.1em;
+}
+
+/* The "Pick a theme" button and its list. */
+.sp-pick-wrap {
+  position: relative;
+}
+.sp-pick {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--sp-cream);
+  font-family: "Anton", sans-serif;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+.sp-pick-big {
+  font-size: clamp(36px, 4.6vw, 60px);
+  line-height: 1;
+}
+.sp-pick-small {
+  font-size: clamp(18px, 2.2vw, 28px);
+  line-height: 1;
+}
+.sp-pick-bar {
+  grid-column: 1 / -1;
+  height: clamp(6px, 0.7vw, 9px);
+  margin-top: 10px;
+  border-radius: 2px;
+  background: var(--sp-mint);
+  transition: transform 0.4s ease;
+  transform-origin: left;
+}
+.sp-pick:hover .sp-pick-bar {
+  transform: scaleX(0.92);
+}
+.sp-themes {
+  position: absolute;
+  z-index: 5;
+  right: 0;
+  top: calc(100% + 12px);
+  display: grid;
+  gap: 4px;
+  min-width: 220px;
+  margin: 0;
+  padding: 10px;
+  list-style: none;
+  border-radius: 20px;
+  background: rgba(1, 8, 40, 0.88);
+}
+.sp-theme {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--sp-cream);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.sp-theme:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+.sp-theme[aria-pressed="true"] {
+  background: rgba(184, 245, 168, 0.14);
+  font-weight: 600;
+}
+.sp-theme:disabled {
+  color: #8d96b8;
+  cursor: default;
+}
+.sp-theme-soon {
+  margin-left: auto;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* The tool cards. */
+.sp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+  padding: 16px;
+  border-radius: 32px;
+  color: var(--sp-cream);
+  text-decoration: none;
+  transition: background-color 0.4s ease;
+}
+.sp-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.sp-card-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 24px;
+  overflow: hidden;
+}
+.sp-media {
+  position: absolute;
+  inset: 0;
+}
+.sp-media img,
+.sp-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.sp-media video {
+  animation: sp-fade 1.2s ease both;
+}
+@keyframes sp-fade {
+  from {
+    opacity: 0;
+  }
+}
+.sp-card-bar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 12px 18px;
+  border-radius: 20px;
+  background: rgba(1, 8, 40, 0.42);
+}
+.sp-card-tag {
+  display: block;
+  color: rgba(239, 244, 255, 0.78);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.sp-card-title {
+  display: block;
+  font-family: "Anton", sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.sp-arrow {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, #8d86ff, #5a67f2);
+  box-shadow: 0 6px 18px rgba(90, 103, 242, 0.35);
+  transition: transform 0.4s ease;
+}
+.sp-card:hover .sp-arrow {
+  transform: translateX(3px);
+}
+.sp-card-blurb {
+  padding: 0 6px 4px;
+  color: var(--sp-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------- closing */
+.sp-closing {
+  position: relative;
+  min-height: 440px;
+  aspect-ratio: 1600 / 976;
+  max-height: 92vh;
+  width: 100%;
+  overflow: hidden;
+}
+.sp-closing-media {
+  position: absolute;
+  inset: 0;
+}
+.sp-closing-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--sp-navy) 0%, rgba(1, 8, 40, 0.15) 22%, rgba(1, 8, 40, 0) 60%, rgba(1, 8, 40, 0.5) 100%);
+}
+.sp-closing-text {
+  position: absolute;
+  top: clamp(64px, 14%, 150px);
+  right: clamp(16px, 4%, 72px);
+  text-align: right;
+}
+.sp-closing-accent {
+  position: absolute;
+  right: 0.4em;
+  top: -1.15em;
+  color: var(--sp-mint);
+  font-size: clamp(26px, 3.6vw, 52px);
+  transform: rotate(-3deg);
+  white-space: nowrap;
+}
+.sp-closing-lines {
+  margin: 0;
+  font-family: "Anton", sans-serif;
+  font-size: clamp(22px, 2.6vw, 40px);
+  line-height: 1.1;
+  text-transform: uppercase;
+  text-shadow: 0 2px 18px rgba(1, 8, 40, 0.8);
+}
+.sp-closing-lines span {
+  display: block;
+}
+.sp-closing-first {
+  margin-bottom: clamp(10px, 1.6vw, 28px);
+}
+@media (max-width: 640px) {
+  .sp-closing-text {
+    left: 16px;
+    right: 16px;
+    text-align: left;
+  }
+  .sp-closing-accent {
+    position: static;
+    display: block;
+    margin-bottom: 6px;
+  }
+}
+
+/* ---------------------------------------------------------------- one tool */
+.sp-page-sky {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 520px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.sp-page-sky img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 30%;
+  opacity: 0.35;
+  -webkit-mask-image: linear-gradient(#000 30%, transparent);
+  mask-image: linear-gradient(#000 30%, transparent);
+}
+.sp-tool-main {
+  padding-top: 104px;
+  padding-bottom: 72px;
+  max-width: 920px;
+}
+.sp-h1 {
+  margin: 0;
+  font-family: "Anton", sans-serif;
+  font-weight: 400;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 1;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 34px rgba(143, 180, 255, 0.35);
+}
+.sp-tool-main .sp-sub {
+  margin: 12px 0 0;
+}
+.sp-panel {
+  margin-top: 32px;
+  padding: clamp(16px, 3vw, 32px);
+  border-radius: 28px;
+  background: #f3f6fd;
+  color: #1c2340;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------------------------------------------------------------- calm */
+@media (prefers-reduced-motion: reduce) {
+  .sp *,
+  .sp *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------- home
+   A child's home or an Individual's dashboard: the little astronaut in a
+   coral world, the day's things on a light panel, glass tiles below. */
+.sp-home-hero {
+  position: relative;
+  height: max(78svh, 480px);
+  overflow: hidden;
+}
+.sp-home-media img,
+.sp-home-media video {
+  object-position: 50% 70%;
+}
+.sp-home-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(1, 8, 40, 0.82) 0%, rgba(1, 8, 40, 0.35) 45%, rgba(1, 8, 40, 0) 70%),
+    linear-gradient(180deg, rgba(1, 8, 40, 0.5) 0%, rgba(1, 8, 40, 0) 30%, rgba(1, 8, 40, 0) 70%, var(--sp-navy) 100%);
+}
+.sp-home-copy {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: max(96px, 22%);
+}
+.sp-home-title {
+  position: relative;
+  display: inline-block;
+  max-width: 12ch;
+  margin: 0;
+  font-family: "Anton", sans-serif;
+  font-weight: 400;
+  font-size: clamp(44px, 7vw, 96px);
+  line-height: 1;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 34px rgba(143, 180, 255, 0.35), 0 2px 18px rgba(1, 8, 40, 0.6);
+}
+/* Under the title, tucked in from the left, so it never covers a letter. */
+.sp-home-accent {
+  display: block;
+  width: fit-content;
+  margin: 0.15em 0 0 1.4em;
+  font-size: clamp(26px, 3.6vw, 50px);
+  line-height: 0.9;
+  color: var(--sp-mint);
+  transform: rotate(-4deg);
+  transform-origin: left;
+  white-space: nowrap;
+}
+.sp-home-line {
+  margin: 22px 0 0;
+  max-width: 34ch;
+  color: var(--sp-cream);
+  text-shadow: 0 2px 12px rgba(1, 8, 40, 0.8);
+}
+.sp-home-body {
+  position: relative;
+  padding: clamp(40px, 6vw, 80px) 0 clamp(56px, 8vw, 96px);
+  overflow: hidden;
+}
+.sp-home-body .sp-panel {
+  margin-top: 0;
+}
+.sp-stack > * + * {
+  margin-top: 20px;
+}
+
+/* Glass tiles for everything else. */
+.sp-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: clamp(28px, 4vw, 48px);
+}
+.sp-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 116px;
+  padding: 18px 12px;
+  border-radius: 24px;
+  color: var(--sp-cream);
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.4s ease;
+}
+.sp-tile:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.sp-tile-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+.sp-tile-label {
+  font-family: "Anton", sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* A page's title row. */
+.sp-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sp-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Inside the light panel, the calm look's greens become Space blues, so
+   pages blend in without changing their own code. */
+.sp-panel .bg-botanical-700,
+.sp-panel .bg-darkBtn,
+.sp-panel .bg-olive-500,
+.sp-panel .bg-deepGreen {
+  background-color: #4b57cf;
+}
+.sp-panel .hover\:bg-botanical-800:hover,
+.sp-panel .hover\:bg-olive-600:hover {
+  background-color: #3d48b3;
+}
+.sp-panel .text-botanical-800,
+.sp-panel .text-botanical-700,
+.sp-panel .text-deepGreen,
+.sp-panel .text-olive-700 {
+  color: #3b4a8f;
+}
+.sp-panel .bg-botanical-50,
+.sp-panel .bg-olive-50,
+.sp-panel .bg-deepGreen-50 {
+  background-color: #e6eafb;
+}
+.sp-panel .border-olive-100,
+.sp-panel .border-olive-200 {
+  border-color: #d5dcf5;
+}
+.sp-panel .accent-botanical-700,
+.sp-panel .accent-deepGreen {
+  accent-color: #4b57cf;
+}
+.sp-panel .focus\:ring-botanical-700:focus,
+.sp-panel .focus\:ring-olive-500:focus {
+  --tw-ring-color: #4b57cf;
+}
+.sp-panel .border-botanical-700 {
+  border-color: #4b57cf;
+}
+.sp-panel .border-botanical-200 {
+  border-color: #c9d1f3;
+}
+.sp-panel .bg-botanical-100 {
+  background-color: #dde3fa;
+}

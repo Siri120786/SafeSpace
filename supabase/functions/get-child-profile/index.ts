@@ -22,7 +22,7 @@ serve(async (req) => {
   if (!childId) return json({ error: "invalid_session" }, 401);
 
   const { data, error } = await admin.from("children")
-    .select("id, caregiver_id, name, birth_year, birth_month, shares_with_caregiver, theme, low_sensory_default, child_modules(module_key)")
+    .select("id, caregiver_id, name, birth_year, birth_month, shares_with_caregiver, theme, theme_locked, low_sensory_default, child_modules(module_key)")
     .eq("id", childId).single();
   if (error || !data) return json({ error: "not_found" }, 404);
 
@@ -36,6 +36,7 @@ serve(async (req) => {
       ageYears: childAgeYears(data.birth_year, data.birth_month),
       sharing: childSharingStatus(childAgeYears(data.birth_year, data.birth_month), data.shares_with_caregiver),
       theme: data.theme,
+      themeLocked: data.theme_locked === true,
       lowSensoryDefault: data.low_sensory_default,
       assignedModules: (data.child_modules ?? []).map((m: { module_key: string }) => m.module_key),
     },

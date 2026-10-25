@@ -19,7 +19,7 @@ import {
 } from "@safespace/shared-types";
 
 export const CHILD_COLUMNS =
-  "id, caregiver_id, name, birth_year, birth_month, shares_with_caregiver, theme, low_sensory_default, child_modules(module_key)";
+  "id, caregiver_id, name, birth_year, birth_month, shares_with_caregiver, theme, theme_locked, low_sensory_default, child_modules(module_key)";
 
 export interface ChildRow {
   id: string;
@@ -29,6 +29,7 @@ export interface ChildRow {
   birth_month: number;
   shares_with_caregiver: boolean | null;
   theme: ChildTheme | null;
+  theme_locked?: boolean | null;
   low_sensory_default: boolean;
   child_modules?: { module_key: ModuleKey }[] | null;
 }
@@ -45,6 +46,7 @@ export function toChild(row: ChildRow, myUserId?: string | null, now: Date = new
     ageYears,
     sharing: childSharingStatus(ageYears, row.shares_with_caregiver),
     theme: row.theme,
+    themeLocked: row.theme_locked === true,
     lowSensoryDefault: row.low_sensory_default,
     assignedModules: (row.child_modules ?? []).map((m) => m.module_key),
     ...(myUserId ? { myRole: row.caregiver_id === myUserId ? "primary" as const : "co_caregiver" as const } : {}),
@@ -91,11 +93,12 @@ export async function addChild(input: CreateChildInput): Promise<string> {
 }
 
 // Name and birth month/year: primary caregiver only (not_primary_caregiver).
-// Theme and low-sensory default: any caregiver. Omitted fields are unchanged;
-// theme null clears it.
+// Theme, its lock and the low-sensory default: any caregiver. Omitted fields
+// are unchanged; theme null clears it. While the theme is locked the child
+// can't change it themself.
 export async function updateChild(
   childId: string,
-  input: UpdateChildInput & { theme?: ChildTheme | null; lowSensoryDefault?: boolean },
+  input: UpdateChildInput & { theme?: ChildTheme | null; themeLocked?: boolean; lowSensoryDefault?: boolean },
 ): Promise<void> {
   if ((input.birthYear !== undefined || input.birthMonth !== undefined) &&
       (input.birthYear === undefined || input.birthMonth === undefined || !isValidChildBirth(input.birthYear, input.birthMonth))) {
@@ -110,6 +113,13 @@ export async function updateChild(
     p_low_sensory_default: input.lowSensoryDefault ?? null,
   });
   if (error) throw toContractError(error);
+  if (input.themeLocked !== undefined) {
+    const { error: lockError } = await getSafeSpaceClient().rpc("set_child_theme_lock", {
+      p_child_id: childId,
+      p_locked: input.themeLocked,
+    });
+    if (lockError) throw toContractError(lockError);
+  }
 }
 
 // Primary caregiver only, through the reset-child-pin Edge Function (hashing is
