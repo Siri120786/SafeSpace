@@ -42,6 +42,9 @@ export interface Credit {
   licenceUrl: string;
   // The line to show, when the licence asks for particular wording.
   attribution?: string;
+  // False for a public-domain recording kept off the Credits page (Siri,
+  // 2026-10-25); the record above stays as proof of where it came from.
+  showOnCredits?: boolean;
 }
 
 export interface Track {
@@ -54,7 +57,9 @@ export interface Track {
   source:
     | { kind: "generated"; sound: AmbienceKey }
     | { kind: "rhyme"; rhymeId: string }
-    | { kind: "file"; path: string; sung: boolean; credit: Credit };
+    // gain: how much to lift a quietly mastered recording (1 = as is). Kept so
+    // the loudest moment stays under full scale; the engine's limiter is after it.
+    | { kind: "file"; path: string; sung: boolean; credit: Credit; gain?: number };
 }
 
 // Licences a hosted song may have. Anything else needs a decision first.
@@ -87,6 +92,31 @@ const rhymeTrack = (id: string, title: string, totalSec: number): Track => ({
   source: { kind: "rhyme", rhymeId: id },
 });
 
+// A soft orchestral piece, played only when someone presses play (Siri,
+// 2026-10-25): Brahms, Symphony No. 3, II. Andante, recorded by the Musopen
+// Symphony and released into the public domain (Wikimedia Commons). Hosted
+// in the "music" bucket as an 11.4 MB MP3. It opens Sleepy Stars, and the
+// Music page features it.
+export const SOFT_SYMPHONY: Track = {
+  id: "soft-symphony",
+  title: "Soft symphony",
+  durationSec: 530,
+  source: {
+    kind: "file",
+    path: "orchestral/brahms-symphony-3-andante.mp3",
+    sung: false,
+    // Mastered low (loudest moment 0.49 of full scale, most of it far softer).
+    gain: 2,
+    credit: {
+      artist: "Johannes Brahms, played by the Musopen Symphony",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:Brahms_-_Symphony_No._3_in_F_major,_Op._90_-_II._Andante_(Musopen_Symphony).flac",
+      licence: "Public domain",
+      licenceUrl: "https://creativecommons.org/publicdomain/mark/1.0/",
+      showOnCredits: false,
+    },
+  },
+};
+
 export const PLAYLISTS: Playlist[] = [
   {
     id: "sleepy-stars",
@@ -96,6 +126,7 @@ export const PLAYLISTS: Playlist[] = [
     blurb: "Slow, soft sounds for bedtime.",
     colors: { from: "#E4E1F7", to: "#F4F1FB" },
     tracks: [
+      SOFT_SYMPHONY,
       gen("starlight-hum", "Starlight hum", 10, "starlight_hum"),
       gen("music-box-lullaby", "Music box lullaby", 8, "music_box"),
       gen("night-breeze", "Night breeze", 10, "night_breeze"),
@@ -168,9 +199,14 @@ export function songProblems(t: Track): string[] {
   return problems;
 }
 
-// Every hosted song, for the Credits page.
+// Every hosted song, once each (a song can open more than one playlist).
 export function hostedTracks(): (Track & { source: { kind: "file" } })[] {
-  return PLAYLISTS.flatMap((p) => p.tracks).filter((t): t is Track & { source: { kind: "file" } } => t.source.kind === "file");
+  const seen = new Set<string>();
+  return PLAYLISTS.flatMap((p) => p.tracks).filter((t): t is Track & { source: { kind: "file" } } => {
+    if (t.source.kind !== "file" || seen.has(t.id)) return false;
+    seen.add(t.id);
+    return true;
+  });
 }
 
 // Every track, by id (for favorites).

@@ -40,7 +40,7 @@ function writePaused(paused: boolean) {
  * Calm Space's frame (role-flow anxiety module): the ocean behind, Aurelia's
  * jellyfish drifting in it (a still ocean in low-sensory mode, before they
  * load, or where the browser can't show them), a pause button, an Exit that
- * Escape also triggers, and the credit.
+ * Escape also triggers.
  */
 export const OceanShell: React.FC<OceanShellProps> = ({ lowSensory, onExit, exitLabel = "Exit", notice, pulsePeriod = null, children }) => {
   const host = useRef<HTMLDivElement>(null);
@@ -118,8 +118,6 @@ export const OceanShell: React.FC<OceanShellProps> = ({ lowSensory, onExit, exit
         <main>{children}</main>
         <p className="oc-foot">
           Press Escape at any time to leave. Calming exercises, not medical advice.
-          <br />
-          Jellyfish: <a href="https://github.com/holtsetio/aurelia" target="_blank" rel="noreferrer">Aurelia</a> by Holtsetio (MIT licence).
         </p>
       </div>
     </div>

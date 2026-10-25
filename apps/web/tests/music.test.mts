@@ -67,6 +67,8 @@ test("five playlists, one for each mood, with sounds the browser can make", () =
       if (t.source.kind === "generated") {
         assert.ok(t.durationSec >= 60 && t.durationSec <= 30 * 60, `${t.title} plays 1 to 30 minutes`);
         assert.equal(typeof SOUNDS[t.source.sound], "function", `${t.title} has a sound`);
+      } else if (t.source.kind === "file") {
+        assert.deepEqual(songProblems(t), [], `${t.title} is a hosted song with a source and an allowed licence`);
       } else {
         const rhyme = findRhyme(t.source.rhymeId);
         assert.ok(rhyme, `${t.title} is a rhyme we have`);

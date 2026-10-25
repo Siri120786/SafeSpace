@@ -217,8 +217,6 @@ export const DuskShell: React.FC<DuskShellProps> = ({ title, heading, lead, page
         </Link>
         <p className="dk-foot">
           Press Escape at any time to leave. Self-care ideas, not medical advice.
-          <br />
-          Hillside scene: Mindloop preview from <a href="https://motionsites.ai" target="_blank" rel="noreferrer">MotionSites</a>.
         </p>
         </div>
       </div>

@@ -3,8 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import {
   FAVORITES_ID,
   MOODS,
+  SOFT_SYMPHONY,
   favoritesPlaylist,
   findPlaylist,
+  findTrack,
   hostedTracks,
   moodLabel,
   playlistMinutes,
@@ -43,6 +45,39 @@ const focusRing = "focus:outline-none focus-visible:ring-2 focus-visible:ring-bo
 
 export const CREDITS_PATH = "credits";
 
+// The featured soft symphony: one tap plays it (then Sleepy Stars carries on).
+const FeaturedSymphony: React.FC<{ tone: MusicTone }> = ({ tone }) => {
+  const player = useMusicPlayer();
+  const found = findTrack(SOFT_SYMPHONY.id);
+  if (!found) return null;
+  const isCurrent = player.nowPlaying?.track.id === SOFT_SYMPHONY.id;
+  const playing = isCurrent && player.nowPlaying?.playing;
+  return (
+    <section
+      aria-labelledby="featured-symphony"
+      className="flex items-center gap-4 rounded-3xl p-5 text-charcoal shadow-card"
+      style={{ background: "linear-gradient(135deg, #E9E3F6, #F6EFE8)" }}
+    >
+      <span aria-hidden="true" className="text-5xl">🎻</span>
+      <span className="flex-1">
+        <span className="block text-xs font-semibold uppercase tracking-wide text-botanical-800">Featured</span>
+        <span id="featured-symphony" className={`block font-display ${tone === "child" ? "text-xl font-bold" : "text-lg font-medium"}`}>
+          Soft symphony
+        </span>
+        <span className="block text-sm text-charcoal/75">A gentle orchestra for winding down. About 9 minutes.</span>
+      </span>
+      <button
+        type="button"
+        onClick={() => (isCurrent ? player.togglePlay() : player.playPlaylist(found.playlist, found.playlist.tracks.indexOf(found.track)))}
+        aria-label={playing ? "Pause the soft symphony" : "Play the soft symphony"}
+        className={`grid h-12 w-12 flex-none place-items-center rounded-full bg-botanical-700 text-white ${focusRing}`}
+      >
+        <span aria-hidden="true">{playing ? "❚❚" : "▶"}</span>
+      </button>
+    </section>
+  );
+};
+
 export const MusicLibrary: React.FC<{ base: string; tone: MusicTone }> = ({ base, tone }) => {
   const [mood, setMood] = useState<Mood | "all">("all");
   const { supported, musicOff, favorites } = useMusicPlayer();
@@ -52,6 +87,7 @@ export const MusicLibrary: React.FC<{ base: string; tone: MusicTone }> = ({ base
   return (
     <div className="space-y-5">
       {!supported && <NoAudioNote />}
+      <FeaturedSymphony tone={tone} />
       <div role="group" aria-label="Show playlists for" className="flex flex-wrap gap-2">
         {[{ key: "all" as const, label: "All" }, ...MOODS].map((m) => (
           <button
@@ -86,7 +122,7 @@ export const MusicLibrary: React.FC<{ base: string; tone: MusicTone }> = ({ base
         ))}
       </ul>
       <p className="text-xs text-charcoal/60">
-        The sounds and tunes are made right here on your device. Nothing plays until you press play.{" "}
+        Most sounds and tunes are made right here on your device. Nothing plays until you press play.{" "}
         <Link to={musicPath(base, CREDITS_PATH)} className="font-semibold text-botanical-800 underline">Music credits</Link>
       </p>
     </div>
@@ -243,7 +279,7 @@ const ProblemNote: React.FC = () => {
 // ---- Credits ----------------------------------------------------------------
 
 export const MusicCredits: React.FC = () => {
-  const songs = hostedTracks();
+  const songs = hostedTracks().filter((t) => t.source.credit.showOnCredits !== false);
   return (
     <div className="space-y-4">
       <section className="space-y-2 rounded-3xl bg-white p-5 shadow-card text-sm text-charcoal">
