@@ -74,7 +74,8 @@ test("home and dashboard in Space: Nova greets by name, the day on a light panel
   assert.match(html, /<span>Hi Sam!<\/span> <span>I&#x27;m Nova<\/span>/);
   assert.match(html, /Put Nova&#x27;s helmet on/);
   assert.match(html, /class="sp-panel sp-stack"><p>today<\/p>/);
-  assert.match(html, /<nav aria-label="My tools" class="sp-tiles"><a class="sp-tile sp-glass" href="\/child\/music">/);
+  // Every page as a planet matching the theme.
+  assert.match(html, /<nav aria-label="My tools" class="sp-tiles"><a class="sp-tile sp-tile--0" href="\/child\/music"><span class="sp-planet">/);
   assert.match(html, /aria-pressed="false"[^>]*>.*Play space/);
   assert.doesNotMatch(html, /<video|<audio|autoplay/i);
 });

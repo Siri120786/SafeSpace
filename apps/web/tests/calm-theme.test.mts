@@ -45,7 +45,8 @@ test("home: the meadow (the landing page's boy and puppy), the day, tiles, and t
   assert.match(html, /<span>Hi Leo!<\/span><span>A gentle day<\/span>/);
   assert.match(html, /2 steps left today/);
   assert.match(html, /class="cm-panel cm-stack"><p>today<\/p>/);
-  assert.match(html, /<nav aria-label="My tools" class="cm-tiles"><a class="cm-tile" href="\/child\/music">/);
+  // Every page as a cloud matching the theme.
+  assert.match(html, /<nav aria-label="My tools" class="cm-tiles"><a class="cm-tile cm-tile--0" href="\/child\/music"><span class="cm-cloud">/);
   assert.match(html, /camp\.webp/);
   assert.doesNotMatch(html, /<video|<audio|autoplay/i);
 });

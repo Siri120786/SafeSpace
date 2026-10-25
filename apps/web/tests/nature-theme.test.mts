@@ -45,7 +45,8 @@ test("home: greeting over the valley, the day on a panel, tickets, three kind st
   assert.match(html, /Hi Leo!<br\/>Here&#x27;s your <em>gentle day\.<\/em>/);
   assert.match(html, /2 steps left today/);
   assert.match(html, /class="nt-panel-box nt-stack"><p>today<\/p>/);
-  assert.match(html, /<nav aria-label="My tools" class="nt-tickets"><a class="nt-ticket" href="\/child\/music">/);
+  // Every page as a cherry blossom matching the theme.
+  assert.match(html, /<nav aria-label="My tools" class="nt-blossoms"><a class="nt-blossom nt-blossom--0" href="\/child\/music"><span class="nt-flower">/);
   for (const s of NATURE_STEPS) assert.ok(html.includes(s.title.replace("'", "&#x27;")), s.title);
   assert.equal((html.match(/class="nt-panel is-active"/g) ?? []).length, 1, "one step open at a time");
   assert.doesNotMatch(html, /<video|<audio|autoplay/i);

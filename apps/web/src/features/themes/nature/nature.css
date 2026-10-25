@@ -325,7 +325,7 @@
 /* ---------------------------------------------------------------- the day */
 .nt-day {
   position: relative;
-  padding: clamp(40px, 6vw, 72px) 0 clamp(300px, 34vw, 420px);
+  padding: clamp(40px, 6vw, 72px) 0 clamp(330px, 36vw, 420px);
   overflow: hidden;
   background: #fff;
 }
@@ -346,43 +346,6 @@
 .nt-stack > * + * {
   margin-top: 20px;
 }
-/* Every page as a lime ticket with notched sides. */
-.nt-tickets {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-  margin-top: clamp(28px, 4vw, 44px);
-}
-.nt-ticket {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 18px;
-  min-height: 118px;
-  padding: 16px 20px;
-  border-radius: 20px;
-  background: var(--nt-lime);
-  color: #151a08;
-  text-decoration: none;
-  -webkit-mask: radial-gradient(circle 13px at 0 55%, #0000 97%, #000) left / 51% 100% no-repeat,
-    radial-gradient(circle 13px at 100% 55%, #0000 97%, #000) right / 51% 100% no-repeat;
-  mask: radial-gradient(circle 13px at 0 55%, #0000 97%, #000) left / 51% 100% no-repeat,
-    radial-gradient(circle 13px at 100% 55%, #0000 97%, #000) right / 51% 100% no-repeat;
-  transition: transform 0.3s ease, background-color 0.3s ease;
-}
-.nt-ticket:hover {
-  transform: translateY(-2px);
-  background: #c2d867;
-}
-.nt-ticket-emoji {
-  font-size: 26px;
-  line-height: 1;
-}
-.nt-ticket-label {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
 /* The blossom tree under it all; its flat grassy base fades into white. */
 .nt-tree {
   position: absolute;
@@ -390,7 +353,7 @@
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
-  width: min(340px, 62vw);
+  width: min(280px, 56vw);
   -webkit-mask-image: linear-gradient(#000 70%, transparent 100%);
   mask-image: linear-gradient(#000 70%, transparent 100%);
 }
@@ -886,4 +849,80 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---------------------------------------------------------------- tiles
+   Every page as a cherry blossom: five round petals around a cream heart
+   that holds the emoji. */
+
+.nt-blossoms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: clamp(14px, 2vw, 22px);
+  margin-top: clamp(28px, 4vw, 44px);
+}
+.nt-blossom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.nt-blossom:hover .nt-flower,
+.nt-blossom:focus-visible .nt-flower {
+  transform: translateY(-4px) rotate(8deg);
+}
+.nt-blossom-emoji {
+  position: relative;
+  z-index: 1;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.nt-flower {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(104px, 10vw, 122px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 19%, var(--petal) 0 19%, transparent 19.5%),
+    radial-gradient(circle at 81% 41%, var(--petal) 0 19%, transparent 19.5%),
+    radial-gradient(circle at 69% 78%, var(--petal) 0 19%, transparent 19.5%),
+    radial-gradient(circle at 31% 78%, var(--petal) 0 19%, transparent 19.5%),
+    radial-gradient(circle at 19% 41%, var(--petal) 0 19%, transparent 19.5%);
+  filter: drop-shadow(0 10px 12px rgba(120, 60, 80, 0.22));
+  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+.nt-flower::before {
+  content: "";
+  position: absolute;
+  inset: 26%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffdf3 55%, var(--heart) 100%);
+}
+.nt-blossom--0 {
+  --petal: #f8c6d6;
+  --heart: #f6e3a1;
+}
+.nt-blossom--1 {
+  --petal: #fde3ea;
+  --heart: #f3c9d5;
+}
+.nt-blossom--2 {
+  --petal: #f2b2c6;
+  --heart: #f6e3a1;
+}
+.nt-blossom--3 {
+  --petal: #d9e8b8;
+  --heart: #b4cd52;
+}
+.nt-blossom-emoji {
+  font-size: 30px;
+}
+.nt-blossom-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--nt-ink);
+  text-align: center;
 }

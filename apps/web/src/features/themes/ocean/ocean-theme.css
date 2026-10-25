@@ -270,41 +270,6 @@
 .ow-stack > * + * {
   margin-top: 20px;
 }
-.ow-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px;
-  margin-top: clamp(28px, 4vw, 48px);
-}
-.ow-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 116px;
-  padding: 18px 12px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-  color: #fff;
-  text-align: center;
-  text-decoration: none;
-  transition: background-color 0.4s ease, transform 0.4s ease;
-}
-.ow-tile:hover {
-  background: rgba(255, 255, 255, 0.13);
-  transform: translateY(-2px);
-}
-.ow-tile-emoji {
-  font-size: 30px;
-  line-height: 1;
-}
-.ow-tile-label {
-  font-size: 15px;
-  font-weight: 500;
-}
-
 /* ---------------------------------------------------------------- cards */
 .ow-grid {
   display: grid;
@@ -514,5 +479,78 @@
   .ow *::before {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------- tiles
+   Every page as a glassy bubble, softly tinted. */
+
+.ow-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: clamp(14px, 2vw, 22px);
+  margin-top: clamp(28px, 4vw, 44px);
+}
+.ow-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.ow-tile:hover .ow-bubble,
+.ow-tile:focus-visible .ow-bubble {
+  transform: translateY(-4px) ;
+}
+.ow-tile-emoji {
+  position: relative;
+  z-index: 1;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.ow-bubble {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(88px, 9vw, 106px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.85) 0 7%, rgba(255, 255, 255, 0) 16%),
+    radial-gradient(circle at 70% 78%, rgba(255, 255, 255, 0.35) 0 5%, rgba(255, 255, 255, 0) 12%),
+    radial-gradient(circle at 50% 50%, var(--tint) 0%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.28) 100%);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.45), inset 0 -10px 22px rgba(255, 255, 255, 0.12), 0 14px 28px -16px rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+.ow-tile--0 {
+  --tint: rgba(120, 220, 230, 0.32);
+}
+.ow-tile--1 {
+  --tint: rgba(100, 150, 255, 0.3);
+}
+.ow-tile--2 {
+  --tint: rgba(245, 178, 92, 0.3);
+}
+.ow-tile--3 {
+  --tint: rgba(170, 140, 255, 0.28);
+}
+.ow-tile-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+}
+.ow[data-playing="true"] .ow-bubble {
+  animation: ow-float 6s ease-in-out infinite;
+}
+.ow[data-playing="true"] .ow-tile--1 .ow-bubble,
+.ow[data-playing="true"] .ow-tile--3 .ow-bubble {
+  animation-delay: -3s;
+}
+@keyframes ow-float {
+  50% {
+    transform: translateY(-6px);
   }
 }

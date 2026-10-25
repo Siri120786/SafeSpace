@@ -5,8 +5,8 @@ import { NATURE_CARD_CLIPS, NATURE_CLOUDS, NATURE_NIGHT, NATURE_REALM, NATURE_TR
 
 // The Nature theme for people with the ADHD or autism module. Home and
 // dashboard: a cherry-blossom valley under a white sky with soft clouds and
-// frosted glass squares; the day on a light panel, every page as a lime
-// ticket, a blossom tree, three kind steps (pick one small thing, do a
+// frosted glass squares; the day on a light panel, every page as a cherry
+// blossom, a blossom tree, three kind steps (pick one small thing, do a
 // little, rest and check in), and a few words over the valley by moonlight.
 // The tools page: a glass dome of moss, wildflowers and butterflies on old
 // roots in the dark, the tools as glass cards from the same dome.
@@ -148,14 +148,17 @@ const Closing: React.FC<{ playing: boolean; tone: "light" | "dark" }> = ({ playi
   </section>
 );
 
-const Tickets: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, label }) => (
-  <nav aria-label={label} className="nt-tickets">
-    {tiles.map((t) => (
-      <Link key={t.to} to={t.to} className="nt-ticket">
-        <span aria-hidden="true" className="nt-ticket-emoji">
-          {t.emoji}
+// Every page as a cherry blossom, the emoji in its heart.
+const Blossoms: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, label }) => (
+  <nav aria-label={label} className="nt-blossoms">
+    {tiles.map((t, i) => (
+      <Link key={t.to} to={t.to} className={`nt-blossom nt-blossom--${i % 4}`}>
+        <span className="nt-flower">
+          <span aria-hidden="true" className="nt-blossom-emoji">
+            {t.emoji}
+          </span>
         </span>
-        <span className="nt-ticket-label">{t.label}</span>
+        <span className="nt-blossom-label">{t.label}</span>
       </Link>
     ))}
   </nav>
@@ -248,7 +251,7 @@ export const NatureHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, 
             {picker}
           </div>
           <div className="nt-panel-box nt-stack">{children}</div>
-          <Tickets tiles={tiles} label={tilesLabel} />
+          <Blossoms tiles={tiles} label={tilesLabel} />
         </div>
         <div className="nt-tree" aria-hidden="true">
           <img src={NATURE_TREE} alt="" loading="lazy" />

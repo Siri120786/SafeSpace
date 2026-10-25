@@ -284,13 +284,15 @@ export const SpaceClosing: React.FC<{ playing: boolean }> = ({ playing }) => (
   </section>
 );
 
-// Everything else, as glass tiles.
+// Everything else, as little planets (some with rings).
 export const SpaceTiles: React.FC<{ tiles: SpaceTile[]; label: string }> = ({ tiles, label }) => (
   <nav aria-label={label} className="sp-tiles">
-    {tiles.map((t) => (
-      <Link key={t.to} to={t.to} className="sp-tile sp-glass">
-        <span aria-hidden="true" className="sp-tile-emoji">
-          {t.emoji}
+    {tiles.map((t, i) => (
+      <Link key={t.to} to={t.to} className={`sp-tile sp-tile--${i % 4}`}>
+        <span className="sp-planet">
+          <span aria-hidden="true" className="sp-tile-emoji">
+            {t.emoji}
+          </span>
         </span>
         <span className="sp-tile-label">{t.label}</span>
       </Link>
