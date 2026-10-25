@@ -1,0 +1,703 @@
+/* Dino World (see DinoKit.tsx). Everything is scoped to .dn.
+   Every change of colour is a long soft fade, so there are no lines:
+     home:  the valley's grass (#5d7039) -> the day, warming into golden
+            evening -> the sunset's lavender sky (#bbabbc) -> the nest;
+     tools: the forest floor (#45572d) -> deep fern behind the cards ->
+            the same golden evening and sunset.
+   Rounded Nunito everywhere; leaf greens, butter gold and cream.
+   Still by default; clips and the friends' bobbing move only while playing. */
+
+.dn {
+  --dn-forest: #477b36;
+  --dn-leaf: #78a94b;
+  --dn-meadow: #a4c96a;
+  --dn-sky: #a9ddf4;
+  --dn-sun: #ffd47a;
+  --dn-orange: #f28c42;
+  --dn-purple: #a78bd4;
+  --dn-cream: #fff8e9;
+  --dn-brown: #8c6748;
+  --dn-ink: #24361b;
+  --dn-grass: #5d7039;
+  --dn-floor: #45572d;
+  --dn-fern: #2f3f20;
+  --dn-gold: #b79a64;
+  --dn-dusk: #bbabbc;
+  position: relative;
+  min-height: 100vh;
+  color: var(--dn-ink);
+  background: var(--dn-cream);
+  font-family: "Nunito", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  /* The bold theme picker, in this theme's colours. */
+  --sp-cream: #fff;
+  --sp-mint: var(--dn-sun);
+}
+.dn h1,
+.dn h2,
+.dn h3 {
+  font-family: "Nunito", "Inter", system-ui, sans-serif;
+}
+.dn .sp-pick {
+  font-family: "Nunito", "Inter", sans-serif;
+  font-weight: 900;
+}
+.dn .sp-themes {
+  --sp-cream: var(--dn-ink);
+  color: var(--dn-ink);
+  background: var(--dn-cream);
+  box-shadow: 0 20px 50px -20px rgba(36, 54, 27, 0.45);
+}
+.dn .sp-theme:hover:not(:disabled) {
+  background: #f1ecd6;
+}
+.dn .sp-theme[aria-pressed="true"] {
+  background: #e6efcf;
+}
+.dn :focus-visible {
+  outline: 3px solid var(--dn-sun);
+  outline-offset: 3px;
+}
+.dn-wrap {
+  position: relative;
+  z-index: 3;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 56px);
+}
+
+/* ---------------------------------------------------------------- bits */
+.dn-print {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.dn-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dn-forest);
+}
+.dn-eyebrow--light {
+  color: #fff3c9;
+}
+.dn-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--dn-orange);
+  box-shadow: 0 0 0 4px rgba(242, 140, 66, 0.22);
+}
+.dn-trail {
+  display: flex;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 34px);
+  margin: clamp(26px, 4vw, 40px) 0;
+  color: rgba(255, 248, 233, 0.55);
+}
+.dn-trail .dn-print {
+  width: 22px;
+  height: 22px;
+}
+.dn-print--l {
+  transform: rotate(-14deg) translateY(4px);
+}
+.dn-print--r {
+  transform: rotate(14deg) translateY(-4px);
+}
+
+/* ---------------------------------------------------------------- bar */
+.dn-bar {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: clamp(14px, 2vw, 22px) clamp(16px, 4vw, 48px);
+}
+.dn-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 6px 6px;
+  border-radius: 999px;
+  background: rgba(255, 248, 233, 0.92);
+  box-shadow: 0 8px 22px -10px rgba(36, 54, 27, 0.45);
+}
+.dn-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--dn-leaf);
+  color: var(--dn-cream);
+}
+.dn-brand-word {
+  display: flex;
+  flex-direction: column;
+  font-weight: 900;
+  font-size: 17px;
+  line-height: 1.05;
+  color: var(--dn-forest);
+}
+.dn-brand-word small {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dn-brown);
+}
+.dn-bar-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.dn-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dn-leaf);
+  color: #fff;
+  font: 800 14.5px/1 "Nunito", "Inter", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.12), 0 8px 18px -10px rgba(36, 54, 27, 0.6);
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+.dn-btn:hover {
+  transform: translateY(-1px);
+  background: #6b9a40;
+}
+.dn-btn:active {
+  transform: translateY(1px);
+}
+.dn-btn--cream {
+  background: var(--dn-cream);
+  color: var(--dn-forest);
+}
+.dn-btn--cream:hover {
+  background: #fff;
+}
+.dn-btn--big {
+  height: 52px;
+  padding: 0 26px;
+  font-size: 16.5px;
+  background: var(--dn-orange);
+}
+.dn-btn--big:hover {
+  background: #e47c33;
+}
+.dn-btn-icon {
+  font-size: 9px;
+}
+
+/* ---------------------------------------------------------------- media */
+.dn-media {
+  position: absolute;
+  inset: 0;
+}
+.dn-media img,
+.dn-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.dn-media video {
+  animation: dn-fade 1.4s ease both;
+}
+@keyframes dn-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- heroes */
+.dn-hero {
+  position: relative;
+  height: max(100svh, 620px);
+  overflow: hidden;
+}
+.dn-hero--valley {
+  background: var(--dn-grass);
+}
+.dn-hero--forest {
+  background: var(--dn-floor);
+}
+.dn-valley img,
+.dn-valley video {
+  object-position: 60% 70%;
+}
+.dn-forest img,
+.dn-forest video {
+  object-position: 62% 60%;
+}
+.dn-hero-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* The valley: a soft light behind the words, and the grass flowing on. */
+.dn-hero--valley .dn-hero-shade {
+  background: linear-gradient(180deg, rgba(93, 112, 57, 0) 66%, var(--dn-grass) 96%, var(--dn-grass) 100%),
+    radial-gradient(ellipse 52% 46% at 18% 28%, rgba(255, 248, 233, 0.82), rgba(255, 248, 233, 0) 70%);
+}
+/* The forest: a darker side for the words, and the floor flowing on. */
+.dn-hero--forest .dn-hero-shade {
+  background: linear-gradient(180deg, rgba(69, 87, 45, 0) 64%, var(--dn-floor) 96%, var(--dn-floor) 100%),
+    linear-gradient(90deg, rgba(28, 40, 18, 0.66) 0%, rgba(28, 40, 18, 0.22) 44%, rgba(28, 40, 18, 0) 62%);
+}
+.dn-hero-copy {
+  position: absolute;
+  z-index: 5;
+  left: clamp(18px, 5vw, 80px);
+  top: clamp(110px, 17vh, 160px);
+  max-width: min(560px, 88vw);
+}
+.dn-title {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(44px, 6.4vw, 92px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: var(--dn-forest);
+}
+.dn-title span {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.42em;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0;
+  color: var(--dn-brown);
+}
+.dn-lead {
+  margin: 18px 0 0;
+  max-width: 34ch;
+  font-size: clamp(15px, 1.3vw, 18px);
+  font-weight: 600;
+  line-height: 1.5;
+  color: #3a4a2c;
+}
+.dn-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 10px 18px 10px 14px;
+  border-radius: 999px;
+  background: var(--dn-cream);
+  color: var(--dn-forest);
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 10px 24px -14px rgba(36, 54, 27, 0.6);
+}
+.dn-status .dn-print {
+  color: var(--dn-orange);
+}
+.dn-hero-copy--forest .dn-eyebrow {
+  color: var(--dn-sun);
+}
+.dn-hero-copy--forest .dn-title {
+  color: #fff;
+  text-shadow: 0 3px 22px rgba(20, 30, 10, 0.55);
+}
+.dn-hero-copy--forest .dn-title span {
+  color: #ffe9b8;
+}
+.dn-hero-copy--forest .dn-lead {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 12px rgba(20, 30, 10, 0.6);
+}
+.dn-hero-copy--forest .dn-btn--big {
+  margin-top: 24px;
+}
+@media (max-width: 640px) {
+  .dn-hero-copy {
+    top: 104px;
+  }
+  .dn-valley img,
+  .dn-valley video {
+    object-position: 55% 80%;
+  }
+}
+
+/* ---------------------------------------------------------------- the day */
+/* Starts on the grass, then the evening turns golden. */
+.dn-day {
+  position: relative;
+  margin-top: -1px;
+  padding: clamp(40px, 6vw, 72px) 0 clamp(60px, 8vw, 100px);
+  background: linear-gradient(180deg, var(--dn-grass) 0, var(--dn-grass) 40px, #55682f 34%, #6f6b38 72%, var(--dn-gold) 100%);
+  color: #fff;
+}
+.dn-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+}
+.dn-h2 {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(36px, 4.8vw, 66px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 3px 18px rgba(20, 30, 10, 0.35);
+}
+.dn-panel {
+  padding: clamp(16px, 3vw, 30px);
+  border-radius: 30px;
+  background: var(--dn-cream);
+  color: var(--dn-ink);
+  box-shadow: 0 0 0 6px rgba(255, 248, 233, 0.25), 0 30px 60px -30px rgba(20, 30, 10, 0.6);
+}
+.dn-stack > * + * {
+  margin-top: 20px;
+}
+
+/* The dino friends. */
+.dn-friends {
+  margin-top: clamp(32px, 5vw, 56px);
+  text-align: center;
+}
+.dn-friends ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 36px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dn-friends li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.dn[data-playing="true"] .dn-friends li {
+  animation: dn-bob 5.6s ease-in-out infinite;
+}
+@keyframes dn-bob {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.dn-friends img {
+  width: clamp(84px, 11vw, 128px);
+  aspect-ratio: 1;
+  max-width: none;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  border: 5px solid var(--ring);
+  box-shadow: 0 12px 26px -14px rgba(20, 30, 10, 0.7);
+}
+.dn-friends span {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--dn-cream);
+  color: var(--dn-forest);
+  font-weight: 900;
+  font-size: 14px;
+}
+
+/* Every page as a speckled egg. */
+.dn-eggs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: clamp(14px, 2vw, 22px);
+}
+.dn-egg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+}
+.dn-egg-shell {
+  display: grid;
+  place-items: center;
+  width: clamp(86px, 9vw, 104px);
+  aspect-ratio: 0.82;
+  border-radius: 50% 50% 47% 47% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.9) 0 8%, transparent 9%),
+    radial-gradient(circle at 70% 40%, var(--speck) 0 5%, transparent 6%),
+    radial-gradient(circle at 36% 64%, var(--speck) 0 4%, transparent 5%),
+    radial-gradient(circle at 64% 76%, var(--speck) 0 3.5%, transparent 4.5%),
+    radial-gradient(circle at 24% 46%, var(--speck) 0 3%, transparent 4%),
+    linear-gradient(160deg, #fffdf4, var(--shell) 85%);
+  box-shadow: inset -6px -8px 0 rgba(0, 0, 0, 0.06), 0 14px 22px -14px rgba(20, 30, 10, 0.7);
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+.dn-egg:hover .dn-egg-shell,
+.dn-egg:focus-visible .dn-egg-shell {
+  transform: translateY(-4px) rotate(-3deg);
+}
+.dn-egg--0 {
+  --shell: #e6f1cf;
+  --speck: #9cc06b;
+}
+.dn-egg--1 {
+  --shell: #fde3c8;
+  --speck: #f2a26b;
+}
+.dn-egg--2 {
+  --shell: #fbf0bf;
+  --speck: #e1bf4a;
+}
+.dn-egg--3 {
+  --shell: #ebe1f8;
+  --speck: #b9a2df;
+}
+.dn-egg-emoji {
+  font-size: 32px;
+  line-height: 1;
+}
+.dn-egg-label {
+  font-weight: 900;
+  font-size: 14.5px;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(20, 30, 10, 0.45);
+}
+
+/* ---------------------------------------------------------------- cards */
+/* Starts on the forest floor, deepens behind the cards, then the evening
+   turns golden like the home page. */
+.dn-cards {
+  position: relative;
+  margin-top: -1px;
+  padding: clamp(48px, 7vw, 96px) 0 clamp(70px, 9vw, 120px);
+  background: linear-gradient(180deg, var(--dn-floor) 0, var(--dn-floor) 40px, var(--dn-fern) 42%, #4f5a2c 78%, var(--dn-gold) 100%);
+  color: #fff;
+}
+.dn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 12px 12px 20px;
+  border-radius: 30px;
+  background: var(--dn-cream);
+  color: var(--dn-ink);
+  text-decoration: none;
+  box-shadow: 0 0 0 5px var(--edge), 0 26px 44px -26px rgba(10, 20, 5, 0.8);
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+.dn-card:hover,
+.dn-card:focus-visible {
+  transform: translateY(-4px);
+}
+.dn-card--0 {
+  --edge: #ecd36a;
+}
+.dn-card--1 {
+  --edge: #f2a26b;
+}
+.dn-card--2 {
+  --edge: #b9a2df;
+}
+.dn-card--3 {
+  --edge: #9ec9e6;
+}
+.dn-card-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  margin-bottom: 8px;
+  border-radius: 22px;
+  overflow: hidden;
+}
+.dn-card-tag {
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dn-brown);
+}
+.dn-card-title {
+  padding: 0 8px;
+  font-weight: 900;
+  font-size: 23px;
+  color: var(--dn-forest);
+}
+.dn-card-blurb {
+  padding: 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #4a5a3c;
+}
+
+/* ---------------------------------------------------------------- closing */
+/* The golden evening lifts into the sunset's own lavender sky, then the
+   nest fades in from it. */
+.dn-closing {
+  --dn-eve: clamp(120px, 15vw, 220px);
+  position: relative;
+  margin-top: -1px;
+  padding-top: var(--dn-eve);
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--dn-gold) 0, #c3a68f calc(var(--dn-eve) * 0.5), var(--dn-dusk) var(--dn-eve), var(--dn-dusk) 100%);
+}
+.dn-closing .dn-closing-media {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 420px;
+  max-height: 100vh;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 22%);
+}
+.dn-closing-media img,
+.dn-closing-media video {
+  object-position: 55% 70%;
+}
+.dn-closing-text {
+  position: absolute;
+  z-index: 3;
+  left: clamp(20px, 6vw, 110px);
+  top: calc(var(--dn-eve) + 14%);
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(60, 40, 60, 0.55);
+}
+.dn-closing-text .dn-eyebrow {
+  color: #fff3c9;
+}
+.dn-closing-lines {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(26px, 3.4vw, 50px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.dn-closing-lines span {
+  display: block;
+}
+.dn-closing-first {
+  margin-bottom: clamp(10px, 1.6vw, 24px);
+}
+@media (max-width: 640px) {
+  .dn-closing-text {
+    top: auto;
+    bottom: 24px;
+    right: 20px;
+  }
+}
+
+/* ---------------------------------------------------------------- one page */
+.dn-page {
+  background: var(--dn-cream);
+}
+.dn-page-light {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 460px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.6;
+  -webkit-mask-image: linear-gradient(#000 20%, transparent);
+  mask-image: linear-gradient(#000 20%, transparent);
+}
+.dn-page-light img,
+.dn-page-light video {
+  object-position: 50% 30%;
+}
+.dn-page-main {
+  padding-top: 110px;
+  padding-bottom: 72px;
+  max-width: 920px;
+}
+.dn-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.dn-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dn-h1 {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(38px, 5.4vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--dn-forest);
+  text-shadow: 0 2px 16px rgba(255, 248, 233, 0.9);
+}
+.dn-sub {
+  margin: 10px 0 0;
+  max-width: 52ch;
+  font-size: clamp(15px, 1.3vw, 18px);
+  font-weight: 600;
+  line-height: 1.5;
+  color: #3a4a2c;
+}
+.dn-page .dn-panel {
+  margin-top: 28px;
+  background: #fffdf6;
+  box-shadow: 0 0 0 1px #efe6cc, 0 24px 50px -30px rgba(36, 54, 27, 0.4);
+}
+
+/* Inside the cream panel, the calm look's greens become Dino World's leaf. */
+.dn-panel .bg-botanical-700,
+.dn-panel .bg-darkBtn,
+.dn-panel .bg-olive-500,
+.dn-panel .bg-deepGreen {
+  background-color: var(--dn-forest);
+}
+.dn-panel .text-botanical-800,
+.dn-panel .text-botanical-700,
+.dn-panel .text-deepGreen {
+  color: #3a6a2b;
+}
+.dn-panel .accent-botanical-700,
+.dn-panel .accent-deepGreen {
+  accent-color: var(--dn-leaf);
+}
+
+/* ---------------------------------------------------------------- calm */
+@media (prefers-reduced-motion: reduce) {
+  .dn *,
+  .dn *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}

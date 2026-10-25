@@ -18,13 +18,13 @@ export type ActiveLook = ToolTheme | "plain";
 export const TOOL_THEMES: readonly ToolTheme[] = CHILD_THEMES;
 
 // Themes with their own designed tools pages so far.
-export const DESIGNED_TOOL_THEMES: readonly ToolTheme[] = ["calm", "space", "animals", "ocean", "nature"];
+export const DESIGNED_TOOL_THEMES: readonly ToolTheme[] = ["calm", "space", "animals", "ocean", "nature", "dinosaurs"];
 
 export const TOOL_THEME_LABELS: Record<ToolTheme, string> = {
   calm: "Calm",
   space: "Space",
   ocean: "Ocean",
-  dinosaurs: "Dinosaurs",
+  dinosaurs: "Dino World",
   trains: "Trains",
   animals: "Animals",
   nature: "Nature",

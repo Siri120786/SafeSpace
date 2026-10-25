@@ -19,6 +19,7 @@ import "../features/themes/animals/animals.css";
 import "../features/themes/ocean/ocean-theme.css";
 import "../features/themes/nature/nature.css";
 import "../features/themes/calm/calm.css";
+import "../features/themes/dinosaurs/dino.css";
 import "../features/conditions/anxiety/ocean/ocean.css";
 
 // The ADHD and autism tools (role-flow 8c): a list page ("Your tools", then
