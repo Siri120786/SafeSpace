@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { OceanCalmSpace } from "../../conditions/anxiety/ocean/OceanCalmPages";
 import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
@@ -78,31 +79,9 @@ export const ModulesHome: React.FC<ModuleScreenProps> = (p) => (
   </CalmToolShell>
 );
 
+// Calm Space (anxiety): the ocean, with Aurelia's jellyfish (conditions/anxiety/ocean).
 export const CalmSpace: React.FC<ModuleScreenProps> = (p) => (
-  <CalmToolShell title="Calm Space" {...p}>
-    <div className="space-y-4">
-      <Card className="space-y-3">
-        <h2 className="font-display text-xl text-textHeading">Calming tools</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link to={calmPath(p, "breathing")} className="underline text-deepGreen">
-            Breathing exercise
-          </Link>
-          <Link to={calmPath(p, "grounding")} className="underline text-deepGreen">
-            5-4-3-2-1 grounding
-          </Link>
-        </div>
-      </Card>
-      <Card className="space-y-2">
-        <h2 className="font-display text-xl text-textHeading">Gentle tips</h2>
-        <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-          {ANXIETY_TIPS.map((t) => (
-            <li key={t}>{t}</li>
-          ))}
-        </ul>
-      </Card>
-      <Notes />
-    </div>
-  </CalmToolShell>
+  <OceanCalmSpace lowSensory={p.lowSensory} onExit={p.onExit} notice={p.notice} base={p.paths?.base ?? "/modules"} />
 );
 
 export const BrightDays: React.FC<ModuleScreenProps> = (p) => {

@@ -1,0 +1,468 @@
+/* Calm Space's ocean: deep-blue water with Aurelia's glowing jellyfish as the
+   highlight, and clear glass on top of it: see-through frosted panels, a
+   refined serif (Fraunces) for headings, Inter for text, and amber accents
+   that echo the jellyfish glow. Made for adults and children alike.
+   Reusable as an "ocean" theme. All text passes WCAG AA on its background. */
+
+.oc {
+  --oc-deep: #06213f;
+  --oc-blue: #0f3d6e;
+  --oc-text: #eaf4ff;
+  --oc-soft: #d3e4f6;
+  --oc-amber: #f5b25c;
+  --oc-amber-deep: #e0913a;
+  --oc-ink: #10223b;
+  /* Clear glass: mostly see-through, so the jellyfish glow through it. */
+  --oc-glass: linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05) 60%, rgba(255, 255, 255, 0.08));
+  --oc-glass-solid: rgba(10, 40, 76, 0.38);
+  --oc-line: rgba(255, 255, 255, 0.2);
+  --oc-highlight: rgba(255, 255, 255, 0.35);
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  color: var(--oc-text);
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--oc-deep);
+  isolation: isolate;
+}
+
+/* ---- Water --------------------------------------------------------------- */
+.oc-water {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+/* The still ocean: what shows before the jellyfish load, where WebGPU isn't
+   available, and in low-sensory or reduced-motion mode. */
+.oc-still {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% -10%, rgba(120, 180, 235, 0.35), transparent 70%),
+    linear-gradient(180deg, #1d5a96 0%, #134a82 30%, #0d3a6c 62%, #082a52 100%);
+}
+.oc-still::before {
+  /* Soft shafts of light from the surface. */
+  content: "";
+  position: absolute;
+  inset: -10% 10% 20% 10%;
+  background:
+    linear-gradient(100deg, transparent 20%, rgba(170, 210, 245, 0.10) 28%, transparent 36%),
+    linear-gradient(95deg, transparent 48%, rgba(170, 210, 245, 0.08) 54%, transparent 60%),
+    linear-gradient(104deg, transparent 66%, rgba(170, 210, 245, 0.07) 71%, transparent 77%);
+  filter: blur(8px);
+}
+.oc-still::after {
+  /* A few distant warm glows: jellyfish far away. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(245, 178, 92, 0.28), transparent 7%),
+    radial-gradient(circle at 70% 18%, rgba(245, 178, 92, 0.2), transparent 6%),
+    radial-gradient(circle at 44% 62%, rgba(245, 178, 92, 0.22), transparent 6.5%),
+    radial-gradient(circle at 80% 72%, rgba(245, 178, 92, 0.14), transparent 5%);
+  filter: blur(6px);
+}
+.oc-canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.oc-canvas[data-ready="true"] {
+  opacity: 1;
+}
+/* Keeps text readable over the brightest jellyfish. */
+.oc-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 33, 63, 0.12) 0%, rgba(6, 33, 63, 0) 35%, rgba(6, 33, 63, 0.3) 100%);
+  pointer-events: none;
+}
+/* ---- Frame ----------------------------------------------------------------- */
+.oc-frame {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+.oc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.oc-top-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+/* Headings: a calm, refined serif. */
+.oc-display {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
+}
+.oc-kicker {
+  margin: 28px 0 0;
+  text-align: center;
+  font: 500 12.5px "Inter", system-ui, sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--oc-amber);
+  text-shadow: 0 0 14px rgba(245, 178, 92, 0.35);
+}
+.oc-title {
+  margin: 10px 0 0;
+  text-align: center;
+  font-weight: 300;
+  font-size: clamp(40px, 6.4vw, 68px);
+  line-height: 1.02;
+  text-shadow: 0 4px 24px rgba(3, 18, 38, 0.55);
+}
+.oc-lead {
+  margin: 14px auto 0;
+  max-width: 540px;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--oc-text);
+  text-shadow: 0 1px 8px rgba(3, 18, 38, 0.7);
+}
+.oc-stack {
+  margin-top: 28px;
+  display: grid;
+  gap: 16px;
+}
+.oc-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ---- Glass ------------------------------------------------------------------ */
+.oc-card {
+  position: relative;
+  border-radius: 22px;
+  padding: 22px 24px;
+  background: var(--oc-glass), var(--oc-glass-solid);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--oc-line);
+  box-shadow:
+    inset 0 1px 0 var(--oc-highlight),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 20px 50px rgba(2, 14, 30, 0.28);
+}
+.oc-card h2,
+.oc-card h3 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+}
+/* A row of glass: icon, words, arrow. */
+.oc-row,
+a.oc-card.oc-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.oc-row .oc-icon {
+  margin-bottom: 0;
+  flex: 0 0 auto;
+}
+.oc-row-text {
+  flex: 1;
+  min-width: 0;
+}
+.oc-row-text p {
+  margin-top: 4px;
+}
+.oc-arrow {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--oc-amber);
+  border: 1px solid rgba(245, 178, 92, 0.45);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+a.oc-card:hover .oc-arrow {
+  transform: translateX(3px);
+  background: rgba(245, 178, 92, 0.12);
+}
+.oc-card p {
+  margin: 8px 0 0;
+  color: var(--oc-soft);
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+a.oc-card {
+  display: block;
+  color: var(--oc-text);
+  text-decoration: none;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+a.oc-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 var(--oc-highlight),
+    0 24px 54px rgba(2, 14, 30, 0.32),
+    0 0 30px rgba(245, 178, 92, 0.12);
+}
+/* A line icon in a small glass circle. */
+.oc-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  color: #ffd9a3;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 220, 160, 0.22), rgba(255, 255, 255, 0.06) 70%);
+  border: 1px solid rgba(255, 220, 160, 0.4);
+  box-shadow: 0 0 22px rgba(245, 178, 92, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.oc-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.oc-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-weight: 500;
+  color: var(--oc-amber);
+}
+.oc-list {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.oc-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--oc-text);
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+.oc-list li::before {
+  content: "";
+  flex: 0 0 6px;
+  height: 6px;
+  margin-top: 10px;
+  border-radius: 50%;
+  background: var(--oc-amber);
+  box-shadow: 0 0 8px rgba(245, 178, 92, 0.5);
+}
+
+/* ---- Buttons --------------------------------------------------------------- */
+.oc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 0;
+  font: 500 16px "Inter", system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.oc-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.oc-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+/* Warm amber, like the jellyfish glow. */
+.oc-btn-amber {
+  color: var(--oc-ink);
+  background: linear-gradient(180deg, #ffd08e, var(--oc-amber) 60%, var(--oc-amber-deep));
+  box-shadow: 0 8px 24px rgba(245, 178, 92, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+/* Clear glass. */
+.oc-btn-glass {
+  color: var(--oc-text);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.oc-btn-sm {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 14.5px;
+}
+.oc a:focus-visible,
+.oc button:focus-visible {
+  outline: 3px solid var(--oc-amber);
+  outline-offset: 3px;
+}
+
+.oc-notice {
+  margin-top: 16px;
+  border-radius: 16px;
+  padding: 12px 16px;
+  font-size: 14px;
+  background: var(--oc-glass), rgba(10, 40, 76, 0.55);
+  border: 1px solid var(--oc-line);
+}
+/* The quieter small print (the review note and where to find help). */
+.oc-small {
+  margin-top: 4px;
+  padding: 16px 20px;
+}
+.oc-small p {
+  font-size: 13.5px;
+}
+.oc-foot {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--oc-soft);
+}
+.oc-foot a {
+  color: var(--oc-soft);
+}
+
+/* ---- Breathing ----------------------------------------------------------- */
+.oc-bubble {
+  width: 180px;
+  height: 180px;
+  margin: 8px auto 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 236, 200, 0.55), transparent 32%),
+    radial-gradient(circle at 50% 50%, rgba(245, 178, 92, 0.35), rgba(245, 178, 92, 0.08) 62%, transparent 70%);
+  border: 2px solid rgba(255, 220, 160, 0.55);
+  box-shadow: 0 0 40px rgba(245, 178, 92, 0.35), inset 0 0 30px rgba(255, 220, 160, 0.25);
+}
+.oc-bubble span {
+  font-size: 50px;
+  font-weight: 300;
+  color: #fff4e2;
+  text-shadow: 0 0 16px rgba(245, 178, 92, 0.8);
+}
+.oc-steps {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 16px;
+}
+.oc-steps i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(185, 211, 238, 0.3);
+}
+.oc-steps i[data-on="true"] {
+  background: var(--oc-amber);
+  box-shadow: 0 0 10px rgba(245, 178, 92, 0.7);
+}
+
+/* ---- Low sensory / reduced motion ----------------------------------------- */
+.oc[data-low-sensory="true"] *,
+.oc[data-low-sensory="true"] *::before,
+.oc[data-low-sensory="true"] *::after {
+  transition: none !important;
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .oc *,
+  .oc *::before,
+  .oc *::after {
+    transition: none !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  /* Phones and tablets: open water at the top for the jellyfish, the glass
+     starting below them. */
+  .oc-kicker {
+    margin-top: 24vh;
+  }
+}
+@media (max-width: 640px) {
+  .oc-grid {
+    grid-template-columns: 1fr;
+  }
+  .oc-kicker {
+    margin-top: 20vh;
+  }
+  .oc-lead {
+    font-size: 16px;
+  }
+  .oc-card {
+    padding: 18px;
+  }
+  .oc-row {
+    gap: 14px;
+  }
+  .oc-row .oc-icon {
+    width: 42px;
+    height: 42px;
+  }
+  .oc-row .oc-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  .oc-arrow {
+    width: 32px;
+    height: 32px;
+  }
+  .oc-card h2 {
+    font-size: 21px;
+  }
+}
+
+/* Wide screens: the text in a column on the left, the jellyfish swimming in
+   the open water on the right (the camera moves to match, oceanScene.ts). */
+@media (min-width: 1024px) {
+  .oc-veil {
+    background: linear-gradient(90deg, rgba(6, 33, 63, 0.45) 0%, rgba(6, 33, 63, 0.25) 38%, rgba(6, 33, 63, 0) 55%);
+  }
+  .oc-frame {
+    max-width: 520px;
+    margin: 0 0 0 max(32px, 6vw);
+  }
+  .oc-grid {
+    grid-template-columns: 1fr;
+  }
+  .oc-top {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    z-index: 2;
+  }
+  .oc-kicker,
+  .oc-title,
+  .oc-lead {
+    text-align: left;
+    margin-left: 0;
+  }
+  .oc-kicker {
+    margin-top: 12vh;
+  }
+}
