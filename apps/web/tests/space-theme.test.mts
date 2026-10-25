@@ -126,10 +126,10 @@ test("one tool's page keeps the tool on a light panel, still by default", () => 
   assert.match(html, /href="\/child\/tools"/);
 });
 
-test("the theme picker: Calm, Space and Animals ready, the rest marked Soon and not pickable", () => {
+test("the theme picker: Calm, Space, Animals and Ocean ready, the rest marked Soon and not pickable", () => {
   const html = render(React.createElement(ToolThemePicker, { look: "plain", value: "space", onChange: () => {} }));
-  assert.equal((html.match(/disabled=""/g) ?? []).length, 4);
-  assert.equal((html.match(/Soon/g) ?? []).length, 4);
+  assert.equal((html.match(/disabled=""/g) ?? []).length, 3);
+  assert.equal((html.match(/Soon/g) ?? []).length, 3);
   assert.match(html, /aria-pressed="true"[^>]*>.*Space/);
   const low = render(React.createElement(ToolThemePicker, { look: "plain", value: "space", onChange: () => {}, lowSensory: true }));
   assert.match(low, /Low-sensory mode is on/);

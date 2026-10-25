@@ -1,0 +1,518 @@
+/* The Ocean theme (see OceanKit.tsx). Everything is scoped to .ow.
+   Every part starts on the exact colour the part before it ends on, and
+   each change of colour is a long soft fade, so there are no lines:
+     home:  still water (#1d5a96 .. #082a52) -> the day (#082a52 -> deep ->
+            abyss) -> the sunlit floor (abyss);
+     tools: the cave (abyss) -> the cards (abyss -> deep -> abyss) -> the
+            sunlit floor (abyss).
+   Still by default; clips and jellyfish move only while playing. */
+
+.ow {
+  --ow-abyss: #020412;
+  --ow-deep: #06213f;
+  --ow-water: #082a52;
+  --ow-text: #eef5ff;
+  --ow-soft: rgba(238, 245, 255, 0.74);
+  --ow-amber: #f5b25c;
+  position: relative;
+  min-height: 100vh;
+  color: var(--ow-text);
+  background: var(--ow-abyss);
+  font-family: "Geist", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  /* The bold theme picker, in this theme's colours. */
+  --sp-cream: #fff;
+  --sp-mint: var(--ow-amber);
+}
+/* The app's base styles give headings their own font; here they use Geist. */
+.ow h1,
+.ow h2,
+.ow h3 {
+  font-family: "Geist", "Inter", system-ui, sans-serif;
+}
+.ow-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 64px);
+}
+.ow :focus-visible {
+  outline: 3px solid var(--ow-amber);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- bar */
+.ow-bar {
+  position: absolute;
+  z-index: 30;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px clamp(24px, 4vw, 64px);
+}
+.ow-mark {
+  font-size: clamp(18px, 1.6vw, 20px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.ow-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.ow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font: 500 14px/1 "Geist", "Inter", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.ow-btn:hover {
+  transform: scale(1.03);
+}
+.ow-btn--solid {
+  background: #fff;
+  color: #000;
+  padding: 12px 22px;
+}
+.ow-btn--glass {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.ow-btn--glass:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+.ow-btn-icon {
+  font-size: 10px;
+  color: var(--ow-amber);
+}
+
+/* ---------------------------------------------------------------- media */
+.ow-media {
+  position: absolute;
+  inset: 0;
+}
+.ow-media img,
+.ow-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.ow-media video {
+  animation: ow-fade 1.4s ease both;
+}
+@keyframes ow-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- hero */
+.ow-hero {
+  position: relative;
+  height: max(100svh, 560px);
+  overflow: hidden;
+}
+.ow-hero--water {
+  background: var(--ow-water);
+}
+.ow-hero--cave {
+  background: var(--ow-abyss);
+}
+.ow-water {
+  position: absolute;
+  inset: 0;
+}
+.ow-water .oc-still {
+  position: absolute;
+  inset: 0;
+}
+.ow-jelly {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+.ow-jelly[data-ready="true"] {
+  opacity: 1;
+}
+.ow-cave img,
+.ow-cave video {
+  object-position: 70% center;
+}
+/* Left: a soft dark side for the words. Bottom: the last stretch fades
+   into exactly the colour the next part starts with. */
+.ow-hero-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ow-hero--water .ow-hero-shade {
+  background: linear-gradient(180deg, rgba(8, 42, 82, 0) 60%, var(--ow-water) 95%, var(--ow-water) 100%),
+    linear-gradient(90deg, rgba(4, 22, 48, 0.55) 0%, rgba(4, 22, 48, 0.15) 45%, rgba(4, 22, 48, 0) 65%);
+}
+.ow-hero--cave .ow-hero-shade {
+  background: linear-gradient(180deg, rgba(2, 4, 18, 0) 58%, var(--ow-abyss) 95%, var(--ow-abyss) 100%),
+    linear-gradient(90deg, rgba(2, 4, 18, 0.6) 0%, rgba(2, 4, 18, 0.2) 45%, rgba(2, 4, 18, 0) 62%);
+}
+.ow-hero-copy {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: clamp(110px, 16vh, 150px) clamp(24px, 4vw, 64px) clamp(56px, 12vh, 120px);
+}
+.ow-badge {
+  margin: 0 0 clamp(16px, 2vw, 24px);
+  font-size: clamp(12px, 1vw, 14px);
+  color: rgba(255, 255, 255, 0.9);
+}
+.ow-title {
+  margin: 0;
+  max-width: 16ch;
+  font-weight: 500;
+  font-size: clamp(32px, 5.6vw, 72px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+.ow-lead {
+  margin: 0 0 clamp(18px, 2vw, 24px);
+  max-width: 34rem;
+  font-size: clamp(14px, 1.3vw, 18px);
+  line-height: 1.65;
+  color: var(--ow-soft);
+}
+.ow-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: 14px;
+}
+.ow-status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ow-amber);
+  box-shadow: 0 0 12px var(--ow-amber);
+}
+
+/* ---------------------------------------------------------------- body */
+/* Each part overlaps the one above by a pixel and starts on its colour. */
+.ow-body,
+.ow-cards,
+.ow-closing {
+  margin-top: -1px;
+}
+.ow-body {
+  position: relative;
+  padding: clamp(48px, 7vw, 96px) 0 clamp(72px, 9vw, 120px);
+  background: linear-gradient(180deg, var(--ow-water) 0, var(--ow-water) 40px, var(--ow-deep) 38%, var(--ow-abyss) 100%);
+}
+.ow-cards {
+  position: relative;
+  padding: clamp(56px, 8vw, 110px) 0 clamp(80px, 10vw, 130px);
+  background: linear-gradient(180deg, var(--ow-abyss) 0, var(--ow-abyss) 40px, var(--ow-deep) 50%, var(--ow-abyss) 100%);
+}
+.ow-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(24px, 4vw, 44px);
+}
+.ow-h2 {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(32px, 4.4vw, 56px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+.ow-panel {
+  padding: clamp(16px, 3vw, 32px);
+  border-radius: 24px;
+  background: #f2f7fc;
+  color: #10223b;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.7);
+}
+.ow-stack > * + * {
+  margin-top: 20px;
+}
+.ow-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: clamp(28px, 4vw, 48px);
+}
+.ow-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 116px;
+  padding: 18px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.4s ease, transform 0.4s ease;
+}
+.ow-tile:hover {
+  background: rgba(255, 255, 255, 0.13);
+  transform: translateY(-2px);
+}
+.ow-tile-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+.ow-tile-label {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------- cards */
+.ow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ow-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 12px 12px 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.13);
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 0.4s ease, transform 0.4s ease;
+}
+.ow-card:hover {
+  background: rgba(255, 255, 255, 0.11);
+  transform: translateY(-3px);
+}
+.ow-card-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  margin-bottom: 8px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.ow-card-tag {
+  padding: 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ow-amber);
+}
+.ow-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 6px;
+  font-weight: 500;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+.ow-card-blurb {
+  padding: 0 6px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ow-soft);
+}
+
+/* ---------------------------------------------------------------- closing */
+/* The sunlit floor: the clip's top edge fades in from the abyss above. */
+.ow-closing {
+  position: relative;
+  background: var(--ow-abyss);
+}
+.ow-closing .ow-closing-media {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  aspect-ratio: 1280 / 800;
+  min-height: 380px;
+  max-height: 92vh;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 22%);
+}
+.ow-closing-media img,
+.ow-closing-media video {
+  object-position: 65% 70%;
+}
+.ow-closing-text {
+  position: absolute;
+  z-index: 2;
+  left: clamp(24px, 6vw, 110px);
+  top: 50%;
+  transform: translateY(-40%);
+}
+.ow-closing-lines {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(24px, 3.4vw, 50px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(2, 4, 18, 0.8);
+}
+.ow-closing-lines span {
+  display: block;
+}
+.ow-closing-first {
+  margin-bottom: clamp(10px, 1.6vw, 24px);
+}
+@media (max-width: 640px) {
+  .ow-closing-text {
+    top: auto;
+    bottom: 28px;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------- one page */
+.ow-page {
+  background: var(--ow-deep);
+}
+.ow-page-light {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 520px;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 25%, transparent);
+  mask-image: linear-gradient(#000 25%, transparent);
+}
+.ow-page-light .oc-still {
+  position: absolute;
+  inset: 0;
+}
+.ow-page-main {
+  padding-top: 110px;
+  padding-bottom: 72px;
+  max-width: 920px;
+}
+.ow-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ow-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ow-h1 {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(36px, 5.4vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+.ow-sub {
+  margin: 12px 0 0;
+  max-width: 52ch;
+  color: var(--ow-soft);
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.55;
+}
+.ow-page .ow-panel {
+  margin-top: 28px;
+}
+
+/* Inside the light panel, the calm look's greens become ocean blues, so
+   pages blend in without changing their own code. */
+.ow-panel .bg-botanical-700,
+.ow-panel .bg-darkBtn,
+.ow-panel .bg-olive-500,
+.ow-panel .bg-deepGreen {
+  background-color: #1d5a96;
+}
+.ow-panel .hover\:bg-botanical-800:hover,
+.ow-panel .hover\:bg-olive-600:hover {
+  background-color: #134a82;
+}
+.ow-panel .text-botanical-800,
+.ow-panel .text-botanical-700,
+.ow-panel .text-deepGreen,
+.ow-panel .text-olive-700 {
+  color: #134a82;
+}
+.ow-panel .bg-botanical-50,
+.ow-panel .bg-olive-50,
+.ow-panel .bg-deepGreen-50 {
+  background-color: #e1edf9;
+}
+.ow-panel .bg-botanical-100 {
+  background-color: #d2e3f5;
+}
+.ow-panel .border-olive-100,
+.ow-panel .border-olive-200,
+.ow-panel .border-botanical-200 {
+  border-color: #d3e2f2;
+}
+.ow-panel .border-botanical-700 {
+  border-color: #1d5a96;
+}
+.ow-panel .accent-botanical-700,
+.ow-panel .accent-deepGreen {
+  accent-color: #1d5a96;
+}
+.ow-panel .focus\:ring-botanical-700:focus,
+.ow-panel .focus\:ring-olive-500:focus {
+  --tw-ring-color: #1d5a96;
+}
+
+/* ---------------------------------------------------------------- calm */
+@media (prefers-reduced-motion: reduce) {
+  .ow *,
+  .ow *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}

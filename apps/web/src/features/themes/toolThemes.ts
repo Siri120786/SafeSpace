@@ -14,7 +14,7 @@ export type ToolTheme = ChildTheme;
 export const TOOL_THEMES: readonly ToolTheme[] = CHILD_THEMES;
 
 // Themes with their own designed tools pages so far.
-export const DESIGNED_TOOL_THEMES: readonly ToolTheme[] = ["space", "animals"];
+export const DESIGNED_TOOL_THEMES: readonly ToolTheme[] = ["space", "animals", "ocean"];
 
 export const TOOL_THEME_LABELS: Record<ToolTheme, string> = {
   calm: "Calm",
