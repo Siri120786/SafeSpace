@@ -21,6 +21,7 @@ export const ROUTES = {
   MODULES: "/modules",
   TOOLS: "/tools",
   MUSIC: "/music",
+  NUTRITION: "/nutrition",
 
   // Caregiver
   CAREGIVER_HOME: "/caregiver",
@@ -36,6 +37,7 @@ export const ROUTES = {
   CAREGIVER_STORIES: "/caregiver/stories",
   CAREGIVER_STORY_NEW: "/caregiver/stories/new",
   CAREGIVER_STORY: "/caregiver/stories/:storyId",
+  CAREGIVER_NUTRITION: "/caregiver/nutrition",
 
   // Child
   CHILD_PIN: "/child/pin",
@@ -54,4 +56,5 @@ export const ROUTES = {
   CHILD_STORIES: "/child/stories",
   CHILD_TOOLS: "/child/tools",
   CHILD_MUSIC: "/child/music",
+  CHILD_NUTRITION: "/child/nutrition",
 };

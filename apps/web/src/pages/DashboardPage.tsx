@@ -33,6 +33,7 @@ const TOOL_TILES = [
   { to: ROUTES.MUSIC, label: "Music", icon: "🎵" },
   { to: ROUTES.MODULES, label: "Wellness modules", icon: "🌈" },
   { to: ROUTES.COMPANION, label: "AI Companion", icon: "💬" },
+  { to: ROUTES.NUTRITION, label: "NutritionGuide", icon: "🥕" },
 ];
 
 const SESSIONS_RECOMMENDED = [

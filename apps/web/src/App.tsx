@@ -60,6 +60,7 @@ import {
   ChildRoutinesPage,
 } from "./pages/ChildToolPages";
 import { SceneBackdrop } from "./features/landing/hero/SceneBackdrop";
+import { CaregiverNutritionPage, ChildNutritionPage, IndividualNutritionPage } from "./pages/NutritionPages";
 
 function MoodCheckInPageWrapper() {
   const navigate = useNavigate();
@@ -154,6 +155,7 @@ export default function App() {
             <Route path={ROUTES.MUSIC} element={<RoleRoute allow={["individual"]}><IndividualMusicPage /></RoleRoute>} />
             <Route path={`${ROUTES.MUSIC}/credits`} element={<RoleRoute allow={["individual"]}><IndividualMusicCreditsPage /></RoleRoute>} />
             <Route path={`${ROUTES.MUSIC}/:playlistId`} element={<RoleRoute allow={["individual"]}><IndividualPlaylistPage /></RoleRoute>} />
+            <Route path={ROUTES.NUTRITION} element={<RoleRoute allow={["individual"]}><IndividualNutritionPage /></RoleRoute>} />
 
             {/* Caregiver */}
             <Route
@@ -208,6 +210,10 @@ export default function App() {
               path={ROUTES.CAREGIVER_STORY}
               element={<RoleRoute allow={["caregiver"]}><CaregiverStoryEditorPage /></RoleRoute>}
             />
+            <Route
+              path={ROUTES.CAREGIVER_NUTRITION}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverNutritionPage /></RoleRoute>}
+            />
             <Route path="/caregiver/dashboard" element={<Navigate to={ROUTES.CAREGIVER_HOME} replace />} />
 
             {/* Child (family code + PIN) */}
@@ -246,6 +252,7 @@ export default function App() {
               <Route path="music" element={<ChildMusicPage />} />
               <Route path="music/credits" element={<ChildMusicCreditsPage />} />
               <Route path="music/:playlistId" element={<ChildPlaylistPage />} />
+              <Route path="nutrition" element={<ChildNutritionPage />} />
             </Route>
 
             {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}

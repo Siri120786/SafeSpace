@@ -28,6 +28,7 @@ const TILES: { to: string; label: string; emoji: string }[] = [
   { to: ROUTES.CHILD_CALM_SPACE, label: "Calm Space", emoji: "🌊" },
   { to: ROUTES.CHILD_GAMES, label: "Games", emoji: "🎲" },
   { to: ROUTES.CHILD_COMPANION, label: "AI Companion", emoji: "💬" },
+  { to: ROUTES.CHILD_NUTRITION, label: "NutritionGuide", emoji: "🥕" },
 ];
 const MUSIC_TILE = { to: ROUTES.CHILD_MUSIC, label: "Music", emoji: "🎵" };
 const MODULES_TILE = { to: ROUTES.CHILD_MODULES, label: "My spaces", emoji: "🌈" };

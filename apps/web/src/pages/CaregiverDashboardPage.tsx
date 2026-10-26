@@ -27,6 +27,7 @@ export const CaregiverDashboardPage: React.FC = () => {
         { to: ROUTES.CAREGIVER_ALERTS, label: "Alerts", emoji: "🔔" },
         { to: ROUTES.CAREGIVER_ADD_CHILD, label: "Add a child", emoji: "🧒" },
         { to: ROUTES.CAREGIVER_JOIN, label: "Join a family", emoji: "🤝" },
+        { to: ROUTES.CAREGIVER_NUTRITION, label: "NutritionGuide", emoji: "🥕" },
         { to: ROUTES.PROFILE, label: "Profile", emoji: "👤" },
       ]}
       tilesLabel="Caregiver pages"
