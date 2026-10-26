@@ -393,6 +393,27 @@ export interface Recommendation {
   reason: string;
 }
 
+// Rule-based journal insights for the last 30 days (the journal-analysis
+// Edge Function). Counts and everyday themes only: no scores, mood labels or
+// anything diagnostic. safetyMessage is set only for the writer, when a recent
+// entry tripped the crisis screen; then themes is empty.
+export interface JournalTheme {
+  key: string;
+  label: string;
+  emoji: string;
+  entries: number;
+}
+
+export interface JournalInsights {
+  periodDays: number;
+  entries: number;
+  daysWritten: number;
+  gratitudeEntries: number;
+  gratitudeStreakDays: number;
+  themes: JournalTheme[];
+  safetyMessage: string | null;
+}
+
 // Caregiver dashboard card for one child. When the young person has chosen not
 // to share (activity.visible === false), summary and dueRemindersToday are null.
 export interface ChildOverview {

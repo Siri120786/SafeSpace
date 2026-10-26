@@ -4,6 +4,8 @@ import { MyJournal, MyReminders, MyRoutines, journalVisibilityNote } from "../fe
 import { ChatWindow } from "../features/ai-companion";
 import { ModulesRoutes } from "../features/wellness-modules";
 import { ROUTES } from "../routes";
+import { getJournalInsights } from "@safespace/api-client";
+import { JournalInsightsCard } from "../features/journaling/JournalInsightsCard";
 
 // The child's tool pages (docs/role-flow/CONTRACT.md section 3, D2). Each
 // uses the shared screen with the child's session and session-ended guard.
@@ -22,6 +24,7 @@ export const ChildJournalPage: React.FC = () => {
   return (
     <ChildPageShell title="My journal" backTo={ROUTES.CHILD_HOME}>
       <MyJournal session={session} guard={guard} visibilityNote={journalVisibilityNote(settings.sharing)} />
+      <JournalInsightsCard load={() => getJournalInsights(session)} title="My month in the journal" />
     </ChildPageShell>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getChildDetail } from "@safespace/api-client";
+import { getChildDetail, getChildJournalInsights } from "@safespace/api-client";
 import type { CaregiverChildDetail, WellnessPeriodDays } from "@safespace/shared-types";
 import { Card } from "../components/ui/Card";
 import { MoodHistoryList } from "../features/mood";
@@ -17,6 +17,7 @@ import {
 } from "../features/caregiver";
 import { ROUTES } from "../routes";
 import { ToolsProgressCard } from "../features/conditions";
+import { JournalInsightsCard } from "../features/journaling/JournalInsightsCard";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const days = (d: number[]) => (d.length === 0 || d.length === 7 ? "Every day" : d.map((n) => DAY_NAMES[n]).join(", "));
@@ -158,6 +159,12 @@ export const CaregiverChildPage: React.FC = () => {
           </Section>
 
           <Section title="Journal">
+            <JournalInsightsCard
+              load={() => getChildJournalInsights(child.id)}
+              title={`${child.name}'s month in the journal`}
+              who={child.name}
+              reloadKey={child.id}
+            />
             {(detail.recentJournal ?? []).length === 0 ? (
               <p className="text-sm text-textMuted">No journal entries yet.</p>
             ) : (

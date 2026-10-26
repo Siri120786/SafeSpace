@@ -6,6 +6,8 @@ import { MyJournal, MyReminders, MyRoutines, MyToolsShell } from "../features/my
 import { ReminderEditor, RoutineEditor } from "../features/builders";
 import { ChatWindow } from "../features/ai-companion";
 import { ROUTES } from "../routes";
+import { getJournalInsights } from "@safespace/api-client";
+import { JournalInsightsCard } from "../features/journaling/JournalInsightsCard";
 
 // An Individual's own tool pages (docs/role-flow/CONTRACT.md section 3, D2).
 // RoleRoute only lets Individuals in, so the session is theirs. Routines and
@@ -61,6 +63,7 @@ export const IndividualJournalPage: React.FC = () => {
   return (
     <MyToolsShell title="My journal" subtitle="Only you can read this." backTo={ROUTES.DASHBOARD}>
       <MyJournal session={session} />
+      <JournalInsightsCard load={() => getJournalInsights(session)} />
     </MyToolsShell>
   );
 };
