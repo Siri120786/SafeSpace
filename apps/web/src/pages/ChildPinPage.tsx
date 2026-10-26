@@ -7,6 +7,7 @@ import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
 import { SafeSpaceInput } from "../components/ui/SafeSpaceInput";
 import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
 import { SafeSpaceBrandHeader } from "../components/ui/SafeSpaceBrandHeader";
+import { MeadowPage } from "../features/landing/hero/MeadowPage";
 
 interface Props {
   onBack: () => void;
@@ -66,7 +67,7 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
   // First time on this device: ask for the family code once.
   if (!familyCode) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+      <MeadowPage>
         <SafeSpaceCard maxW="md">
           <div className="flex justify-start mb-2">
             <button
@@ -104,12 +105,12 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
             </SafeSpaceButton>
           </div>
         </SafeSpaceCard>
-      </div>
+      </MeadowPage>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+    <MeadowPage>
       <SafeSpaceCard maxW="md" className="text-center">
         <div className="flex justify-start mb-2">
           <button
@@ -184,6 +185,6 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
           </button>
         </div>
       </SafeSpaceCard>
-    </div>
+    </MeadowPage>
   );
 }

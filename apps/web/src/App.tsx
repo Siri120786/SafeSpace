@@ -59,10 +59,16 @@ import {
   ChildRemindersPage,
   ChildRoutinesPage,
 } from "./pages/ChildToolPages";
+import { SceneBackdrop } from "./features/landing/hero/SceneBackdrop";
 
 function MoodCheckInPageWrapper() {
   const navigate = useNavigate();
-  return <MoodCheckInPage onBack={() => navigate(-1)} />;
+  return (
+    <div className="min-h-screen relative isolate">
+      <SceneBackdrop soft />
+      <MoodCheckInPage onBack={() => navigate(-1)} />
+    </div>
+  );
 }
 
 // Every child page shares one loaded profile, the 15+ sharing question and

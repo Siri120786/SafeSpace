@@ -212,13 +212,25 @@ const Steps: React.FC<{ playing: boolean }> = ({ playing }) => {
   );
 };
 
+// The bar's extra buttons, plus Sign out (in this theme's style) when asked.
+const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined, className: string) => (
+  <>
+    {extra}
+    {onSignOut && (
+      <button type="button" className={className} onClick={onSignOut}>
+        Sign out
+      </button>
+    )}
+  </>
+);
+
 // A child's home or an Individual's dashboard in the Nature theme.
-export const NatureHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
+export const NatureHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
   const [playing, togglePlaying] = usePlaying();
   return (
     <div className="nt nt-home" data-playing={playing ? "true" : "false"}>
       <section className="nt-hero" aria-labelledby="nt-hello">
-        <NatureBar playing={playing} onTogglePlay={togglePlaying} extra={barExtra} />
+        <NatureBar playing={playing} onTogglePlay={togglePlaying} extra={withSignOut(barExtra, onSignOut, "nt-btn nt-btn--soft")} />
         <div className="nt-cloud nt-cloud--l" aria-hidden="true">
           <img className={playing ? "nt-drift-a" : ""} src={NATURE_CLOUDS.a} alt="" />
         </div>

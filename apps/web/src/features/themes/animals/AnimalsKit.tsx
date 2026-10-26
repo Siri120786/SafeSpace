@@ -192,8 +192,20 @@ const AnimalsTiles: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, 
   </nav>
 );
 
+// The bar's extra buttons, plus Sign out (in this theme's style) when asked.
+const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined, className: string) => (
+  <>
+    {extra}
+    {onSignOut && (
+      <button type="button" className={className} onClick={onSignOut}>
+        Sign out
+      </button>
+    )}
+  </>
+);
+
 // A child's home or an Individual's dashboard in the Animals theme.
-export const AnimalsHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
+export const AnimalsHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
   const [playing, togglePlaying] = usePlaying();
   const hero = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -205,7 +217,7 @@ export const AnimalsHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line,
         <AnimalMedia clip={ANIMALS_FOREST} playing={playing} className="an-hero-media" />
         <div className="an-shade" aria-hidden="true" />
         <canvas ref={canvas} className="an-rusty" data-ready={ready ? "true" : "false"} aria-hidden="true" />
-        <AnimalsBar playing={playing} onTogglePlay={togglePlaying} extra={barExtra} />
+        <AnimalsBar playing={playing} onTogglePlay={togglePlaying} extra={withSignOut(barExtra, onSignOut, "an-pill")} />
         {status && ready && (
           <p className="an-bubble">
             <span className="an-bubble-name">Rusty</span>

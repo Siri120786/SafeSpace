@@ -158,15 +158,27 @@ const Friends: React.FC = () => (
   </section>
 );
 
+// The bar's extra buttons, plus Sign out (in this theme's style) when asked.
+const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined, className: string) => (
+  <>
+    {extra}
+    {onSignOut && (
+      <button type="button" className={className} onClick={onSignOut}>
+        Sign out
+      </button>
+    )}
+  </>
+);
+
 // A child's home or an Individual's dashboard in Dino World.
-export const DinoHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
+export const DinoHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
   const [playing, togglePlaying] = usePlaying();
   return (
     <div className="dn dn-home" data-playing={playing ? "true" : "false"}>
       <section className="dn-hero dn-hero--valley" aria-labelledby="dn-hello">
         <DinoMedia clip={DINO_VALLEY} playing={playing} className="dn-valley" />
         <div className="dn-hero-shade" aria-hidden="true" />
-        <DinoBar playing={playing} onTogglePlay={togglePlaying} extra={barExtra} />
+        <DinoBar playing={playing} onTogglePlay={togglePlaying} extra={withSignOut(barExtra, onSignOut, "dn-btn dn-btn--cream")} />
         <div className="dn-hero-copy">
           <p className="dn-eyebrow">
             <span className="dn-dot" aria-hidden="true" />

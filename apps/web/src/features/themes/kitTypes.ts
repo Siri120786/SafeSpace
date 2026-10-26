@@ -23,11 +23,17 @@ export interface ThemeHomeProps {
   // A short word about today (the guide says it in a bubble, if the theme has one).
   status?: string;
   barExtra?: React.ReactNode;
+  // Shows a Sign out button in the theme's own style.
+  onSignOut?: () => void;
+  // Low-sensory mode: the look stays, but nothing can play or move.
+  stillOnly?: boolean;
   // The theme picker.
   picker?: React.ReactNode;
   // Every page, as tiles under the day.
   tiles: ThemeTile[];
   tilesLabel: string;
+  // The heading over the light panel ("Your day" when left out).
+  dayTitle?: string;
   // The day's things, on a light panel.
   children: React.ReactNode;
 }
@@ -42,6 +48,8 @@ export interface ThemeToolsHomeProps {
 }
 
 export interface ThemeFrameProps {
+  // Low-sensory mode: the look stays, but nothing can play or move.
+  stillOnly?: boolean;
   eyebrow: string;
   title: string;
   subtitle?: string;

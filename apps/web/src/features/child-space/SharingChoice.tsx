@@ -3,6 +3,7 @@ import { setMySharing } from "@safespace/api-client";
 import type { ChildSettings } from "@safespace/shared-types";
 import { useChildSpace } from "./ChildSpaceContext";
 import { ReadAloudButton } from "../speech";
+import { MeadowPage } from "../landing/hero/MeadowPage";
 
 interface Props {
   onAnswered: (s: ChildSettings) => void;
@@ -73,9 +74,9 @@ export const SharingChoice: React.FC<Props> = ({ onAnswered, mode }) => {
 
 // Shown once, before home, until a 15+ child answers.
 export const SharingQuestionScreen: React.FC<{ onAnswered: (s: ChildSettings) => void }> = ({ onAnswered }) => (
-  <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
-    <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-card">
+  <MeadowPage>
+    <div className="w-full max-w-lg rounded-[32px] bg-white/85 backdrop-blur-xl border border-white/70 p-6 shadow-2xl">
       <SharingChoice mode="question" onAnswered={onAnswered} />
     </div>
-  </div>
+  </MeadowPage>
 );

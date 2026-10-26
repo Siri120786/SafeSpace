@@ -5,6 +5,7 @@ import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
 import { SafeSpaceInput } from "../components/ui/SafeSpaceInput";
 import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
 import { SafeSpaceBrandHeader } from "../components/ui/SafeSpaceBrandHeader";
+import { MeadowPage } from "../features/landing/hero/MeadowPage";
 
 export const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+    <MeadowPage>
       <SafeSpaceCard maxW="md">
         <SafeSpaceBrandHeader
           title="Reset Password"
@@ -70,7 +71,7 @@ export const ForgotPasswordPage: React.FC = () => {
           </Link>
         </div>
       </SafeSpaceCard>
-    </div>
+    </MeadowPage>
   );
 };
 

@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import type { AppRole } from "@safespace/shared-types";
 import { useAuth } from "../hooks/useAuth";
 import { decideRoute } from "../roleRouting";
+import { MeadowNote, MeadowPage } from "../../landing/hero/MeadowPage";
 
 interface RoleRouteProps {
   allow: AppRole[];
@@ -18,9 +19,9 @@ export const RoleRoute: React.FC<RoleRouteProps> = ({ allow, children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2]">
-        <div className="text-textMuted font-medium">Loading...</div>
-      </div>
+      <MeadowPage>
+        <MeadowNote>Loading...</MeadowNote>
+      </MeadowPage>
     );
   }
 

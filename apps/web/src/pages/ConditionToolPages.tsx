@@ -48,7 +48,7 @@ function useThemePicker() {
 export const ChildConditionToolsPage: React.FC = () => {
   const { child } = useChildSpace();
   const { mine, more } = splitConditionTools(child.assignedModules);
-  const { active, themed, picker } = useThemePicker();
+  const { active, picker } = useThemePicker();
   if (active !== "plain") {
     return (
       <ThemedToolsHome
@@ -111,7 +111,7 @@ export const ChildConditionToolPage: React.FC = () => {
 export const IndividualConditionToolsPage: React.FC = () => {
   const areas = useSupportAreas();
   const { mine, more } = splitConditionTools(areas ?? []);
-  const { active, themed, picker } = useThemePicker();
+  const { active, picker } = useThemePicker();
   if (areas !== null && active !== "plain") {
     return (
       <ThemedToolsHome

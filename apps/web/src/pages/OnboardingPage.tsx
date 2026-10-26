@@ -17,7 +17,7 @@ import { Card } from "../components/ui/Card";
 import { InputField } from "../components/ui/InputField";
 import { Button } from "../components/ui/Button";
 import { BrainMascot } from "../components/vectors/BrainMascot";
-import { LeafCluster } from "../components/vectors/LeafFrame";
+import { SceneBackdrop } from "../features/landing/hero/SceneBackdrop";
 import { forgetSupportAreas } from "../features/themes/useAppTheme";
 
 const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon: string }[] = [
@@ -262,16 +262,15 @@ export const OnboardingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream via-[#FAF7F2] to-paleLime/40 flex flex-col justify-center items-center py-10 px-4 sm:px-6 font-sans relative overflow-hidden">
-      {/* Corner Plant Leaves */}
-      <LeafCluster position="bottom-left" size={180} className="absolute bottom-0 left-0 opacity-70 pointer-events-none" />
-      <LeafCluster position="top-right" size={180} className="absolute top-0 right-0 opacity-70 pointer-events-none" />
+    <div className="min-h-screen flex flex-col justify-center items-center py-10 px-4 sm:px-6 font-sans relative isolate">
+      {/* The landing page's meadow, softly blurred behind the steps */}
+      <SceneBackdrop />
 
       {/* Onboarding Container */}
       <div className="w-full max-w-lg relative z-10">
         
         {/* Header Navigation Bar */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 rounded-full bg-white/85 backdrop-blur-xl border border-white/70 px-4 py-2.5 shadow-[0_8px_20px_rgba(20,60,100,0.18)]">
           {currentStep > 1 ? (
             <button
               type="button"

@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { acknowledgeReminder, getDueReminders, listMyRoutines, setRoutineStepCompleted } from "@safespace/api-client";
 import { ROUTINE_STEP_ICONS, type DueReminder, type RoutineWithSteps } from "@safespace/shared-types";
 import {
-  ChildPageShell,
   localDate,
   nowNext,
   openReminders,
@@ -197,40 +195,23 @@ export const ChildHomePage: React.FC = () => {
     </>
   );
 
-  if (theme.active !== "plain") {
-    return (
-      <ThemedHome
-        theme={theme.active}
-        eyebrow="My space"
-        greeting={`Hi ${child.name}!`}
-        line="Here's your day. One little step at a time."
-        status={dayStatus(plan)}
-        picker={theme.canChoose ? <ToolThemePicker look="bold" value={theme.chosen} onChange={theme.choose} /> : undefined}
-        tiles={tiles}
-        tilesLabel="My tools"
-      >
-        {today}
-      </ThemedHome>
-    );
-  }
-
+  // The meadow look (the landing page's boy and puppy) for every child; with
+  // the ADHD or autism module, their chosen theme. Low-sensory mode keeps it
+  // still.
   return (
-    <ChildPageShell title={`Hi ${child.name}!`}>
+    <ThemedHome
+      theme={theme.active === "plain" ? "calm" : theme.active}
+      stillOnly={theme.lowSensory}
+      eyebrow="My space"
+      greeting={`Hi ${child.name}!`}
+      line="Here's your day. One little step at a time."
+      status={dayStatus(plan)}
+      picker={theme.canChoose ? <ToolThemePicker look="bold" value={theme.chosen} onChange={theme.choose} /> : undefined}
+      tiles={tiles}
+      tilesLabel="My tools"
+    >
       {today}
-
-      <nav aria-label="My tools" className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {tiles.map((t) => (
-          <Link
-            key={t.to}
-            to={t.to}
-            className="flex flex-col items-center justify-center gap-1 rounded-3xl bg-white px-3 py-5 text-center shadow-card focus:outline-none focus:ring-2 focus:ring-botanical-700"
-          >
-            <span aria-hidden="true" className="text-3xl">{t.emoji}</span>
-            <span className="font-display text-base font-bold">{t.label}</span>
-          </Link>
-        ))}
-      </nav>
-    </ChildPageShell>
+    </ThemedHome>
   );
 };
 

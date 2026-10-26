@@ -4,6 +4,7 @@ import { useGames } from "../GamesContext";
 import { DIFFICULTIES, catalog, type Difficulty } from "../lib/content";
 import { roundsFor, totalRounds } from "../lib/progress";
 import { Buddy } from "./GameShell";
+import { SceneBackdrop } from "../../landing/hero/SceneBackdrop";
 
 interface Props {
   basePath: string;
@@ -46,8 +47,9 @@ export const GamesHome: React.FC<Props> = ({ basePath, homePath }) => {
   return (
     <div
       data-low-sensory={calm ? "on" : "off"}
-      className={`min-h-screen px-4 py-6 sm:px-6 ${calm ? "bg-[#F4F1EA] [&_*]:!transition-none [&_*]:!animate-none" : "bg-gradient-to-b from-cream to-paleLime"}`}
+      className={`min-h-screen px-4 py-6 sm:px-6 relative isolate ${calm ? "[&_*]:!transition-none [&_*]:!animate-none" : ""}`}
     >
+      <SceneBackdrop soft />
       <div className="mx-auto w-full max-w-2xl space-y-5">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>

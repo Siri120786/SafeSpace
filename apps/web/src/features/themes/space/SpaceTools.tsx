@@ -307,8 +307,20 @@ export const SpaceTiles: React.FC<{ tiles: SpaceTile[]; label: string }> = ({ ti
   </nav>
 );
 
+// The bar's extra buttons, plus Sign out (in this theme's style) when asked.
+const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined, className: string) => (
+  <>
+    {extra}
+    {onSignOut && (
+      <button type="button" className={className} onClick={onSignOut}>
+        Sign out
+      </button>
+    )}
+  </>
+);
+
 // A child's home or an Individual's dashboard in the Space theme.
-export const SpaceHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, barExtra, picker, tiles, tilesLabel, children }) => {
+export const SpaceHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, greeting, line, barExtra, picker, tiles, tilesLabel, children }) => {
   const [playing, togglePlaying] = usePlaying();
   return (
     <div className="sp" data-playing={playing ? "true" : "false"}>
@@ -317,7 +329,7 @@ export const SpaceHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, b
         title={greeting}
         line={line}
         playing={playing}
-        bar={<SpaceBar playing={playing} onTogglePlay={togglePlaying} extra={barExtra} />}
+        bar={<SpaceBar playing={playing} onTogglePlay={togglePlaying} extra={withSignOut(barExtra, onSignOut, "sp-pill sp-glass")} />}
       />
 
       <section className="sp-home-body">

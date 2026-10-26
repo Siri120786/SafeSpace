@@ -688,3 +688,11 @@
   text-align: center;
   text-shadow: 0 2px 10px rgba(5, 20, 30, 0.55);
 }
+
+/* Low-sensory mode keeps the meadow look but nothing moves or animates. */
+.cm[data-still-only="true"] *,
+.cm[data-still-only="true"] *::before,
+.cm[data-still-only="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+}

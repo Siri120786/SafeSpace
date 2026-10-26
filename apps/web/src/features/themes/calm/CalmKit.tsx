@@ -35,7 +35,8 @@ const usePlaying = () => {
 interface BarProps {
   tone: "meadow" | "camp";
   playing: boolean;
-  onTogglePlay: () => void;
+  // Left out in low-sensory mode: nothing to play.
+  onTogglePlay?: () => void;
   backTo?: string;
   backLabel?: string;
   extra?: React.ReactNode;
@@ -48,10 +49,12 @@ const CalmBar: React.FC<BarProps> = ({ tone, playing, onTogglePlay, backTo, back
       SafeSpace
     </span>
     <span className="cm-bar-actions">
-      <button type="button" className="cm-btn" aria-pressed={playing} onClick={onTogglePlay}>
-        <span aria-hidden="true" className="cm-btn-icon">{playing ? "❚❚" : "▶"}</span>
-        {playing ? "Keep it still" : "Play"}
-      </button>
+      {onTogglePlay && (
+        <button type="button" className="cm-btn" aria-pressed={playing} onClick={onTogglePlay}>
+          <span aria-hidden="true" className="cm-btn-icon">{playing ? "❚❚" : "▶"}</span>
+          {playing ? "Keep it still" : "Play"}
+        </button>
+      )}
       {backTo && (
         <Link to={backTo} className="cm-btn">
           {backLabel}
@@ -141,14 +144,28 @@ const CalmTiles: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, lab
 );
 
 // A child's home or an Individual's dashboard in the Calm theme.
-export const CalmHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
+export const CalmHome: React.FC<ThemeHomeProps> = ({ onSignOut, stillOnly = false, dayTitle = "Your day", eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
   const [playing, togglePlaying] = usePlaying();
   return (
-    <div className="cm cm-home" data-playing={playing ? "true" : "false"}>
+    <div className="cm cm-home" data-playing={playing ? "true" : "false"} data-still-only={stillOnly ? "true" : "false"}>
       <section className="cm-hero cm-hero--meadow" aria-labelledby="cm-hello">
         <CalmMedia clip={CALM_MEADOW} playing={playing} meadow className="cm-hero-media" />
         <div className="cm-hero-shade" aria-hidden="true" />
-        <CalmBar tone="meadow" playing={playing} onTogglePlay={togglePlaying} extra={barExtra} />
+        <CalmBar
+          tone="meadow"
+          playing={playing}
+          onTogglePlay={stillOnly ? undefined : togglePlaying}
+          extra={
+            <>
+              {barExtra}
+              {onSignOut && (
+                <button type="button" className="cm-btn" onClick={onSignOut}>
+                  Sign out
+                </button>
+              )}
+            </>
+          }
+        />
         <div className="cm-meadow-copy">
           <p className="cm-kicker cm-display">{eyebrow}</p>
           <h1 id="cm-hello" className="cm-display cm-meadow-title">
@@ -164,7 +181,7 @@ export const CalmHome: React.FC<ThemeHomeProps> = ({ eyebrow, greeting, line, st
         <div className="cm-wrap">
           <div className="cm-head">
             <h2 id="cm-day-title" className="cm-display cm-h2">
-              Your day
+              {dayTitle}
             </h2>
             {picker}
           </div>
@@ -232,14 +249,14 @@ export const CalmToolsHome: React.FC<ThemeToolsHomeProps> = ({ items, pathFor, e
 
 // A page in the Calm theme (one tool, routines, journal, music...): the
 // meadow's light fading into soft cream, the page on a light panel.
-export const CalmFrame: React.FC<ThemeFrameProps> = ({ eyebrow, title, subtitle, backTo, backLabel, actions, children }) => {
+export const CalmFrame: React.FC<ThemeFrameProps> = ({ stillOnly = false, eyebrow, title, subtitle, backTo, backLabel, actions, children }) => {
   const [playing, togglePlaying] = usePlaying();
   return (
-    <div className="cm cm-page" data-playing={playing ? "true" : "false"}>
+    <div className="cm cm-page" data-playing={playing ? "true" : "false"} data-still-only={stillOnly ? "true" : "false"}>
       <div className="cm-page-light" aria-hidden="true">
         <CalmMedia clip={CALM_MEADOW} playing={playing} meadow />
       </div>
-      <CalmBar tone="meadow" playing={playing} onTogglePlay={togglePlaying} backTo={backTo} backLabel={backLabel} />
+      <CalmBar tone="meadow" playing={playing} onTogglePlay={stillOnly ? undefined : togglePlaying} backTo={backTo} backLabel={backLabel} />
       <main className="cm-wrap cm-page-main">
         <div className="cm-page-head">
           <div>

@@ -4,6 +4,7 @@ import { getMyChildProfile, getMyChildSettings } from "@safespace/api-client";
 import type { Child, ChildSession, ChildSettings, ChildTheme } from "@safespace/shared-types";
 import { useAuth } from "../auth";
 import { effectiveLowSensory, isSessionEnded, needsSharingQuestion } from "./childHome";
+import { MeadowNote, MeadowPage } from "../landing/hero/MeadowPage";
 
 export const SESSION_ENDED_NOTICE = "Please sign in again with your PIN.";
 
@@ -126,21 +127,21 @@ export const ChildSpaceProvider: React.FC<ProviderProps> = ({ children, sharingQ
 
   if (failed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-6 text-center">
-        <div className="space-y-3">
-          <p className="text-base text-charcoal">We couldn't open your space just now.</p>
-          <button type="button" onClick={() => window.location.reload()} className="rounded-full bg-botanical-700 px-5 py-2 text-sm font-semibold text-white">
+      <MeadowPage>
+        <div className="space-y-3 text-center">
+          <MeadowNote>We couldn't open your space just now.</MeadowNote>
+          <button type="button" onClick={() => window.location.reload()} className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#2f5a30] shadow">
             Try again
           </button>
         </div>
-      </div>
+      </MeadowPage>
     );
   }
   if (!value) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2]">
-        <p className="text-sm font-semibold text-botanical-800">Loading your space…</p>
-      </div>
+      <MeadowPage>
+        <MeadowNote>Loading your space…</MeadowNote>
+      </MeadowPage>
     );
   }
   if (needsSharingQuestion(value.settings)) {
