@@ -28,8 +28,6 @@ export {
   setChildModules,
   resetChildPin,
   getMyChildProfile,
-  submitJournalEntry,
-  generateStory,
 } from "./children";
 
 export {

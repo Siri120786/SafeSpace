@@ -157,38 +157,6 @@ export async function getMyChildProfile(session: ChildSession): Promise<Child> {
 }
 
 // ----------------------------------------------------------------------------
-// AI-gated shared features — routes through the ai-orchestrator Edge Function.
-// Mirrors the allow-list in supabase/functions/ai-orchestrator/index.ts:
-// only journaling, stories, and emergency go through here. Routines has its
-// own plain-data functions below and NEVER imports from this section.
-// ----------------------------------------------------------------------------
-async function callAiOrchestrator(
-  session: ChildSession,
-  feature: "journaling" | "stories" | "emergency",
-  payload: Record<string, unknown>,
-) {
-  const supabase = getSafeSpaceClient();
-  const { data, error } = await supabase.functions.invoke("ai-orchestrator", {
-    body: { feature, child_session_token: session.childSessionToken, payload },
-  });
-  if (error) throw error;
-  return data.result;
-}
-
-/**
- * @deprecated Calls the ai-orchestrator placeholder and stores nothing.
- * Use `createJournalEntry` (./journal.ts), which saves the entry and never
- * sends it to AI (Sprint 3 contract).
- */
-export function submitJournalEntry(session: ChildSession, text: string) {
-  return callAiOrchestrator(session, "journaling", { text });
-}
-
-export function generateStory(session: ChildSession, context: Record<string, unknown>) {
-  return callAiOrchestrator(session, "stories", context);
-}
-
-// ----------------------------------------------------------------------------
 // Routines moved to ./routines.ts (Sprint 3): routines with ordered steps and
 // per-day completion. Still data only: routines never call AI services
 // (docs/Architecture_Specification.md §6).

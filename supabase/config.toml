@@ -21,8 +21,6 @@ enable_confirmations = false
 verify_jwt = false   # children have no Supabase JWT; the PIN + family code are the credential
 [functions.get-child-profile]
 verify_jwt = false   # authenticated by the signed child-session token instead
-[functions.ai-orchestrator]
-verify_jwt = false
 [functions.emergency-escalation]
 verify_jwt = false
 [functions.mood-checkin]
