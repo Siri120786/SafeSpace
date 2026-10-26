@@ -17,6 +17,7 @@
 import { json, preflight } from "../_shared/http.ts";
 import { errorSummary } from "../_shared/errors.ts";
 import { parseJournalRequest, toJournalEntry, type JournalRow } from "../_shared/journal.ts";
+import { escalateChildText, type RaiseSafetyAlert } from "../_shared/safety.ts";
 
 export interface ChildJournalStore {
   createEntry(row: {
@@ -33,6 +34,9 @@ export interface JournalDeps {
   store: ChildJournalStore;
   verifyChildToken(token: string): Promise<string | null>;
   log(event: string, detail?: string): void;
+  // Raises the caregiver alert when a saved entry trips the crisis screen
+  // (raise_safety_alert). Absent means no alert is raised.
+  raiseSafetyAlert?: RaiseSafetyAlert;
 }
 
 // Room for a 5000-character entry in any script (up to 4 bytes per char).
@@ -76,7 +80,13 @@ export function createJournalHandler(deps: JournalDeps) {
         module_key: request.moduleKey,
         is_private_note: request.isPrivateNote,
       });
-      return json({ entry: toJournalEntry(row) });
+      // Checked after saving, so the entry is kept whatever happens. On a
+      // match the child sees the safety message and their caregivers get an
+      // alert naming the journal, never the words.
+      const safety = deps.raiseSafetyAlert
+        ? await escalateChildText(request.content, childId, "journal_flag", deps.raiseSafetyAlert, deps.log)
+        : null;
+      return json({ entry: toJournalEntry(row), safety });
     } catch (e) {
       deps.log("unhandled_exception", errorSummary(e));
       return json({ error: "internal_error" }, 500);

@@ -19,6 +19,7 @@ import {
 } from "@safespace/shared-types";
 import type {
   AppSession,
+  SafetyNotice,
   CreateMoodCheckinInput,
   ListMoodCheckinsOptions,
   MoodCheckin,
@@ -104,7 +105,8 @@ export async function createMoodCheckin(
       intensity: clean.intensity,
       note: clean.note,
     });
-    return toMoodCheckin(data.checkin);
+    // The server checks the note; on crisis words it says what to show the child.
+    return { ...toMoodCheckin(data.checkin), safety: data.safety ?? null };
   }
 
   if (session?.kind === "auth_user") {

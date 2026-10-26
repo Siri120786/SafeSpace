@@ -43,6 +43,7 @@ export function useAiCompanion(session: AppSession) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>("en");
   const [loading, setLoading] = useState<boolean>(false);
   const [sending, setSending] = useState<boolean>(false);
+  const [safetyNotice, setSafetyNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const key = sessionKey(session);
@@ -140,6 +141,8 @@ export function useAiCompanion(session: AppSession) {
         res.assistantMessage,
       ]);
       setActiveConversation(res.conversation);
+      // A child's caregivers were alerted: say so gently under the safety reply.
+      setSafetyNotice(res.safetyNotice);
       refreshConversations().catch(() => {});
       return true;
     } catch (err) {
@@ -160,6 +163,7 @@ export function useAiCompanion(session: AppSession) {
     loading,
     sending,
     error,
+    safetyNotice,
     selectConversation,
     startNewConversation,
     sendMessage,

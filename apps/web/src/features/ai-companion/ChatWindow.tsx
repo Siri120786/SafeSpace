@@ -22,6 +22,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ session, className = "" 
     loading,
     sending,
     error,
+    safetyNotice,
     selectConversation,
     startNewConversation,
     sendMessage,
@@ -104,6 +105,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ session, className = "" 
             </div>
           ) : (
             <MessageList messages={messages} sending={sending} />
+          )}
+
+          {safetyNotice && (
+            <p role="status" className="mx-3 mb-2 rounded-2xl bg-sky-50 border border-sky-200 px-4 py-2.5 text-sm font-semibold text-botanical-800">
+              {safetyNotice}
+            </p>
           )}
 
           {/* Input Footer */}

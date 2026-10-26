@@ -8,10 +8,15 @@ export const ALERT_POLL_MS = 60_000;
 
 export const ALERT_SOURCE_LABELS: Record<AlertSource, string> = {
   aac_tap: "Pressed \"I need help\" on the talk board",
-  check_in: "Flagged during a mood check-in",
-  journal_flag: "Flagged in their journal",
+  check_in: "Something in a mood check-in note may mean they're struggling",
+  journal_flag: "Something they wrote in their journal may mean they're struggling",
   feelings_card: "Pressed \"I want a grown-up\" on the feelings cards",
+  companion_flag: "Something they wrote to the AI Companion may mean they're struggling",
 };
+
+// Safety alerts (the crisis screen matched what the child wrote). Their text
+// says where it came from, never the child's words.
+export const SAFETY_ALERT_SOURCES: readonly AlertSource[] = ["companion_flag", "journal_flag", "check_in"];
 
 // Banner text for unreviewed alerts, or null when there are none.
 export function alertBannerText(unreviewed: Pick<CaregiverAlert, "childName" | "source">[]): string | null {
@@ -19,7 +24,9 @@ export function alertBannerText(unreviewed: Pick<CaregiverAlert, "childName" | "
   if (unreviewed.length === 1) {
     const [a] = unreviewed;
     const name = a.childName || "Your child";
-    return a.source === "aac_tap" ? `${name} pressed "I need help".` : `New alert for ${name}.`;
+    if (a.source === "aac_tap") return `${name} pressed "I need help".`;
+    if (SAFETY_ALERT_SOURCES.includes(a.source)) return `Something ${name} wrote may mean they're struggling. Please check in gently.`;
+    return `New alert for ${name}.`;
   }
   const names = [...new Set(unreviewed.map((a) => a.childName || "a child"))];
   const who = names.length <= 2 ? names.join(" and ") : `${names.slice(0, 2).join(", ")} and others`;

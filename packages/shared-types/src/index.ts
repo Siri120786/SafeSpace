@@ -81,6 +81,8 @@ export interface JournalEntry {
   isPrivateNote: boolean;      // child 'partial' tier only: hidden from the caregiver
   createdAt: string;
   updatedAt: string;
+  // Only on a child's create response, when the entry tripped the crisis screen.
+  safety?: SafetyNotice | null;
 }
 
 export interface CreateJournalEntryInput {
@@ -251,6 +253,8 @@ export interface MoodCheckin {
   note: string | null;        // optional, max 500 chars
   isPrivateNote: boolean;     // child 'partial' privacy tier only
   createdAt: string;
+  // Only on a child's create response, when the note tripped the crisis screen.
+  safety?: SafetyNotice | null;
 }
 
 export interface CreateMoodCheckinInput {
@@ -296,6 +300,10 @@ export interface AiCompanionSendResult {
   // true when the message matched the crisis screen: the reply is a fixed
   // safety message, not model output, and the UI should keep it prominent.
   safetyResponse: boolean;
+  // A child's caregivers were alerted (safetyResponse only), and the gentle
+  // note to show the child about it.
+  caregiverAlerted: boolean;
+  safetyNotice: string | null;
 }
 
 // ----------------------------------------------------------------------------
@@ -544,7 +552,19 @@ export const HELP_ALERT_REPEAT_WINDOW_SECONDS = 120;
 
 // An alert as caregivers see it (an emergency_events row). Always visible to
 // every caregiver of the child, whatever the sharing choice.
-export type AlertSource = "aac_tap" | "check_in" | "journal_flag" | "feelings_card";
+// companion_flag, journal_flag and check_in are safety alerts: a child's AI
+// Companion message, journal entry or mood check-in note tripped the crisis
+// screen (migration 20261031000000). They name where, never the child's words.
+export type AlertSource = "aac_tap" | "check_in" | "journal_flag" | "feelings_card" | "companion_flag";
+
+// What a child sees after writing something that tripped the crisis screen:
+// the fixed safety message and, when their caregivers were alerted, a gentle
+// note saying so. Only on a child's own save responses.
+export interface SafetyNotice {
+  message: string;
+  caregiverAlerted: boolean;
+  notice: string | null;
+}
 
 export interface CaregiverAlert {
   id: string;

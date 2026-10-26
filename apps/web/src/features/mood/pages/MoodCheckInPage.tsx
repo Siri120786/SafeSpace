@@ -9,6 +9,7 @@ import { MoodHistoryList } from "../components/MoodHistoryList";
 import { Card } from "../../../components/ui/Card";
 import { Chip } from "../../../components/ui/Chip";
 import { Button } from "../../../components/ui/Button";
+import { SafetyNoticeCard } from "../../safety/SafetyNoticeCard";
 
 interface MoodCheckInPageProps {
   onBack?: () => void;
@@ -33,6 +34,8 @@ export const MoodCheckInPage: React.FC<MoodCheckInPageProps> = ({ onBack }) => {
     saveCheckIn,
     refreshHistory,
     resetForm,
+    safety,
+    clearSafety,
   } = useMoodCheckIn(session);
 
   if (authLoading) {
@@ -119,6 +122,11 @@ export const MoodCheckInPage: React.FC<MoodCheckInPageProps> = ({ onBack }) => {
             activeTab === "checkin" ? "block" : "hidden lg:block"
           } lg:col-span-7`}
         >
+          {safety && (
+            <div className="mb-4">
+              <SafetyNoticeCard safety={safety} onClose={clearSafety} />
+            </div>
+          )}
           <Card className="w-full">
             <MoodCheckInForm
               selectedMood={selectedMood}

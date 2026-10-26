@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { createJournalEntry, deleteJournalEntry, listMyJournalEntries } from "@safespace/api-client";
-import { JOURNAL_CONTENT_MAX_LENGTH, type AppSession, type JournalEntry, type JournalEntryType } from "@safespace/shared-types";
+import { JOURNAL_CONTENT_MAX_LENGTH, type AppSession, type JournalEntry, type JournalEntryType, type SafetyNotice } from "@safespace/shared-types";
 import { validateJournal } from "./toolsLogic";
 import { MicButton, ReadAloudButton, appendTranscript } from "../speech";
 import type { Guard } from "./MyRoutines";
+import { SafetyNoticeCard } from "../safety/SafetyNoticeCard";
 
 interface Props {
   session: AppSession;
@@ -22,6 +23,7 @@ export const MyJournal: React.FC<Props> = ({ session, guard = (p) => p, visibili
   const [type, setType] = useState<JournalEntryType>("journal");
   const [content, setContent] = useState("");
   const [entries, setEntries] = useState<JournalEntry[] | null>(null);
+  const [safety, setSafety] = useState<SafetyNotice | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -46,7 +48,8 @@ export const MyJournal: React.FC<Props> = ({ session, guard = (p) => p, visibili
     setSaving(true);
     setMessage(null);
     try {
-      await guard(createJournalEntry(session, { content: content.trim(), entryType: type }));
+      const saved = await guard(createJournalEntry(session, { content: content.trim(), entryType: type }));
+      setSafety(saved.safety ?? null);
       setContent("");
       setMessage({ ok: true, text: "Saved." });
       await load();
@@ -70,6 +73,7 @@ export const MyJournal: React.FC<Props> = ({ session, guard = (p) => p, visibili
   const prompt = TYPES.find((t) => t.key === type)!.prompt;
   return (
     <div className="space-y-4">
+      {safety && <SafetyNoticeCard safety={safety} onClose={() => setSafety(null)} />}
       <form onSubmit={save} className="rounded-3xl bg-white p-5 shadow-card space-y-3">
         <div role="group" aria-label="Kind of entry" className="flex gap-2">
           {TYPES.map((t) => (

@@ -54,6 +54,8 @@ export async function sendAiCompanionMessage(
     userMessage: data.userMessage,
     assistantMessage: data.assistantMessage,
     safetyResponse: data.safetyResponse === true,
+    caregiverAlerted: data.caregiverAlerted === true,
+    safetyNotice: typeof data.safetyNotice === "string" ? data.safetyNotice : null,
   };
 }
 

@@ -36,7 +36,9 @@ function makeWorld() {
     model: "Here is a calm reply." as string | null | "throw",
     failList: false,
     failInsert: false,
+    alert: "ok" as "ok" | "throw",
   };
+  const alerts: { childId: string; source: string }[] = [];
   let t = 1_700_000_000_000;
   const owns = (o: Owner, c: any) => c[o.column] === o.id;
   const store = {
@@ -98,6 +100,11 @@ function makeWorld() {
     },
     log: (event: string, detail?: string) => logs.push(`${event} ${detail ?? ""}`),
     now: () => (t += 10),
+    async raiseSafetyAlert(childId: string, source: string) {
+      alerts.push({ childId, source });
+      if (cfg.alert === "throw") throw Object.assign(new Error(`rpc failed near "${CRISIS}"`), { code: "XX000" });
+      return "alert-1";
+    },
   });
   async function call(body: unknown, opts: { auth?: string; raw?: string; method?: string; headers?: Record<string, string> } = {}) {
     const init: RequestInit = { method: opts.method ?? "POST", headers: { "Content-Type": "application/json", ...(opts.auth ? { Authorization: opts.auth } : {}), ...(opts.headers ?? {}) } };
@@ -111,7 +118,7 @@ function makeWorld() {
   const seedConversation = (o: Owner, title = "seeded") => store.createConversation(o, title, "en");
   const seedMessage = (convId: string, sender: "user" | "assistant", content: string) =>
     messages.push({ id: crypto.randomUUID(), conversation_id: convId, sender, content, detected_language: "en", is_safety_response: false, created_at: new Date(t += 10).toISOString() });
-  return { cfg, call, calls, logs, modelCalls, slotCalls, authCalls, conversations, messages, seedConversation, seedMessage };
+  return { cfg, call, calls, logs, modelCalls, slotCalls, authCalls, conversations, messages, seedConversation, seedMessage, alerts };
 }
 const A = { auth: "Bearer token-a" };
 const B = { auth: "Bearer token-b" };
@@ -346,4 +353,34 @@ const asChild = (body: Record<string, unknown>) => ({ ...body, child_session_tok
   const all = w.logs.join("\n");
   ok("logs contain no message content, crisis text, child token or auth header",
     w.logs.length >= 3 && !/private thought|hurt myself|token-a/.test(all) && !all.includes(childToken));
+}
+
+// ---------------------------------------------------------------------------
+// Safety alerts (migration 20261031000000): a child's crisis-screen match
+// alerts their caregivers; an adult's never does.
+// ---------------------------------------------------------------------------
+{
+  const w = makeWorld();
+  const r = await w.call(asChild({ action: "send_message", content: CRISIS }));
+  ok("child crisis message: safety reply, caregiver alerted from the companion",
+    r.status === 200 && r.json.safetyResponse === true && r.json.caregiverAlerted === true &&
+    w.alerts.length === 1 && w.alerts[0].childId === CHILD_C && w.alerts[0].source === "companion_flag");
+  ok("the child is told gently that their grown-up knows", /grown-up know/.test(r.json.safetyNotice ?? ""));
+  ok("no model call for the crisis message", !w.calls.includes("askModel"));
+
+  const calm = await w.call(asChild({ action: "send_message", content: "I had a nice day" }));
+  ok("an ordinary child message raises nothing", calm.status === 200 && calm.json.caregiverAlerted === false && w.alerts.length === 1);
+
+  const adult = await w.call({ action: "send_message", content: CRISIS }, A);
+  ok("adult crisis message: safety reply, no alert (no linked contact)",
+    adult.status === 200 && adult.json.safetyResponse === true && adult.json.caregiverAlerted === false &&
+    adult.json.safetyNotice === null && w.alerts.length === 1);
+}
+{
+  const w = makeWorld();
+  w.cfg.alert = "throw";
+  const r = await w.call(asChild({ action: "send_message", content: CRISIS }));
+  ok("a failed alert never blocks the safety reply", r.status === 200 && r.json.safetyResponse === true && r.json.caregiverAlerted === false && r.json.safetyNotice === null);
+  ok("the failure is logged by code, without the child's words",
+    w.logs.some((l) => l.startsWith("safety_alert_failed") && l.includes("XX000")) && !w.logs.join(" ").includes("hurt myself"));
 }

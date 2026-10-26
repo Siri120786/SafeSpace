@@ -139,4 +139,9 @@ serve(createAiCompanionHandler({
   verifyChildToken,
   askModel: askGemini,
   log,
+  raiseSafetyAlert: async (childId, source) => {
+    const { data, error } = await admin.rpc("raise_safety_alert", { p_child_id: childId, p_source: source });
+    if (error) throw error;
+    return data as string;
+  },
 }));
