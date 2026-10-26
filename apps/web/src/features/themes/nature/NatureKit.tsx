@@ -148,14 +148,18 @@ const Closing: React.FC<{ playing: boolean; tone: "light" | "dark" }> = ({ playi
   </section>
 );
 
-// Every page as a cherry blossom, the emoji in its heart.
+// Every page as a little glass terrarium jar, like the hidden garden.
 const Blossoms: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, label }) => (
   <nav aria-label={label} className="nt-blossoms">
     {tiles.map((t, i) => (
       <Link key={t.to} to={t.to} className={`nt-blossom nt-blossom--${i % 4}`}>
-        <span className="nt-flower">
-          <span aria-hidden="true" className="nt-blossom-emoji">
-            {t.emoji}
+        <span className="nt-jar">
+          <span className="nt-jar-lid" aria-hidden="true" />
+          <span className="nt-jar-glass">
+            <span aria-hidden="true" className="nt-blossom-emoji">
+              {t.emoji}
+            </span>
+            <span className="nt-jar-moss" aria-hidden="true" />
           </span>
         </span>
         <span className="nt-blossom-label">{t.label}</span>

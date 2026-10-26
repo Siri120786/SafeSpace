@@ -483,12 +483,14 @@
 }
 
 /* ---------------------------------------------------------------- tiles
-   Every page as a glassy bubble, softly tinted. */
+   Every page as a little submarine: a conning tower with a periscope, the
+   emoji in a round porthole, a propeller at the back. Bubbles rise only
+   while playing. */
 
 .ow-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-  gap: clamp(14px, 2vw, 22px);
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 26px 14px;
   margin-top: clamp(28px, 4vw, 44px);
 }
 .ow-tile {
@@ -498,59 +500,144 @@
   gap: 10px;
   text-decoration: none;
 }
-.ow-tile:hover .ow-bubble,
-.ow-tile:focus-visible .ow-bubble {
-  transform: translateY(-4px) ;
+.ow-tile:hover .ow-sub,
+.ow-tile:focus-visible .ow-sub {
+  transform: translateY(-4px);
+}
+.ow-sub {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3);
 }
 .ow-tile-emoji {
   position: relative;
-  z-index: 1;
-  font-size: 32px;
+  z-index: 2;
+  font-size: 28px;
   line-height: 1;
 }
 
-.ow-bubble {
-  position: relative;
+.ow-sub {
+  width: 140px;
+  height: 100px;
+  margin-top: 26px;
+}
+.ow-sub-body {
+  position: absolute;
+  left: 10px;
+  right: 14px;
+  bottom: 0;
+  height: 76px;
   display: grid;
   place-items: center;
-  width: clamp(88px, 9vw, 106px);
-  aspect-ratio: 1;
+  border-radius: 40px 50px 50px 40px / 38px 38px 38px 38px;
+  background: linear-gradient(180deg, var(--hull-light), var(--hull) 60%, var(--hull-dark));
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.25), 0 16px 26px -16px rgba(0, 0, 0, 0.8);
+}
+.ow-sub-window {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.85) 0 7%, rgba(255, 255, 255, 0) 16%),
-    radial-gradient(circle at 70% 78%, rgba(255, 255, 255, 0.35) 0 5%, rgba(255, 255, 255, 0) 12%),
-    radial-gradient(circle at 50% 50%, var(--tint) 0%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.28) 100%);
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.45), inset 0 -10px 22px rgba(255, 255, 255, 0.12), 0 14px 28px -16px rgba(0, 0, 0, 0.7);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  background: radial-gradient(circle at 34% 30%, #ffffff, #cfeefd 70%);
+  box-shadow: 0 0 0 5px #c9a14a, inset 0 -4px 8px rgba(20, 60, 100, 0.25);
+}
+.ow-sub-tower {
+  position: absolute;
+  left: 48px;
+  top: -2px;
+  width: 36px;
+  height: 30px;
+  border-radius: 10px 10px 0 0;
+  background: var(--hull);
+}
+/* The periscope. */
+.ow-sub-tower::before {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: -18px;
+  width: 6px;
+  height: 20px;
+  border-radius: 3px;
+  background: #c9a14a;
+}
+.ow-sub-tower::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: -18px;
+  width: 16px;
+  height: 6px;
+  border-radius: 3px;
+  background: #c9a14a;
+}
+/* The propeller at the back. */
+.ow-sub-prop {
+  position: absolute;
+  left: 0;
+  bottom: 26px;
+  width: 14px;
+  height: 26px;
+  border-radius: 7px;
+  background: #c9a14a;
+}
+.ow-sub-bubbles i {
+  position: absolute;
+  right: 20px;
+  bottom: 70px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  opacity: 0;
+}
+.ow[data-playing="true"] .ow-sub-bubbles i {
+  animation: ow-rise 4.5s ease-in infinite;
+}
+.ow[data-playing="true"] .ow-sub-bubbles i:nth-child(2) {
+  animation-delay: -1.5s;
+  right: 30px;
+}
+.ow[data-playing="true"] .ow-sub-bubbles i:nth-child(3) {
+  animation-delay: -3s;
+  right: 12px;
+}
+@keyframes ow-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-46px);
+  }
 }
 .ow-tile--0 {
-  --tint: rgba(120, 220, 230, 0.32);
+  --hull-light: #ffd27a;
+  --hull: #f5b25c;
+  --hull-dark: #d68a35;
 }
 .ow-tile--1 {
-  --tint: rgba(100, 150, 255, 0.3);
+  --hull-light: #8fe0de;
+  --hull: #3fb9b5;
+  --hull-dark: #238b8c;
 }
 .ow-tile--2 {
-  --tint: rgba(245, 178, 92, 0.3);
+  --hull-light: #ff9e8a;
+  --hull: #ee6e58;
+  --hull-dark: #c74c3a;
 }
 .ow-tile--3 {
-  --tint: rgba(170, 140, 255, 0.28);
+  --hull-light: #a9c4ff;
+  --hull: #6f94f2;
+  --hull-dark: #4c6fcf;
 }
 .ow-tile-label {
   font-size: 15px;
   font-weight: 500;
   color: #fff;
   text-align: center;
-}
-.ow[data-playing="true"] .ow-bubble {
-  animation: ow-float 6s ease-in-out infinite;
-}
-.ow[data-playing="true"] .ow-tile--1 .ow-bubble,
-.ow[data-playing="true"] .ow-tile--3 .ow-bubble {
-  animation-delay: -3s;
-}
-@keyframes ow-float {
-  50% {
-    transform: translateY(-6px);
-  }
 }

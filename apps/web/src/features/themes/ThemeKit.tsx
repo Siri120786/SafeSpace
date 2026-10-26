@@ -7,6 +7,8 @@ import { OceanFrame, OceanHome, OceanToolsHome } from "./ocean/OceanKit";
 import { NatureFrame, NatureHome, NatureToolsHome } from "./nature/NatureKit";
 import { CalmFrame, CalmHome, CalmToolsHome } from "./calm/CalmKit";
 import { DinoFrame, DinoHome, DinoToolsHome } from "./dinosaurs/DinoKit";
+import { TrainFrame, TrainHome, TrainToolsHome } from "./trains/TrainKit";
+import { TRAIN_CARD_CLIPS } from "./trains/media";
 import { DINO_CARD_CLIPS } from "./dinosaurs/media";
 import { SPACE_CARD_CLIPS } from "./space/media";
 import { ANIMALS_CARD_CLIPS } from "./animals/media";
@@ -23,6 +25,7 @@ const KITS = {
   ocean: { Home: OceanHome, ToolsHome: OceanToolsHome, Frame: OceanFrame },
   nature: { Home: NatureHome, ToolsHome: NatureToolsHome, Frame: NatureFrame },
   dinosaurs: { Home: DinoHome, ToolsHome: DinoToolsHome, Frame: DinoFrame },
+  trains: { Home: TrainHome, ToolsHome: TrainToolsHome, Frame: TrainFrame },
 } as const;
 
 type Designed = keyof typeof KITS;
@@ -37,6 +40,7 @@ const MASCOTS: Record<Designed, string> = {
   ocean: OCEAN_CARD_CLIPS.focus.still,
   nature: NATURE_CARD_CLIPS.feelings.still,
   dinosaurs: DINO_CARD_CLIPS.focus.still,
+  trains: TRAIN_CARD_CLIPS.focus.still,
 };
 export const themeMascot = (theme: ToolTheme): string => MASCOTS[theme as Designed] ?? MASCOTS.calm;
 

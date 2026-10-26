@@ -137,14 +137,25 @@ const Closing: React.FC<{ playing: boolean }> = ({ playing }) => (
   </section>
 );
 
-// Every page as a glassy bubble.
+// Every page as a little submarine, the emoji in its porthole.
 const OceanTiles: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, label }) => (
   <nav aria-label={label} className="ow-tiles">
     {tiles.map((t, i) => (
       <Link key={t.to} to={t.to} className={`ow-tile ow-tile--${i % 4}`}>
-        <span className="ow-bubble">
-          <span aria-hidden="true" className="ow-tile-emoji">
-            {t.emoji}
+        <span className="ow-sub">
+          <span className="ow-sub-tower" aria-hidden="true" />
+          <span className="ow-sub-body">
+            <span className="ow-sub-window">
+              <span aria-hidden="true" className="ow-tile-emoji">
+                {t.emoji}
+              </span>
+            </span>
+          </span>
+          <span className="ow-sub-prop" aria-hidden="true" />
+          <span className="ow-sub-bubbles" aria-hidden="true">
+            <i />
+            <i />
+            <i />
           </span>
         </span>
         <span className="ow-tile-label">{t.label}</span>

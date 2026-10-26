@@ -45,8 +45,8 @@ test("home: the greeting over still water, the day on a light panel, tiles; no j
   assert.match(html, /class="oc-still"/);
   assert.match(html, /class="ow-jelly" data-ready="false"/);
   assert.match(html, /class="ow-panel ow-stack"><p>today<\/p>/);
-  // Every page as a bubble matching the theme.
-  assert.match(html, /<nav aria-label="My tools" class="ow-tiles"><a class="ow-tile ow-tile--0" href="\/child\/music"><span class="ow-bubble">/);
+  // Every page as a little sub matching the theme.
+  assert.match(html, /<nav aria-label="My tools" class="ow-tiles"><a class="ow-tile ow-tile--0" href="\/child\/music"><span class="ow-sub">/);
   assert.doesNotMatch(html, /<video|<audio|autoplay|<canvas/i);
 });
 

@@ -120,15 +120,19 @@ const Closing: React.FC<{ playing: boolean; scene: "camp" | "meadow" }> = ({ pla
   </section>
 );
 
-// Every page as a puffy cloud from the meadow's sky.
+// Every page as a little dog kennel on the meadow, the emoji in its doorway.
 const CalmTiles: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, label }) => (
   <nav aria-label={label} className="cm-tiles">
     {tiles.map((t, i) => (
       <Link key={t.to} to={t.to} className={`cm-tile cm-tile--${i % 4}`}>
-        <span className="cm-cloud">
-          <span aria-hidden="true" className="cm-tile-emoji">
-            {t.emoji}
+        <span className="cm-kennel">
+          <span className="cm-kennel-roof" aria-hidden="true" />
+          <span className="cm-kennel-door">
+            <span aria-hidden="true" className="cm-tile-emoji">
+              {t.emoji}
+            </span>
           </span>
+          <span className="cm-kennel-bone" aria-hidden="true" />
         </span>
         <span className="cm-tile-label">{t.label}</span>
       </Link>

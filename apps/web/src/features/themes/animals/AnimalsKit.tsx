@@ -172,15 +172,19 @@ const Closing: React.FC<{ playing: boolean }> = ({ playing }) => (
   </section>
 );
 
-// Every page as a soft paw print, the emoji on its big pad.
+// Every page as a cosy tree-stump home in the forest, the emoji at its door.
 const AnimalsTiles: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, label }) => (
   <nav aria-label={label} className="an-tiles">
     {tiles.map((t, i) => (
       <Link key={t.to} to={t.to} className={`an-tile an-tile--${i % 4}`}>
-        <span className="an-paw">
-          <span aria-hidden="true" className="an-tile-emoji">
-            {t.emoji}
+        <span className="an-stump">
+          <span className="an-stump-top" aria-hidden="true" />
+          <span className="an-stump-door">
+            <span aria-hidden="true" className="an-tile-emoji">
+              {t.emoji}
+            </span>
           </span>
+          <span className="an-stump-sprout" aria-hidden="true" />
         </span>
         <span className="an-tile-label">{t.label}</span>
       </Link>

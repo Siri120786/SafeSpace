@@ -42,8 +42,8 @@ test("home: Rusty greets by name, the day on a light panel, tiles, still by defa
   );
   assert.match(html, /<span>Hi Leo!<\/span><span class="an-u an-indent">I&#x27;m Rusty<\/span>/);
   assert.match(html, /class="an-panel an-stack"><p>today<\/p>/);
-  // Every page as a paw print matching the theme.
-  assert.match(html, /<nav aria-label="My tools" class="an-tiles"><a class="an-tile an-tile--0" href="\/child\/music"><span class="an-paw">/);
+  // Every page as a little stump matching the theme.
+  assert.match(html, /<nav aria-label="My tools" class="an-tiles"><a class="an-tile an-tile--0" href="\/child\/music"><span class="an-stump">/);
   assert.match(html, /aria-pressed="false"[^>]*>.*Play/);
   assert.doesNotMatch(html, /<video|<audio|autoplay/i);
 });

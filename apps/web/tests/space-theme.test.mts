@@ -46,9 +46,9 @@ test("the seven themes; Calm is the default, low-sensory mode keeps the plain lo
   assert.equal(activeToolTheme("space", false), "space");
   assert.equal(activeToolTheme("space", true), "plain");
   assert.equal(activeToolTheme(null, false), "calm", "Calm is the default");
-  // Themes still being designed show Calm, never a half-built one.
+  // Every theme has its own design now.
   assert.equal(activeToolTheme("animals", false), "animals");
-  assert.equal(activeToolTheme("trains", false), "calm");
+  assert.equal(activeToolTheme("trains", false), "trains");
   assert.ok(isToolTheme("ocean") && !isToolTheme("pirates") && !isToolTheme(3));
 });
 
@@ -74,8 +74,8 @@ test("home and dashboard in Space: Nova greets by name, the day on a light panel
   assert.match(html, /<span>Hi Sam!<\/span> <span>I&#x27;m Nova<\/span>/);
   assert.match(html, /Put Nova&#x27;s helmet on/);
   assert.match(html, /class="sp-panel sp-stack"><p>today<\/p>/);
-  // Every page as a planet matching the theme.
-  assert.match(html, /<nav aria-label="My tools" class="sp-tiles"><a class="sp-tile sp-tile--0" href="\/child\/music"><span class="sp-planet">/);
+  // Every page as a little rocket matching the theme.
+  assert.match(html, /<nav aria-label="My tools" class="sp-tiles"><a class="sp-tile sp-tile--0" href="\/child\/music"><span class="sp-rocket">/);
   assert.match(html, /aria-pressed="false"[^>]*>.*Play space/);
   assert.doesNotMatch(html, /<video|<audio|autoplay/i);
 });
@@ -128,10 +128,10 @@ test("one tool's page keeps the tool on a light panel, still by default", () => 
   assert.match(html, /href="\/child\/tools"/);
 });
 
-test("the theme picker: six themes ready, Trains marked Soon and not pickable", () => {
+test("the theme picker: all seven themes ready, none marked Soon", () => {
   const html = render(React.createElement(ToolThemePicker, { look: "plain", value: "space", onChange: () => {} }));
-  assert.equal((html.match(/disabled=""/g) ?? []).length, 1);
-  assert.equal((html.match(/Soon/g) ?? []).length, 1);
+  assert.equal((html.match(/disabled=""/g) ?? []).length, 0);
+  assert.equal((html.match(/Soon/g) ?? []).length, 0);
   assert.match(html, /aria-pressed="true"[^>]*>.*Space/);
   const low = render(React.createElement(ToolThemePicker, { look: "plain", value: "space", onChange: () => {}, lowSensory: true }));
   assert.match(low, /Low-sensory mode is on/);
