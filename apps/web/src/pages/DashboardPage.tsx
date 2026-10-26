@@ -12,6 +12,7 @@ import { ROUTES } from "../routes";
 import { individualToolPath, splitConditionTools } from "../features/conditions";
 import { ThemedHome, ToolThemePicker, themeMascot, useAppTheme, type ThemeTile } from "../features/themes";
 import { MeadowPage } from "../features/landing/hero/MeadowPage";
+import { TryNext } from "../features/recommendations/TryNext";
 
 const SUPPORT_LABELS: Record<ModuleKey, string> = {
   autism: "Autism & Routine Support",
@@ -20,6 +21,17 @@ const SUPPORT_LABELS: Record<ModuleKey, string> = {
   depression: "Depression & Low-Energy Support",
   ptsd: "PTSD & Safety Grounding",
   pcos_pcod: "PCOS / PCOD Wellbeing",
+};
+
+// Where each "Try this next" suggestion goes (no Stories for Individuals).
+const TRY_NEXT_ROUTES = {
+  mood_check_in: ROUTES.MOOD_CHECK_IN,
+  calm_space: ROUTES.CALM_SPACE,
+  routines: ROUTES.ROUTINES,
+  journal: ROUTES.JOURNAL,
+  music: ROUTES.MUSIC,
+  games: ROUTES.GAMES,
+  companion: ROUTES.COMPANION,
 };
 
 // Every tool, as tiles on the home tab (the mobile bottom bar only has four tabs).
@@ -283,6 +295,7 @@ export const DashboardPage: React.FC = () => {
         tilesLabel="Your tools"
       >
         <RoleNotice />
+        {session && <TryNext session={session} routes={TRY_NEXT_ROUTES} />}
         {homeView}
       </ThemedHome>
       {player}

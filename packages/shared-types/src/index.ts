@@ -374,6 +374,25 @@ export interface WellnessSummary {
   };
 }
 
+// Rule-based "try this next" suggestions for an Individual's or a child's
+// home (the recommendations Edge Function). Keys mirror RECOMMENDATION_KEYS in
+// supabase/functions/_shared/recommendations.ts; each app maps them to its
+// own routes. Reasons are gentle and non-diagnostic.
+export type RecommendationKey =
+  | "mood_check_in"
+  | "calm_space"
+  | "routines"
+  | "journal"
+  | "music"
+  | "games"
+  | "companion"
+  | "stories";
+
+export interface Recommendation {
+  key: RecommendationKey;
+  reason: string;
+}
+
 // Caregiver dashboard card for one child. When the young person has chosen not
 // to share (activity.visible === false), summary and dueRemindersToday are null.
 export interface ChildOverview {

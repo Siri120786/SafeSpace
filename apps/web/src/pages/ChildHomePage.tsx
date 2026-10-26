@@ -15,6 +15,7 @@ import { childToolPath, splitConditionTools } from "../features/conditions";
 import { ReadAloudButton, reminderSpeech } from "../features/speech";
 import { useMusicPlayer } from "../features/music";
 import { ThemedHome, ToolThemePicker, useAppTheme } from "../features/themes";
+import { TryNext } from "../features/recommendations/TryNext";
 
 const REFRESH_MS = 60_000;
 
@@ -30,6 +31,17 @@ const TILES: { to: string; label: string; emoji: string }[] = [
   { to: ROUTES.CHILD_COMPANION, label: "AI Companion", emoji: "💬" },
   { to: ROUTES.CHILD_NUTRITION, label: "NutritionGuide", emoji: "🥕" },
 ];
+// Where each "Try this next" suggestion goes; Music is dropped when it's off.
+const TRY_NEXT_ROUTES = {
+  mood_check_in: ROUTES.CHILD_MOOD,
+  calm_space: ROUTES.CHILD_CALM_SPACE,
+  routines: ROUTES.CHILD_ROUTINES,
+  journal: ROUTES.CHILD_JOURNAL,
+  music: ROUTES.CHILD_MUSIC,
+  games: ROUTES.CHILD_GAMES,
+  companion: ROUTES.CHILD_COMPANION,
+  stories: ROUTES.CHILD_STORIES,
+};
 const MUSIC_TILE = { to: ROUTES.CHILD_MUSIC, label: "Music", emoji: "🎵" };
 const MODULES_TILE = { to: ROUTES.CHILD_MODULES, label: "My spaces", emoji: "🌈" };
 const SETTINGS_TILE = { to: ROUTES.CHILD_SETTINGS, label: "Settings", emoji: "⚙️" };
@@ -193,6 +205,7 @@ export const ChildHomePage: React.FC = () => {
         </section>
       )}
 
+      <TryNext session={session} routes={musicOff ? { ...TRY_NEXT_ROUTES, music: undefined } : TRY_NEXT_ROUTES} title="Try this next" />
     </>
   );
 
