@@ -11,7 +11,7 @@
 
 import { getSafeSpaceClient } from "./supabaseClient";
 import { ContractError, invokeEdge, isValidLocalDate, toContractError } from "./edge";
-import type { AppSession, WellnessPeriodDays, WellnessSummary } from "@safespace/shared-types";
+import type { AppSession, WellnessDay, WellnessPeriodDays, WellnessSummary } from "@safespace/shared-types";
 
 export interface WellnessOptions {
   to?: string;        // local "YYYY-MM-DD"; default: today on this device
@@ -74,4 +74,26 @@ export async function getChildWellnessSummary(
   options?: WellnessOptions,
 ): Promise<WellnessSummary> {
   return rpcSummary({ childId }, resolveOptions(periodDays, options));
+}
+
+/**
+ * A caregiver's day-by-day timeline of one child (wellness_daily, migration
+ * 20261031100000): one row per local day, oldest first, ending today. Read
+ * under RLS, so a child who doesn't share activity reads as empty days.
+ */
+export async function getChildWellnessDaily(
+  childId: string,
+  periodDays: WellnessPeriodDays,
+  options?: WellnessOptions,
+): Promise<WellnessDay[]> {
+  const o = resolveOptions(periodDays, options);
+  const { data, error } = await getSafeSpaceClient().rpc("wellness_daily", {
+    p_profile_id: null,
+    p_child_id: childId,
+    p_to: o.to,
+    p_period_days: o.periodDays,
+    p_timezone: o.timezone,
+  });
+  if (error) throw toContractError(error);
+  return (data ?? []) as WellnessDay[];
 }

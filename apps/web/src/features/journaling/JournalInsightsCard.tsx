@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import type { JournalInsights } from "@safespace/shared-types";
+import { DayStrip } from "../../components/ui/DayStrip";
+import { journalRows } from "../wellness-ui/timelines";
 
 // "Your month in the journal": rule-based insights from the journal-analysis
 // Edge Function (counts and everyday themes, never anything diagnostic). The
@@ -41,11 +43,10 @@ export const JournalInsightsCard: React.FC<{
   return (
     <section aria-label={title} className="rounded-3xl bg-white p-5 shadow-card text-charcoal">
       <h2 className="font-display text-lg font-bold mb-3">{title}</h2>
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <Stat value={data.entries} label={data.entries === 1 ? "entry" : "entries"} />
-        <Stat value={data.daysWritten} label={data.daysWritten === 1 ? "day written" : "days written"} />
-        <Stat value={data.gratitudeEntries} label="gratitude" />
-      </div>
+      <p className="text-sm text-charcoal/70 mb-3">
+        {data.entries === 1 ? "1 entry" : `${data.entries} entries`} in the last {data.periodDays} days
+      </p>
+      <DayStrip rows={journalRows(data.timeline ?? [])} />
       {data.gratitudeStreakDays >= 2 && (
         <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-sm">
           🌟 {who === "You" ? "You've" : `${who} has`} written something grateful {data.gratitudeStreakDays} days in a row.
@@ -67,12 +68,5 @@ export const JournalInsightsCard: React.FC<{
     </section>
   );
 };
-
-const Stat: React.FC<{ value: number; label: string }> = ({ value, label }) => (
-  <div className="rounded-2xl bg-ivory-100 px-2 py-3">
-    <p className="font-display text-2xl font-bold">{value}</p>
-    <p className="text-xs text-charcoal/70">{label}</p>
-  </div>
-);
 
 export default JournalInsightsCard;

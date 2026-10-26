@@ -38,6 +38,13 @@ const caregiver = { viewer: "caregiver" as const, timezone: TZ, now: NOW };
     r.themes.length <= MAX_THEMES && r.themes[0].key === "school" && r.themes[0].entries === 2 &&
     r.themes.some((t) => t.key === "friends"));
   ok("no safety message without crisis words", r.safetyMessage === null);
+  ok("timeline: 30 local days, oldest first, ending today",
+    r.timeline.length === 30 && r.timeline.at(-1)!.date === "2026-10-26" && r.timeline[0].date === "2026-09-27");
+  ok("timeline: each day counts its entries and gratitude; the days add up",
+    r.timeline.at(-1)!.entries === 1 && r.timeline.at(-2)!.entries === 2 && r.timeline.at(-2)!.gratitude === 1 &&
+    r.timeline.reduce((n, d) => n + d.entries, 0) === r.entries &&
+    r.timeline.reduce((n, d) => n + d.gratitude, 0) === r.gratitudeEntries);
+  ok("timeline: counts only, never text", !JSON.stringify(r.timeline).includes("School"));
 }
 {
   const words = (text: string) => analyzeJournal([entry(text, 0)], writer).themes.map((t) => t.key);

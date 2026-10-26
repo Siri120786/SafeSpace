@@ -34,8 +34,15 @@ export interface Theme {
   entries: number;         // entries that mention it
 }
 
+export interface JournalDay {
+  date: string;            // local "YYYY-MM-DD"
+  entries: number;
+  gratitude: number;
+}
+
 export interface JournalInsights {
   periodDays: number;
+  timeline: JournalDay[];  // the last 30 local days, oldest first, ending today
   entries: number;
   daysWritten: number;
   gratitudeEntries: number;
@@ -87,6 +94,21 @@ export function analyzeJournal(rows: EntryRow[], opts: { viewer: Viewer; timezon
   });
 
   const days = new Set(recent.map((r) => localDay(r.created_at, timezone)));
+
+  // One slot per local day, oldest first; counts only.
+  const timeline: JournalDay[] = [];
+  let slot = localDay(now, timezone);
+  for (let i = 0; i < PERIOD_DAYS; i++) {
+    timeline.unshift({ date: slot, entries: 0, gratitude: 0 });
+    slot = previousDay(slot);
+  }
+  const byDay = new Map(timeline.map((d) => [d.date, d]));
+  for (const r of recent) {
+    const d = byDay.get(localDay(r.created_at, timezone));
+    if (!d) continue;
+    d.entries++;
+    if (r.entry_type === "gratitude") d.gratitude++;
+  }
   const gratitude = recent.filter((r) => r.entry_type === "gratitude");
   const gratitudeDays = new Set(gratitude.map((r) => localDay(r.created_at, timezone)));
   let streak = 0;
@@ -113,6 +135,7 @@ export function analyzeJournal(rows: EntryRow[], opts: { viewer: Viewer; timezon
 
   return {
     periodDays: PERIOD_DAYS,
+    timeline,
     entries: recent.length,
     daysWritten: days.size,
     gratitudeEntries: gratitude.length,

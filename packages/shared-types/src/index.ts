@@ -412,14 +412,33 @@ export interface JournalTheme {
   entries: number;
 }
 
+// One local day of the journal timeline (counts only).
+export interface JournalDay {
+  date: string;
+  entries: number;
+  gratitude: number;
+}
+
 export interface JournalInsights {
   periodDays: number;
+  timeline: JournalDay[];  // last 30 local days, oldest first, ending today
   entries: number;
   daysWritten: number;
   gratitudeEntries: number;
   gratitudeStreakDays: number;
   themes: JournalTheme[];
   safetyMessage: string | null;
+}
+
+// One local day of wellness_daily (the activity timeline). Counts and that
+// day's latest mood only; never text.
+export interface WellnessDay {
+  date: string;              // local "YYYY-MM-DD"
+  mood: MoodValue | null;    // that day's latest check-in
+  checkins: number;
+  stepsScheduled: number;
+  stepsDone: number;
+  journalEntries: number;
 }
 
 // Caregiver dashboard card for one child. When the young person has chosen not

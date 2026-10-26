@@ -77,7 +77,7 @@ export {
 } from "./journal";
 export type { ListJournalOptions } from "./journal";
 
-export { getWellnessSummary, getChildWellnessSummary } from "./wellness";
+export { getWellnessSummary, getChildWellnessSummary, getChildWellnessDaily } from "./wellness";
 export type { WellnessOptions } from "./wellness";
 export { getRecommendations } from "./recommendations";
 export { getChildJournalInsights, getJournalInsights } from "./journalInsights";
