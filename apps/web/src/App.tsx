@@ -61,6 +61,7 @@ import {
   ChildRoutinesPage,
 } from "./pages/ChildToolPages";
 import { SceneBackdrop } from "./features/landing/hero/SceneBackdrop";
+import { LanguageProvider } from "./i18n/LanguageSync";
 import { CaregiverNutritionPage, ChildNutritionPage, IndividualNutritionPage } from "./pages/NutritionPages";
 
 function MoodCheckInPageWrapper() {
@@ -107,6 +108,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <LanguageProvider>
         <AccessibilityProvider>
           <MusicPlayerProvider>
           <Routes>
@@ -270,6 +272,7 @@ export default function App() {
           <SafeSpaceGuideLabel />
           </MusicPlayerProvider>
         </AccessibilityProvider>
+        </LanguageProvider>
       </AuthProvider>
     </BrowserRouter>
   );

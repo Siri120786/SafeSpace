@@ -1,5 +1,6 @@
 import React from "react";
 import { SceneBackdrop } from "./SceneBackdrop";
+import { LanguageSwitch } from "../../../components/ui/LanguageSwitch";
 
 // A full-screen page in the meadow look (the landing page's boy and puppy,
 // softly blurred and still) with the SafeSpace mark in the corner: for forms
@@ -24,7 +25,10 @@ export const MeadowPage: React.FC<{ children: React.ReactNode }> = ({ children }
       <Sprout />
       SafeSpace
     </span>
-    <div className="w-full flex flex-col items-center relative z-10 mt-12 sm:mt-0">{children}</div>
+    <div className="absolute right-4 top-4 sm:right-8 sm:top-6 z-20">
+      <LanguageSwitch look="glass" />
+    </div>
+    <div className="w-full flex flex-col items-center relative z-10 mt-24 sm:mt-0">{children}</div>
   </div>
 );
 

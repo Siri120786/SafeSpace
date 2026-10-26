@@ -18,7 +18,7 @@ const TEEN = "22222222-2222-4222-8222-222222222222";     // born Oct 2010: 16
 const TURNING = "33333333-3333-4333-8333-333333333333";  // born Nov 2011: 14 until 1 Nov 2026
 
 function makeWorld() {
-  const rows: Record<string, { birth_year: number; birth_month: number; shares_with_caregiver: boolean | null; sharing_decided_at: string | null }> = {
+  const rows: Record<string, { birth_year: number; birth_month: number; shares_with_caregiver: boolean | null; sharing_decided_at: string | null; preferred_language?: string | null }> = {
     [KID]: { birth_year: 2016, birth_month: 10, shares_with_caregiver: null, sharing_decided_at: null },
     [TEEN]: { birth_year: 2010, birth_month: 10, shares_with_caregiver: null, sharing_decided_at: null },
     [TURNING]: { birth_year: 2011, birth_month: 11, shares_with_caregiver: null, sharing_decided_at: null },
@@ -39,6 +39,10 @@ function makeWorld() {
       async setTheme(id, theme) {
         calls.push(`theme ${id} ${theme}`);
         if (locked.has(id)) throw new Error("theme_locked");
+      },
+      async setLanguage(id, language) {
+        calls.push(`language ${id} ${language}`);
+        rows[id].preferred_language = language;
       },
     },
     verifyChildToken,
@@ -118,4 +122,19 @@ const tTurning = await signChildToken(TURNING);
   const l = await w.call({ action: "set_theme", theme: "ocean", child_session_token: tKid });
   ok("a locked theme is refused with theme_locked (409), not logged as a failure",
     l.status === 409 && l.json.error === "theme_locked" && w.logs.length === 0);
+}
+
+// Language (migration 20261031200000): a child's own English, Hindi or Telugu.
+{
+  const w = makeWorld();
+  ok("get: no language chosen yet reads as null", (await w.call({ action: "get", child_session_token: tKid })).json.settings.language === null);
+  const set = await w.call({ action: "set_language", language: "te", child_session_token: tKid });
+  ok("set_language saves the token's child's choice", set.status === 200 && set.json.language === "te" && w.calls.includes(`language ${KID} te`));
+  ok("get then returns it", (await w.call({ action: "get", child_session_token: tKid })).json.settings.language === "te");
+  ok("only en, hi and te, checked before the database",
+    (await w.call({ action: "set_language", language: "fr", child_session_token: tKid })).json.error === "invalid_input" &&
+    (await w.call({ action: "set_language", child_session_token: tKid })).json.error === "invalid_input" &&
+    !w.calls.some((c) => c.includes("fr")));
+  ok("a bad token changes nothing", (await w.call({ action: "set_language", language: "hi", child_session_token: "nope" })).status === 401 &&
+    !w.calls.some((c) => c.includes(" hi")));
 }

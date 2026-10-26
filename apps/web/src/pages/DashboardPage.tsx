@@ -13,15 +13,7 @@ import { individualToolPath, splitConditionTools } from "../features/conditions"
 import { ThemedHome, ToolThemePicker, themeMascot, useAppTheme, type ThemeTile } from "../features/themes";
 import { MeadowPage } from "../features/landing/hero/MeadowPage";
 import { TryNext } from "../features/recommendations/TryNext";
-
-const SUPPORT_LABELS: Record<ModuleKey, string> = {
-  autism: "Autism & Routine Support",
-  adhd: "ADHD & Executive Function",
-  anxiety: "Anxiety & Calming Support",
-  depression: "Depression & Low-Energy Support",
-  ptsd: "PTSD & Safety Grounding",
-  pcos_pcod: "PCOS / PCOD Wellbeing",
-};
+import { useTranslation } from "react-i18next";
 
 // Where each "Try this next" suggestion goes (no Stories for Individuals).
 const TRY_NEXT_ROUTES = {
@@ -34,27 +26,29 @@ const TRY_NEXT_ROUTES = {
   companion: ROUTES.COMPANION,
 };
 
-// Every tool, as tiles on the home tab (the mobile bottom bar only has four tabs).
+// Every tool, as tiles on the home tab. Labels are tiles.<key> in the locale files.
 const TOOL_TILES = [
-  { to: ROUTES.MOOD_CHECK_IN, label: "Mood check-in", icon: "🌱" },
-  { to: ROUTES.ROUTINES, label: "Routines", icon: "✅" },
-  { to: ROUTES.JOURNAL, label: "Journal", icon: "📓" },
-  { to: ROUTES.REMINDERS, label: "Reminders", icon: "⏰" },
-  { to: ROUTES.CALM_SPACE, label: "Calm Space", icon: "🌊" },
-  { to: ROUTES.GAMES, label: "Games Corner", icon: "🎲" },
-  { to: ROUTES.MUSIC, label: "Music", icon: "🎵" },
-  { to: ROUTES.MODULES, label: "Wellness modules", icon: "🌈" },
-  { to: ROUTES.COMPANION, label: "AI Companion", icon: "💬" },
-  { to: ROUTES.NUTRITION, label: "NutritionGuide", icon: "🥕" },
+  { to: ROUTES.MOOD_CHECK_IN, key: "moodCheckIn", icon: "🌱" },
+  { to: ROUTES.ROUTINES, key: "routines", icon: "✅" },
+  { to: ROUTES.JOURNAL, key: "journal", icon: "📓" },
+  { to: ROUTES.REMINDERS, key: "reminders", icon: "⏰" },
+  { to: ROUTES.CALM_SPACE, key: "calmSpace", icon: "🌊" },
+  { to: ROUTES.GAMES, key: "gamesCorner", icon: "🎲" },
+  { to: ROUTES.MUSIC, key: "music", icon: "🎵" },
+  { to: ROUTES.MODULES, key: "modules", icon: "🌈" },
+  { to: ROUTES.COMPANION, key: "companion", icon: "💬" },
+  { to: ROUTES.NUTRITION, key: "nutrition", icon: "🥕" },
 ];
 
+// Titles and categories are home.individual.sessions.<id> / home.individual.categories.<category>.
 const SESSIONS_RECOMMENDED = [
-  { id: "breathe_reset", title: "Breathe & reset", duration: 5, category: "Breathing", icon: "💨" },
-  { id: "evening_wind_down", title: "Evening wind-down", duration: 10, category: "Relaxation", icon: "🌙" },
-  { id: "body_reset", title: "Body reset", duration: 7, category: "Mindfulness", icon: "🧘" },
+  { id: "breatheReset", duration: 5, category: "breathing", icon: "💨" },
+  { id: "eveningWindDown", duration: 10, category: "relaxation", icon: "🌙" },
+  { id: "bodyReset", duration: 7, category: "mindfulness", icon: "🧘" },
 ];
 
 export const DashboardPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { session, logout, loading } = useAuth();
   const [supportAreas, setSupportAreas] = useState<ModuleKey[]>([]);
@@ -77,7 +71,7 @@ export const DashboardPage: React.FC = () => {
   });
 
   const profileId = session?.kind === "auth_user" ? session.profile.id : null;
-  const displayName = session?.kind === "auth_user" ? session.profile.displayName || "friend" : "friend";
+  const displayName = (session?.kind === "auth_user" && session.profile.displayName) || t("onboarding.user.friend");
 
   useEffect(() => {
     if (!profileId) return;
@@ -105,7 +99,7 @@ export const DashboardPage: React.FC = () => {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <span>Loading your safe space...</span>
+          <span>{t("home.loading")}</span>
         </div>
       </MeadowPage>
     );
@@ -130,12 +124,12 @@ export const DashboardPage: React.FC = () => {
   const conditionTools = splitConditionTools(supportAreas);
   const tiles: ThemeTile[] = [
     // Tools for their support areas first, the rest under More tools (role-flow 8c).
-    ...conditionTools.mine.map((t) => ({ to: individualToolPath(t.key), label: t.label, emoji: t.emoji })),
-    ...TOOL_TILES.map((t) => ({ to: t.to, label: t.label, emoji: t.icon })),
+    ...conditionTools.mine.map((tool) => ({ to: individualToolPath(tool.key), label: t(`tiles.tool.${tool.key}`, { defaultValue: tool.label }), emoji: tool.emoji })),
+    ...TOOL_TILES.map((tile) => ({ to: tile.to, label: t(`tiles.${tile.key}`), emoji: tile.icon })),
     // Always a way to the tools page; named for what it adds.
     {
       to: ROUTES.TOOLS,
-      label: conditionTools.more.length === 0 ? "All my tools" : conditionTools.mine.length ? "More tools" : "Focus & feelings",
+      label: t(conditionTools.more.length === 0 ? "tiles.allMyTools" : conditionTools.mine.length ? "tiles.moreTools" : "tiles.focusFeelings"),
       emoji: "🧰",
     },
   ];
@@ -146,10 +140,10 @@ export const DashboardPage: React.FC = () => {
       <Card className="p-6 md:p-8 space-y-4 border border-white">
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-            Your Selected Support Areas
+            {t("home.individual.areasTitle")}
           </span>
           <p className="text-xs text-textMuted font-light mt-2">
-            Personalized focus areas configured during onboarding.
+            {t("home.individual.areasText")}
           </p>
         </div>
 
@@ -158,13 +152,13 @@ export const DashboardPage: React.FC = () => {
             supportAreas.map((area) => (
               <Chip
                 key={area}
-                label={SUPPORT_LABELS[area] || area}
+                label={t(`onboarding.areas.${area}.label`, { defaultValue: area })}
                 variant="olive"
                 size="md"
               />
             ))
           ) : (
-            <p className="text-xs text-textMuted italic">No support areas selected yet.</p>
+            <p className="text-xs text-textMuted italic">{t("home.individual.noAreas")}</p>
           )}
         </div>
       </Card>
@@ -179,8 +173,8 @@ export const DashboardPage: React.FC = () => {
             🌱
           </div>
           <div>
-            <h4 className="font-display text-base font-medium text-textHeading">Daily Mood Check-in</h4>
-            <p className="text-xs text-textMuted font-light">How are you feeling right now?</p>
+            <h4 className="font-display text-base font-medium text-textHeading">{t("home.individual.moodTitle")}</h4>
+            <p className="text-xs text-textMuted font-light">{t("home.individual.moodText")}</p>
           </div>
         </div>
         <Button
@@ -188,7 +182,7 @@ export const DashboardPage: React.FC = () => {
           size="sm"
           onClick={() => navigate(ROUTES.MOOD_CHECK_IN)}
         >
-          Check in
+          {t("home.individual.checkIn")}
         </Button>
       </Card>
 
@@ -198,13 +192,13 @@ export const DashboardPage: React.FC = () => {
           <img src={themeMascot(look)} alt="" aria-hidden="true" className="h-[110px] w-[110px] shrink-0 rounded-3xl object-cover" />
           <div className="space-y-1 text-left">
             <span className="text-xs font-bold uppercase tracking-wider text-deepGreen bg-white/80 px-2.5 py-0.5 rounded-full shadow-xs">
-              Guided Breathing
+              {t("home.individual.breathingTag")}
             </span>
             <h3 className="font-display text-xl font-medium text-textHeading">
-              "Rest is productive too."
+              {t("home.individual.restQuote")}
             </h3>
             <p className="text-xs text-textMuted font-light">
-              Taking 5 minutes to reset clears mental clutter and restores calm.
+              {t("home.individual.restText")}
             </p>
           </div>
         </div>
@@ -212,10 +206,10 @@ export const DashboardPage: React.FC = () => {
         <Button
           variant="primary"
           size="md"
-          onClick={() => openPlayer("Deep Calm", 5, "Breathing")}
+          onClick={() => openPlayer(t("home.individual.deepCalm"), 5, t("home.individual.categories.breathing"))}
           className="shrink-0"
         >
-          Start a quick session
+          {t("home.individual.startSession")}
         </Button>
       </Card>
 
@@ -223,19 +217,19 @@ export const DashboardPage: React.FC = () => {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-xl font-medium text-textHeading">
-            Guided Calming Resets
+            {t("home.individual.resetsTitle")}
           </h3>
-          <span className="text-xs text-textMuted font-light">3 exercises</span>
+          <span className="text-xs text-textMuted font-light">{t("home.individual.exercises", { count: SESSIONS_RECOMMENDED.length })}</span>
           <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.CALM_SPACE)}>
-            Open Calm Space
+            {t("home.individual.openCalm")}
           </Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/modules")}>
-            Open modules
+            {t("home.individual.openModules")}
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {SESSIONS_RECOMMENDED.map((sess) => (
+          {SESSIONS_RECOMMENDED.map((s) => ({ ...s, title: t(`home.individual.sessions.${s.id}`), category: t(`home.individual.categories.${s.category}`) })).map((sess) => (
             <Card
               key={sess.id}
               hoverable
@@ -251,7 +245,7 @@ export const DashboardPage: React.FC = () => {
                     {sess.title}
                   </h4>
                   <p className="text-xs text-textMuted font-light">
-                    {sess.duration} min • {sess.category}
+                    {t("home.individual.minutes", { count: sess.duration })} • {sess.category}
                   </p>
                 </div>
               </div>
@@ -285,14 +279,14 @@ export const DashboardPage: React.FC = () => {
       <ThemedHome
         theme={look}
         stillOnly={theme.lowSensory}
-        eyebrow="Your space"
-        greeting={`Hi, ${displayName}`}
-        line="Welcome back. Take your time, breathe, and explore."
+        eyebrow={t("home.individual.eyebrow")}
+        greeting={t("home.greeting", { name: displayName })}
+        line={t("home.individual.line")}
         onSignOut={logout}
-        status="Glad you're here. One small step at a time."
+        status={t("home.individual.status")}
         picker={theme.canChoose ? <ToolThemePicker look="bold" value={theme.chosen} onChange={theme.choose} /> : undefined}
-        tiles={[...tiles, { to: ROUTES.PROFILE, label: "Profile", emoji: "👤" }]}
-        tilesLabel="Your tools"
+        tiles={[...tiles, { to: ROUTES.PROFILE, label: t("tiles.profile"), emoji: "👤" }]}
+        tilesLabel={t("home.individual.tilesLabel")}
       >
         <RoleNotice />
         {session && <TryNext session={session} routes={TRY_NEXT_ROUTES} />}

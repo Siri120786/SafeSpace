@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { chosenRole, RoleChoice, useAuth } from "../features/auth";
 import type { UserRole } from "@safespace/shared-types";
 import { Card } from "../components/ui/Card";
@@ -8,26 +9,19 @@ import { Button } from "../components/ui/Button";
 import { BrainMascot } from "../components/vectors/BrainMascot";
 import { SceneBackdrop } from "../features/landing/hero/SceneBackdrop";
 import { Sprout } from "../features/landing/hero/MeadowHero";
+import { LanguageSwitch } from "../components/ui/LanguageSwitch";
 
 const DISPLAY = { fontFamily: '"Grandstander", "Lexend Deca", sans-serif', fontWeight: 900 } as const;
 
-// Sign-up failures in plain words.
-function signUpErrorText(error: string): string {
+// Sign-up failures in plain words (a translation key).
+function signUpErrorKey(error: string): string {
   const e = error.toLowerCase();
-  if (e.includes("already") || e.includes("exists") || e.includes("registered")) {
-    return "That email already has an account. Try logging in instead.";
-  }
-  if (e.includes("password")) return "Please choose a password of at least 6 characters.";
-  if (e.includes("network") || e.includes("fetch")) return "We couldn't reach SafeSpace just now. Check your connection and try again.";
-  if (e.includes("email")) return "Please check the email address.";
-  return "Something went wrong creating your space. Please try again.";
+  if (e.includes("already") || e.includes("exists") || e.includes("registered")) return "auth.signup.errorExists";
+  if (e.includes("password")) return "auth.signup.errorPassword";
+  if (e.includes("network") || e.includes("fetch")) return "auth.errorNetwork";
+  if (e.includes("email")) return "auth.signup.errorEmail";
+  return "auth.signup.errorOther";
 }
-
-const HEADINGS = {
-  none: { title: "Make your SafeSpace", text: "Your own private, gentle space. It only takes a minute." },
-  individual: { title: "Make your own space", text: "Just for you: moods, routines, calm tools and more." },
-  caregiver: { title: "Set up as a caregiver", text: "Then add your child and make their space together." },
-};
 
 export const SignupPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -36,6 +30,7 @@ export const SignupPage: React.FC = () => {
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [termsError, setTermsError] = useState(false);
 
+  const { t } = useTranslation();
   const { signup, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
   const as = chosenRole(useLocation().search);
@@ -68,8 +63,11 @@ export const SignupPage: React.FC = () => {
         <Sprout />
         SafeSpace
       </Link>
+      <div className="absolute right-4 top-4 sm:right-8 sm:top-6 z-20">
+        <LanguageSwitch look="glass" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 mt-12 sm:mt-0">
+      <div className="w-full max-w-md relative z-10 mt-24 sm:mt-0">
         {/* Waving Mascot Peeking Above Form */}
         <div className="flex justify-center -mb-8 relative z-20">
           <BrainMascot stance="waving" size={130} />
@@ -79,10 +77,10 @@ export const SignupPage: React.FC = () => {
           {/* Header */}
           <div className="text-center mb-6">
             <h1 className="text-3xl sm:text-4xl text-textHeading" style={DISPLAY}>
-              {HEADINGS[as ?? "none"].title}
+              {t(`auth.signup.heading.${as ?? "none"}.title`)}
             </h1>
             <p className="text-sm text-textBody mt-1">
-              {HEADINGS[as ?? "none"].text}
+              {t(`auth.signup.heading.${as ?? "none"}.text`)}
             </p>
           </div>
 
@@ -96,7 +94,7 @@ export const SignupPage: React.FC = () => {
               <svg className="w-4 h-4 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              <span>{termsError ? "Please agree to the Terms of Service and Privacy Policy to continue." : signUpErrorText(error ?? "")}</span>
+              <span>{termsError ? t("auth.signup.errorTerms") : t(signUpErrorKey(error ?? ""))}</span>
             </div>
           )}
 
@@ -104,22 +102,22 @@ export const SignupPage: React.FC = () => {
             {/* The account type was chosen on the previous screen. */}
             <div className="flex items-center justify-between rounded-2xl border border-olive-100 bg-olive-50/60 px-4 py-2.5 text-xs">
               <span className="text-textHeading">
-                This account is for: <strong>{role === "caregiver" ? "a caregiver" : "just me"}</strong>
+                {t("auth.signup.accountFor")} <strong>{t(role === "caregiver" ? "auth.signup.forCaregiver" : "auth.signup.forMe")}</strong>
               </span>
-              <Link to="/signup" className="text-deepGreen font-medium underline">Change</Link>
+              <Link to="/signup" className="text-deepGreen font-medium underline">{t("auth.signup.change")}</Link>
             </div>
 
             <InputField
-              label="Your name or nickname"
+              label={t("auth.signup.name")}
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="e.g. Emma"
+              placeholder={t("auth.signup.namePlaceholder")}
               required
             />
 
             <InputField
-              label="Email"
+              label={t("auth.email")}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -128,12 +126,12 @@ export const SignupPage: React.FC = () => {
             />
 
             <InputField
-              label="Password"
+              label={t("auth.password")}
               isPassword={true}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="At least 6 characters"
+              placeholder={t("auth.signup.passwordPlaceholder")}
             />
 
             {/* Terms & Privacy Checkbox */}
@@ -146,9 +144,13 @@ export const SignupPage: React.FC = () => {
                 className="mt-0.5 h-4 w-4 shrink-0 p-0 rounded border-olive-300 accent-[#5b875c] focus:ring-olive-500"
               />
               <label htmlFor="terms" className="mt-0 text-sm text-textBody cursor-pointer select-none">
-                I agree to the SafeSpace{" "}
-                <span className="text-deepGreen font-medium underline">Terms of Service</span> and{" "}
-                <span className="text-deepGreen font-medium underline">Privacy Policy</span>.
+                <Trans
+                  i18nKey="auth.signup.terms"
+                  components={{
+                    terms: <span className="text-deepGreen font-medium underline" />,
+                    privacy: <span className="text-deepGreen font-medium underline" />,
+                  }}
+                />
               </label>
             </div>
 
@@ -160,7 +162,7 @@ export const SignupPage: React.FC = () => {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? "Creating your space..." : "Create my space"}
+                {loading ? t("auth.signup.creating") : t("auth.signup.create")}
               </Button>
             </div>
           </form>
@@ -168,9 +170,9 @@ export const SignupPage: React.FC = () => {
           )}
 
           <div className="mt-6 pt-4 border-t border-olive-100 text-center text-sm text-textBody">
-            Already have an account?{" "}
+            {t("auth.signup.haveAccount")}{" "}
             <Link to={as ? `/login?as=${as}` : "/login"} className="text-deepGreen font-medium hover:underline">
-              Log in
+              {t("common.logIn")}
             </Link>
           </div>
         </Card>

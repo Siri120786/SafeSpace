@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { chosenRole, landingFor, roleOf, RoleChoice, useAuth } from "../features/auth";
 import { Card } from "../components/ui/Card";
 import { InputField } from "../components/ui/InputField";
@@ -7,28 +8,22 @@ import { Button } from "../components/ui/Button";
 import { BrainMascot } from "../components/vectors/BrainMascot";
 import { SceneBackdrop } from "../features/landing/hero/SceneBackdrop";
 import { Sprout } from "../features/landing/hero/MeadowHero";
+import { LanguageSwitch } from "../components/ui/LanguageSwitch";
 
-// Sign-in failures in plain words. A wrong email or password gets the same
-// message (so it never says which one was right).
-function signInErrorText(error: string): string {
+// Sign-in failures in plain words (a translation key). A wrong email or
+// password gets the same message (so it never says which one was right).
+function signInErrorKey(error: string): string {
   const e = error.toLowerCase();
-  if (e.includes("invalid") || e.includes("credentials") || e.includes("password")) {
-    return "That email and password don't match. Please try again.";
-  }
-  if (e.includes("confirm")) return "Please confirm your email first. Check your inbox for the link.";
-  if (e.includes("network") || e.includes("fetch")) return "We couldn't reach SafeSpace just now. Check your connection and try again.";
-  return "Something went wrong signing in. Please try again.";
+  if (e.includes("invalid") || e.includes("credentials") || e.includes("password")) return "auth.login.errorMismatch";
+  if (e.includes("confirm")) return "auth.login.errorConfirm";
+  if (e.includes("network") || e.includes("fetch")) return "auth.errorNetwork";
+  return "auth.login.errorOther";
 }
-
-const SUBTITLE = {
-  none: "Your calm space is right where you left it.",
-  individual: "Sign in to your own calm space.",
-  caregiver: "Sign in to support your child.",
-};
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { t } = useTranslation();
   const { login, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
   const as = chosenRole(useLocation().search);
@@ -41,7 +36,7 @@ export const LoginPage: React.FC = () => {
       // The account's own role wins; say so if they picked the other choice.
       const role = roleOf(session);
       const roleNotice = as && role && role !== as
-        ? `You're signed in as ${role === "caregiver" ? "a caregiver" : "an individual"}.`
+        ? t(role === "caregiver" ? "auth.login.signedInAsCaregiver" : "auth.login.signedInAsIndividual")
         : undefined;
       navigate(landingFor(session) ?? "/", roleNotice ? { state: { roleNotice } } : undefined);
     } catch {
@@ -60,8 +55,11 @@ export const LoginPage: React.FC = () => {
         <Sprout />
         SafeSpace
       </Link>
+      <div className="absolute right-4 top-4 sm:right-8 sm:top-6 z-20">
+        <LanguageSwitch look="glass" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 mt-12 sm:mt-0">
+      <div className="w-full max-w-md relative z-10 mt-24 sm:mt-0">
         {/* Mascot Peeking Above Form */}
         <div className="flex justify-center -mb-8 relative z-20">
           <BrainMascot stance="peeking" size={120} />
@@ -71,10 +69,10 @@ export const LoginPage: React.FC = () => {
           {/* Header */}
           <div className="text-center mb-6">
             <h1 className="text-3xl sm:text-4xl text-textHeading" style={{ fontFamily: '"Grandstander", "Lexend Deca", sans-serif', fontWeight: 900 }}>
-              Welcome back
+              {t("auth.login.title")}
             </h1>
             <p className="text-sm text-textBody mt-1">
-              {SUBTITLE[as ?? "none"]}
+              {t(`auth.login.subtitle.${as ?? "none"}`)}
             </p>
           </div>
 
@@ -88,13 +86,13 @@ export const LoginPage: React.FC = () => {
               <svg className="w-4 h-4 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              <span>{signInErrorText(error)}</span>
+              <span>{t(signInErrorKey(error))}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <InputField
-              label="Email"
+              label={t("auth.email")}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -104,12 +102,12 @@ export const LoginPage: React.FC = () => {
 
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="text-sm font-medium text-textHeading">Password</label>
+                <label className="text-sm font-medium text-textHeading">{t("auth.password")}</label>
                 <Link
                   to="/forgot-password"
                   className="text-xs text-olive-700 hover:text-deepGreen font-medium underline underline-offset-2"
                 >
-                  Forgot password?
+                  {t("auth.login.forgot")}
                 </Link>
               </div>
               <InputField
@@ -129,21 +127,21 @@ export const LoginPage: React.FC = () => {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? "Signing in..." : "Log in"}
+                {loading ? t("auth.login.signingIn") : t("common.logIn")}
               </Button>
             </div>
           </form>
           <p className="mt-4 text-center text-xs text-textMuted">
-            {as === "caregiver" ? "Not a caregiver?" : "Not signing in for yourself?"}{" "}
-            <Link to="/login" className="text-deepGreen font-medium hover:underline">Choose again</Link>
+            {t(as === "caregiver" ? "auth.login.notCaregiver" : "auth.login.notForYourself")}{" "}
+            <Link to="/login" className="text-deepGreen font-medium hover:underline">{t("auth.chooseAgain")}</Link>
           </p>
           </>
           )}
 
           <div className="mt-6 pt-4 border-t border-olive-100 text-center text-sm text-textBody">
-            New to SafeSpace?{" "}
+            {t("auth.login.newHere")}{" "}
             <Link to={as ? `/signup?as=${as}` : "/signup"} className="text-deepGreen font-medium hover:underline">
-              Create an account
+              {t("auth.login.createAccount")}
             </Link>
           </div>
         </Card>

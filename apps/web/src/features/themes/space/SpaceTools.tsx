@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import type { ThemeFrameProps, ThemeHomeProps, ThemeTile, ThemeToolItem, ThemeToolsHomeProps } from "../kitTypes";
 import { NOVA_HEAD_CLIP, SPACE_CARD_CLIPS, SPACE_ASTRONAUT, SPACE_HELMET, SPACE_PLATE, SPACE_TOGETHER, type SpaceClip } from "./media";
 import { IDLE_MS, SPACE_PLAYBACK_RATE, driftTarget, easeToward, headTarget } from "./spaceMotion";
+import { T } from "../../../i18n/T";
+import i18n from "../../../i18n";
 
 // The Space theme for people with the ADHD or autism module. Home and
 // dashboard: Nova the space cadet in front of a glowing planet says hello,
@@ -33,7 +35,7 @@ const SpaceBar: React.FC<BarProps> = ({ playing, onTogglePlay, backTo, backLabel
     <div className="sp-bar-actions">
       <button type="button" className="sp-pill sp-glass" aria-pressed={playing} onClick={onTogglePlay}>
         <span aria-hidden="true" className="sp-pill-icon">{playing ? "❚❚" : "▶"}</span>
-        {playing ? "Keep it still" : "Play space"}
+        {playing ? <T k="home.keepStill" /> : <T k="home.playSpace" />}
       </button>
       {backTo && (
         <Link to={backTo} className="sp-pill sp-glass">
@@ -267,7 +269,7 @@ export const SpaceToolsHome: React.FC<ThemeToolsHomeProps> = ({ items, pathFor, 
 
 // A few quiet words over the astronauts gathered together.
 export const SpaceClosing: React.FC<{ playing: boolean }> = ({ playing }) => (
-  <section className="sp-closing" aria-label="A few kind words">
+  <section className="sp-closing" aria-label={i18n.t("home.kindWords")}>
     <SpaceMedia clip={SPACE_TOGETHER} playing={playing} className="sp-closing-media" />
     <div className="sp-closing-veil" aria-hidden="true" />
     <div className="sp-closing-text">
@@ -275,10 +277,10 @@ export const SpaceClosing: React.FC<{ playing: boolean }> = ({ playing }) => (
         One step at a time
       </span>
       <p className="sp-closing-lines">
-        <span className="sp-closing-first">You're not alone.</span>
-        <span>Start small.</span>
-        <span>Rest when you need to.</span>
-        <span>Come back any time.</span>
+        <span className="sp-closing-first"><T k="home.closing1" /></span>
+        <span><T k="home.closing2" /></span>
+        <span><T k="home.closing3" /></span>
+        <span><T k="home.closing4" /></span>
       </p>
     </div>
   </section>
@@ -313,7 +315,7 @@ const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined
     {extra}
     {onSignOut && (
       <button type="button" className={className} onClick={onSignOut}>
-        Sign out
+        <T k="home.signOut" />
       </button>
     )}
   </>

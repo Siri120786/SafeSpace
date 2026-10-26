@@ -172,7 +172,8 @@
 .mh-login {
   right: calc((1440 - 1416) * var(--u));
   top: calc(14 * var(--u));
-  width: calc(105 * var(--u));
+  min-width: calc(105 * var(--u));
+  padding: 0 calc(16 * var(--u));
   height: calc(45 * var(--u));
   font-size: calc(18.5 * var(--u));
 }
@@ -496,5 +497,62 @@
   }
   .mh-card-label span {
     font-size: 13px;
+  }
+}
+
+/* ---- Language switch (English / हिन्दी / తెలుగు), under Log in ------------- */
+.mh-lang {
+  position: absolute;
+  right: calc((1440 - 1416) * var(--u));
+  top: calc(70 * var(--u));
+  z-index: 5;
+}
+@media (max-width: 820px) {
+  .mh-lang {
+    position: relative;
+    right: auto;
+    top: auto;
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px 0;
+  }
+}
+
+/* ---- Hindi and Telugu ------------------------------------------------------
+   Their words run longer than the English, so the headline is set smaller to
+   keep its two lines (the copy below it is placed for two lines), and the
+   pill buttons' words a little smaller to stay inside them. */
+html[lang="hi"] .mh-headline,
+html[lang="te"] .mh-headline {
+  font-size: calc(92 * var(--u));
+  line-height: calc(118 * var(--u));
+}
+html[lang="hi"] .mh-kicker,
+html[lang="te"] .mh-kicker {
+  font-size: calc(34 * var(--u));
+}
+html[lang="hi"] .mh-start,
+html[lang="te"] .mh-start,
+html[lang="hi"] .mh-child,
+html[lang="te"] .mh-child {
+  font-size: calc(17 * var(--u));
+  padding: 0 calc(10 * var(--u));
+}
+@media (max-width: 820px) {
+  html[lang="hi"] .mh-headline,
+  html[lang="te"] .mh-headline {
+    font-size: 36px;
+    line-height: 44px;
+  }
+  html[lang="hi"] .mh-kicker,
+  html[lang="te"] .mh-kicker {
+    font-size: 17px;
+  }
+  html[lang="hi"] .mh-start,
+  html[lang="te"] .mh-start,
+  html[lang="hi"] .mh-child,
+  html[lang="te"] .mh-child {
+    font-size: 15px;
+    padding: 0 18px;
   }
 }

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ThemeFrameProps, ThemeHomeProps, ThemeTile, ThemeToolsHomeProps } from "../kitTypes";
 import { NATURE_CARD_CLIPS, NATURE_CLOUDS, NATURE_NIGHT, NATURE_REALM, NATURE_TREE, NATURE_VALLEY, type NatureClip } from "./media";
+import { T } from "../../../i18n/T";
+import i18n from "../../../i18n";
 
 // The Nature theme for people with the ADHD or autism module. Home and
 // dashboard: a cherry-blossom valley under a white sky with soft clouds and
@@ -60,7 +62,7 @@ const NatureBar: React.FC<BarProps> = ({ playing, onTogglePlay, backTo, backLabe
     <span className="nt-nav-actions">
       <button type="button" className="nt-btn" aria-pressed={playing} onClick={onTogglePlay}>
         <span aria-hidden="true" className="nt-btn-icon">{playing ? "❚❚" : "▶"}</span>
-        {playing ? "Keep it still" : "Play"}
+        {playing ? <T k="home.keepStill" /> : <T k="home.play" />}
       </button>
       {backTo && (
         <Link to={backTo} className="nt-btn nt-btn--soft">
@@ -136,14 +138,14 @@ const Petals: React.FC<{ playing: boolean }> = ({ playing }) => {
 };
 
 const Closing: React.FC<{ playing: boolean; tone: "light" | "dark" }> = ({ playing, tone }) => (
-  <section className={`nt-closing nt-closing--${tone}`} aria-label="A few kind words">
+  <section className={`nt-closing nt-closing--${tone}`} aria-label={i18n.t("home.kindWords")}>
     <div className="nt-closing-img" aria-hidden="true">
       <img src={NATURE_NIGHT} alt="" loading="lazy" />
     </div>
     <Petals playing={playing} />
     <div className="nt-closing-card">
       <span className="nt-pill">One step at a time</span>
-      <p className="nt-closing-lines">You're not alone. Start small, rest when you need to, and come back any time.</p>
+      <p className="nt-closing-lines"><T k="home.closingLine" /></p>
     </div>
   </section>
 );
@@ -218,7 +220,7 @@ const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined
     {extra}
     {onSignOut && (
       <button type="button" className={className} onClick={onSignOut}>
-        Sign out
+        <T k="home.signOut" />
       </button>
     )}
   </>
@@ -261,7 +263,7 @@ export const NatureHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, greet
             <div>
               <span className="nt-pill">Today</span>
               <h2 id="nt-day-title" className="nt-h2 nt-h2--left">
-                Your day
+                <T k="home.yourDay" />
               </h2>
             </div>
             {picker}

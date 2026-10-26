@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ThemeFrameProps, ThemeHomeProps, ThemeTile, ThemeToolsHomeProps } from "../kitTypes";
 import { CALM_CAMP, CALM_CARD_PICTURES, CALM_MEADOW, type CalmClip } from "./media";
+import { T } from "../../../i18n/T";
+import i18n from "../../../i18n";
 
 // The Calm theme, the default for people with the ADHD or autism module.
 // Home and dashboard: the landing page's sunny meadow, a boy and his puppy
@@ -52,7 +54,7 @@ const CalmBar: React.FC<BarProps> = ({ tone, playing, onTogglePlay, backTo, back
       {onTogglePlay && (
         <button type="button" className="cm-btn" aria-pressed={playing} onClick={onTogglePlay}>
           <span aria-hidden="true" className="cm-btn-icon">{playing ? "❚❚" : "▶"}</span>
-          {playing ? "Keep it still" : "Play"}
+          {playing ? <T k="home.keepStill" /> : <T k="home.play" />}
         </button>
       )}
       {backTo && (
@@ -103,19 +105,19 @@ const CalmMedia: React.FC<{ clip: CalmClip; playing: boolean; className?: string
   );
 };
 
-const CLOSING_LINES = ["You're not alone.", "Start small.", "Rest when you need to.", "Come back any time."];
+const CLOSING_LINES = ["home.closing1", "home.closing2", "home.closing3", "home.closing4"];
 
 // Home: evening falls into the moonlit camp. Tools: night lifts into the
 // meadow's morning.
 const Closing: React.FC<{ playing: boolean; scene: "camp" | "meadow" }> = ({ playing, scene }) => (
-  <section className={`cm-closing cm-closing--${scene}`} aria-label="A few kind words">
+  <section className={`cm-closing cm-closing--${scene}`} aria-label={i18n.t("home.kindWords")}>
     <CalmMedia clip={scene === "camp" ? CALM_CAMP : CALM_MEADOW} playing={playing} meadow={scene === "meadow"} className="cm-closing-media" />
     <div className="cm-closing-text">
-      <p className="cm-kicker">{scene === "camp" ? "Goodnight, little steps" : "Good morning"}</p>
+      <p className="cm-kicker"><T k={scene === "camp" ? "home.calm.goodnight" : "home.calm.goodMorning"} /></p>
       <p className="cm-closing-lines">
         {CLOSING_LINES.map((l, i) => (
           <span key={l} className={i === 0 ? "cm-closing-first" : undefined}>
-            {l}
+            <T k={l} />
           </span>
         ))}
       </p>
@@ -144,7 +146,7 @@ const CalmTiles: React.FC<{ tiles: ThemeTile[]; label: string }> = ({ tiles, lab
 );
 
 // A child's home or an Individual's dashboard in the Calm theme.
-export const CalmHome: React.FC<ThemeHomeProps> = ({ onSignOut, stillOnly = false, dayTitle = "Your day", eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
+export const CalmHome: React.FC<ThemeHomeProps> = ({ onSignOut, stillOnly = false, dayTitle, eyebrow, greeting, line, status, barExtra, picker, tiles, tilesLabel, children }) => {
   const [playing, togglePlaying] = usePlaying();
   return (
     <div className="cm cm-home" data-playing={playing ? "true" : "false"} data-still-only={stillOnly ? "true" : "false"}>
@@ -160,7 +162,7 @@ export const CalmHome: React.FC<ThemeHomeProps> = ({ onSignOut, stillOnly = fals
               {barExtra}
               {onSignOut && (
                 <button type="button" className="cm-btn" onClick={onSignOut}>
-                  Sign out
+                  <T k="home.signOut" />
                 </button>
               )}
             </>
@@ -181,7 +183,7 @@ export const CalmHome: React.FC<ThemeHomeProps> = ({ onSignOut, stillOnly = fals
         <div className="cm-wrap">
           <div className="cm-head">
             <h2 id="cm-day-title" className="cm-display cm-h2">
-              {dayTitle}
+              {dayTitle ?? <T k="home.yourDay" />}
             </h2>
             {picker}
           </div>

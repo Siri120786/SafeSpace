@@ -16,6 +16,7 @@ import { BrainMascot } from "../../../components/vectors/BrainMascot";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { forgetSupportAreas } from "../../themes/useAppTheme";
 import { MeadowNote, MeadowPage } from "../../landing/hero/MeadowPage";
+import { LanguageSection } from "../../../components/ui/LanguageSwitch";
 
 const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon: string }[] = [
   { key: "anxiety", label: "Anxiety Support", desc: "Breathing, grounding & gentle reframing", icon: "🌱" },
@@ -204,6 +205,8 @@ export const ProfileScreen: React.FC = () => {
           <button onClick={() => setSuccessMsg(null)} className="font-bold text-lg">&times;</button>
         </div>
       )}
+
+      <LanguageSection className="mb-6 rounded-3xl bg-white p-6 shadow-card space-y-3" />
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Basic Info Card */}

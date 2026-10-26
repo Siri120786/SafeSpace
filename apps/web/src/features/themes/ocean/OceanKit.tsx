@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import type { ThemeFrameProps, ThemeHomeProps, ThemeTile, ThemeToolsHomeProps } from "../kitTypes";
 import { OCEAN_CARD_CLIPS, OCEAN_CAVE, OCEAN_SUNFLOOR, type OceanClip } from "./media";
 import type { OceanScene } from "../../conditions/anxiety/ocean/oceanScene";
+import { T } from "../../../i18n/T";
+import i18n from "../../../i18n";
 
 // The Ocean theme for people with the ADHD or autism module. Home and
 // dashboard: calm deep water; on Play, Aurelia's glowing jellyfish (the same
@@ -37,7 +39,7 @@ const OceanBar: React.FC<BarProps> = ({ playing, onTogglePlay, backTo, backLabel
     <div className="ow-bar-actions">
       <button type="button" className="ow-btn ow-btn--glass" aria-pressed={playing} onClick={onTogglePlay}>
         <span aria-hidden="true" className="ow-btn-icon">{playing ? "❚❚" : "▶"}</span>
-        {playing ? "Keep it still" : "Play"}
+        {playing ? <T k="home.keepStill" /> : <T k="home.play" />}
       </button>
       {backTo && (
         <Link to={backTo} className="ow-btn ow-btn--glass">
@@ -123,15 +125,15 @@ function useJellyfish(host: React.RefObject<HTMLDivElement>, pointer: React.RefO
 }
 
 const Closing: React.FC<{ playing: boolean }> = ({ playing }) => (
-  <section className="ow-closing" aria-label="A few kind words">
+  <section className="ow-closing" aria-label={i18n.t("home.kindWords")}>
     <OceanMedia clip={OCEAN_SUNFLOOR} playing={playing} className="ow-closing-media" />
     <div className="ow-closing-text">
       <p className="ow-badge">Breathe out slowly</p>
       <p className="ow-closing-lines">
-        <span className="ow-closing-first">You're not alone.</span>
-        <span>Start small.</span>
-        <span>Rest when you need to.</span>
-        <span>Come back any time.</span>
+        <span className="ow-closing-first"><T k="home.closing1" /></span>
+        <span><T k="home.closing2" /></span>
+        <span><T k="home.closing3" /></span>
+        <span><T k="home.closing4" /></span>
       </p>
     </div>
   </section>
@@ -176,7 +178,7 @@ const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined
     {extra}
     {onSignOut && (
       <button type="button" className={className} onClick={onSignOut}>
-        Sign out
+        <T k="home.signOut" />
       </button>
     )}
   </>
@@ -216,7 +218,7 @@ export const OceanHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, greeti
       <section className="ow-body">
         <div className="ow-wrap">
           <div className="ow-head">
-            <h2 className="ow-h2">Your day</h2>
+            <h2 className="ow-h2"><T k="home.yourDay" /></h2>
             {picker}
           </div>
           <div className="ow-panel ow-stack">{children}</div>

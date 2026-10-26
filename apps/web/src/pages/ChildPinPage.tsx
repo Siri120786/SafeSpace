@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { verifyChildPin } from "@safespace/api-client";
 import type { ChildSession } from "@safespace/shared-types";
 import { storeChildSession, getStoredFamilyCode, storeFamilyCode, clearFamilyCode } from "../lib/childSessionStorage";
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function ChildPinPage({ onBack, onVerified }: Props) {
+  const { t } = useTranslation();
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -75,13 +77,13 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
               onClick={onBack}
               className="text-xs font-bold text-botanical-700 hover:text-botanical-900 transition-colors"
             >
-              &larr; Back
+              &larr; {t("common.back")}
             </button>
           </div>
 
           <SafeSpaceBrandHeader
-            title="Family Code Required"
-            subtitle="Ask a grown-up for your family code. You only need to enter it once on this device."
+            title={t("auth.pin.codeTitle")}
+            subtitle={t("auth.pin.codeSubtitle")}
           />
 
           <div className="space-y-4 mt-6">
@@ -89,7 +91,7 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
               value={codeInput}
               onChange={(e) => setCodeInput(e.target.value)}
               maxLength={6}
-              placeholder="e.g. A1B2C3"
+              placeholder={t("auth.pin.codePlaceholder")}
               style={{ textTransform: "uppercase" }}
             />
 
@@ -101,7 +103,7 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
               }}
               className="w-full py-3.5"
             >
-              Continue &rarr;
+              {t("common.continue")} &rarr;
             </SafeSpaceButton>
           </div>
         </SafeSpaceCard>
@@ -118,23 +120,23 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
             onClick={onBack}
             className="text-xs font-bold text-botanical-700 hover:text-botanical-900 transition-colors"
           >
-            &larr; Back
+            &larr; {t("common.back")}
           </button>
         </div>
 
         <SafeSpaceBrandHeader
-          title="Hi! Enter your PIN"
-          subtitle="Ask a grown-up if you forget your code"
+          title={t("auth.pin.title")}
+          subtitle={t("auth.pin.subtitle")}
         />
         <p className="mt-2 text-xs text-charcoal/70">
-          Family code <strong className="tracking-widest text-charcoal">{familyCode}</strong>
+          {t("auth.pin.familyCode")} <strong className="tracking-widest text-charcoal">{familyCode}</strong>
           {" · "}
           <button
             type="button"
             onClick={changeFamilyCode}
             className="font-bold text-botanical-700 underline hover:text-botanical-900"
           >
-            Change
+            {t("auth.signup.change")}
           </button>
         </p>
         {notice && (
@@ -179,6 +181,7 @@ export default function ChildPinPage({ onBack, onVerified }: Props) {
           </button>
           <button
             onClick={() => handleDigit("back")}
+            aria-label={t("auth.pin.deleteDigit")}
             className="aspect-square rounded-2xl bg-ivory-100 hover:bg-ivory-200 border border-botanical-900/10 text-charcoal font-bold text-xl cursor-pointer active:scale-95 transition-all shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-botanical-700"
           >
             ⌫

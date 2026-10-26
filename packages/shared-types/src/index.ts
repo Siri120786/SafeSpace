@@ -509,7 +509,12 @@ export interface ChildSettings {
   sharing: ChildSharingStatus;
   canChangeSharing: boolean;      // true only at 15 or over
   sharingDecidedAt: string | null;
+  language?: AppLanguage | null;  // null: not chosen yet (follow the device)
 }
+
+// The app's languages (migration 20261031200000): English, Hindi, Telugu.
+export const APP_LANGUAGES = ["en", "hi", "te"] as const;
+export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
 // Caregiver's detail page for one child. Each activity list is null when the
 // young person has chosen not to share (activity.visible === false).

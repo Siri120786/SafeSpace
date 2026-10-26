@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../features/auth";
 import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
 import { SafeSpaceInput } from "../components/ui/SafeSpaceInput";
@@ -10,6 +11,7 @@ import { MeadowPage } from "../features/landing/hero/MeadowPage";
 export const ResetPasswordPage: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [updated, setUpdated] = useState(false);
+  const { t } = useTranslation();
   const { changePassword, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
@@ -29,8 +31,8 @@ export const ResetPasswordPage: React.FC = () => {
     <MeadowPage>
       <SafeSpaceCard maxW="md">
         <SafeSpaceBrandHeader
-          title="Set New Password"
-          subtitle="Enter your new secure password below"
+          title={t("auth.reset.title")}
+          subtitle={t("auth.reset.subtitle")}
         />
 
         {error && (
@@ -41,17 +43,17 @@ export const ResetPasswordPage: React.FC = () => {
 
         {updated ? (
           <div className="p-5 bg-botanical-50 border border-botanical-200 rounded-2xl text-botanical-800 text-sm text-center leading-relaxed">
-            Password updated successfully! Redirecting to sign in...
+            {t("auth.reset.done")}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <SafeSpaceInput
-              label="New Password"
+              label={t("auth.reset.newPassword")}
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              placeholder="Minimum 6 characters"
+              placeholder={t("auth.signup.passwordPlaceholder")}
             />
 
             <div className="pt-2">
@@ -60,7 +62,7 @@ export const ResetPasswordPage: React.FC = () => {
                 disabled={loading}
                 className="w-full py-3.5"
               >
-                {loading ? "Updating..." : "Update Password"}
+                {loading ? t("auth.reset.updating") : t("auth.reset.update")}
               </SafeSpaceButton>
             </div>
           </form>

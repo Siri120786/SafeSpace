@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getRecommendations } from "@safespace/api-client";
 import type { AppSession, Recommendation, RecommendationKey } from "@safespace/shared-types";
 
@@ -8,22 +9,25 @@ import type { AppSession, Recommendation, RecommendationKey } from "@safespace/s
 // each suggestion goes; a key with no route (music turned off for a child,
 // say) is left out. If suggestions can't load, the card simply isn't shown.
 
-const LOOK: Record<RecommendationKey, { label: string; emoji: string }> = {
-  mood_check_in: { label: "Mood check-in", emoji: "🌱" },
-  calm_space: { label: "Calm Space", emoji: "🌊" },
-  routines: { label: "Routines", emoji: "✅" },
-  journal: { label: "Journal", emoji: "📓" },
-  music: { label: "Music", emoji: "🎵" },
-  games: { label: "Games", emoji: "🎲" },
-  companion: { label: "AI Companion", emoji: "💬" },
-  stories: { label: "Stories", emoji: "📖" },
+// Labels are tiles.<tile> in the locale files.
+const LOOK: Record<RecommendationKey, { tile: string; emoji: string }> = {
+  mood_check_in: { tile: "moodCheckIn", emoji: "🌱" },
+  calm_space: { tile: "calmSpace", emoji: "🌊" },
+  routines: { tile: "routines", emoji: "✅" },
+  journal: { tile: "journal", emoji: "📓" },
+  music: { tile: "music", emoji: "🎵" },
+  games: { tile: "games", emoji: "🎲" },
+  companion: { tile: "companion", emoji: "💬" },
+  stories: { tile: "stories", emoji: "📖" },
 };
 
 export const TryNext: React.FC<{
   session: AppSession;
   routes: Partial<Record<RecommendationKey, string>>;
   title?: string;
-}> = ({ session, routes, title = "Try this next" }) => {
+}> = ({ session, routes, title: titleProp }) => {
+  const { t } = useTranslation();
+  const title = titleProp ?? t("home.tryNext");
   const [items, setItems] = useState<Recommendation[] | null>(null);
 
   useEffect(() => {
@@ -51,7 +55,7 @@ export const TryNext: React.FC<{
             >
               <span aria-hidden="true" className="text-2xl">{LOOK[r.key].emoji}</span>
               <span className="flex-1">
-                <span className="block text-sm font-semibold">{LOOK[r.key].label}</span>
+                <span className="block text-sm font-semibold">{t(`tiles.${LOOK[r.key].tile}`)}</span>
                 <span className="block text-sm text-charcoal/70">{r.reason}</span>
               </span>
               <span aria-hidden="true" className="text-botanical-800">→</span>

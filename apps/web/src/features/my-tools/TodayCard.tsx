@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { getDueReminders, listMyRoutines } from "@safespace/api-client";
 import { ROUTINE_STEP_ICONS, type AppSession } from "@safespace/shared-types";
 import { Card } from "../../components/ui/Card";
@@ -17,6 +18,7 @@ const REFRESH_MS = 60_000;
 // The Individual dashboard's "Today": the routine step to do now and any
 // reminders due, linking to the full pages.
 export const TodayCard: React.FC<Props> = ({ session, routinesPath, remindersPath }) => {
+  const { t } = useTranslation();
   const [summary, setSummary] = useState<TodaySummary | null>(null);
   const [error, setError] = useState(false);
 
@@ -50,34 +52,36 @@ export const TodayCard: React.FC<Props> = ({ session, routinesPath, remindersPat
   return (
     <Card className="p-6 border border-olive-100 space-y-3">
       <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-        Today
+        {t("home.child.today")}
       </span>
-      {error && <p className="text-sm text-textMuted">Today's plan couldn't load right now.</p>}
-      {!summary && !error && <p className="text-sm text-textMuted">Loading today…</p>}
+      {error && <p className="text-sm text-textMuted">{t("home.today.error")}</p>}
+      {!summary && !error && <p className="text-sm text-textMuted">{t("home.child.loading")}</p>}
       {summary && (
         <div className="grid gap-3 sm:grid-cols-2">
           <Link to={summary.hasRoutines ? routinesPath : `${routinesPath}?edit=1`} className="rounded-2xl bg-olive-50/70 border border-olive-100 px-4 py-3 hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500">
-            <span className="block text-xs text-textMuted">Routines</span>
+            <span className="block text-xs text-textMuted">{t("tiles.routines")}</span>
             {!summary.hasRoutines ? (
-              <span className="block text-sm text-textHeading">Nothing planned today. Set one up?</span>
+              <span className="block text-sm text-textHeading">{t("home.today.noRoutines")}</span>
             ) : summary.allDone ? (
-              <span className="block text-sm text-textHeading">All done for today 🎉</span>
+              <span className="block text-sm text-textHeading">{t("home.today.allDone")} 🎉</span>
             ) : step ? (
               <span className="block text-sm text-textHeading">
-                Now: {emoji && <span aria-hidden="true">{emoji} </span>}<strong>{step.label}</strong>
-                <span className="block text-xs text-textMuted">{summary.stepsLeft} step{summary.stepsLeft === 1 ? "" : "s"} left today</span>
+                {t("home.today.now")} {emoji && <span aria-hidden="true">{emoji} </span>}<strong>{step.label}</strong>
+                <span className="block text-xs text-textMuted">{t("home.today.stepsLeft", { count: summary.stepsLeft })}</span>
               </span>
             ) : (
               <span className="block text-sm text-textHeading">
-                Nothing due yet
-                <span className="block text-xs text-textMuted">{summary.stepsLeft} step{summary.stepsLeft === 1 ? "" : "s"} later today</span>
+                {t("home.today.nothingDue")}
+                <span className="block text-xs text-textMuted">{t("home.today.stepsLater", { count: summary.stepsLeft })}</span>
               </span>
             )}
           </Link>
           <Link to={remindersPath} className="rounded-2xl bg-olive-50/70 border border-olive-100 px-4 py-3 hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500">
-            <span className="block text-xs text-textMuted">Reminders</span>
+            <span className="block text-xs text-textMuted">{t("tiles.reminders")}</span>
             <span className="block text-sm text-textHeading">
-              {summary.remindersDue === 0 ? "Nothing due right now" : <><strong>{summary.remindersDue}</strong> due now</>}
+              {summary.remindersDue === 0
+                ? t("home.today.noReminders")
+                : <Trans i18nKey="home.today.remindersDue" count={summary.remindersDue} components={{ b: <strong /> }} />}
             </span>
           </Link>
         </div>

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ThemeFrameProps, ThemeHomeProps, ThemeTile, ThemeToolsHomeProps } from "../kitTypes";
 import { TRAIN_CARD_CLIPS, TRAIN_CARRIAGE, TRAIN_FRIEND_NAMES, TRAIN_PLATFORM, TRAIN_STATION, type TrainClip } from "./media";
+import { T } from "../../../i18n/T";
+import i18n from "../../../i18n";
 
 // The Trains theme for people with the ADHD or autism module, with the
 // bright, friendly feel of a toy railway (and its own original engines).
@@ -53,7 +55,7 @@ const TrainBar: React.FC<BarProps> = ({ playing, onTogglePlay, backTo, backLabel
     <span className="tr-bar-actions">
       <button type="button" className="tr-btn" aria-pressed={playing} onClick={onTogglePlay}>
         <span aria-hidden="true" className="tr-btn-icon">{playing ? "❚❚" : "▶"}</span>
-        {playing ? "Keep it still" : "Play"}
+        {playing ? <T k="home.keepStill" /> : <T k="home.play" />}
       </button>
       {backTo && (
         <Link to={backTo} className="tr-btn tr-btn--cream">
@@ -107,15 +109,15 @@ const Departures: React.FC<{ status: string }> = ({ status }) => (
 
 // A quiet seat by the window as the mountains pass at sunset.
 const Closing: React.FC<{ playing: boolean }> = ({ playing }) => (
-  <section className="tr-closing" aria-label="A few kind words">
+  <section className="tr-closing" aria-label={i18n.t("home.kindWords")}>
     <TrainMedia clip={TRAIN_CARRIAGE} playing={playing} className="tr-closing-media" />
     <div className="tr-closing-text">
       <p className="tr-eyebrow tr-eyebrow--warm">The quiet carriage</p>
       <p className="tr-closing-lines">
-        <span className="tr-closing-first">You're not alone.</span>
-        <span>Start small.</span>
-        <span>Rest when you need to.</span>
-        <span>Come back any time.</span>
+        <span className="tr-closing-first"><T k="home.closing1" /></span>
+        <span><T k="home.closing2" /></span>
+        <span><T k="home.closing3" /></span>
+        <span><T k="home.closing4" /></span>
       </p>
     </div>
   </section>
@@ -149,7 +151,7 @@ const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined
     {extra}
     {onSignOut && (
       <button type="button" className={className} onClick={onSignOut}>
-        Sign out
+        <T k="home.signOut" />
       </button>
     )}
   </>
@@ -179,7 +181,7 @@ export const TrainHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, greeti
         <div className="tr-wrap">
           <div className="tr-head">
             <h2 id="tr-day-title" className="tr-h2">
-              Your day
+              <T k="home.yourDay" />
             </h2>
             {picker}
           </div>

@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./meadowHero.css";
 import { EXPLORE_CARDS, SCENE_PLATE, SCENE_VIDEO, prefersReducedMotion } from "./heroScene";
 import { ROUTES } from "../../../routes";
+import { LanguageSwitch } from "../../../components/ui/LanguageSwitch";
 
 // The landing hero: a sunny painted hillside (one still plate and a looping
 // video of the same plate) under the SafeSpace welcome, the ways in, and three
@@ -10,11 +12,14 @@ import { ROUTES } from "../../../routes";
 // design brief; the words are SafeSpace's.
 
 const NAV = [
-  { label: "Features", href: "#features" },
-  { label: "Tools", href: "#showcase" },
-  { label: "Families", href: "#about" },
-  { label: "Promise", href: "#promise" },
-];
+  { key: "features", href: "#features" },
+  { key: "tools", href: "#showcase" },
+  { key: "families", href: "#about" },
+  { key: "promise", href: "#promise" },
+] as const;
+
+// The three explore cards, in EXPLORE_CARDS order.
+const CARD_KEYS = ["feel", "routines", "calm"] as const;
 
 export const Sprout: React.FC = () => (
   <svg viewBox="0 0 32 32" aria-hidden="true" fill="#fff">
@@ -53,6 +58,7 @@ function playEntrance(root: HTMLElement) {
 }
 
 export const MeadowHero: React.FC = () => {
+  const { t } = useTranslation();
   const root = useRef<HTMLElement>(null);
   const [calm] = useState(prefersReducedMotion);
 
@@ -75,54 +81,62 @@ export const MeadowHero: React.FC = () => {
           SafeSpace
         </Link>
         <div className="mh-navpill">
-          {NAV.map((n) => <a key={n.label} href={n.href}>{n.label}</a>)}
+          {NAV.map((n) => <a key={n.key} href={n.href}>{t(`landing.nav.${n.key}`)}</a>)}
         </div>
-        <Link to={ROUTES.LOGIN} className="mh-pill mh-pill-white mh-login">Log in</Link>
+        <Link to={ROUTES.LOGIN} className="mh-pill mh-pill-white mh-login">{t("common.logIn")}</Link>
       </nav>
+      <div className="mh-lang">
+        <LanguageSwitch look="glass" />
+      </div>
 
       <div className="mh-frame">
       <div className="mh-copy">
-        <p className="mh-kicker mh-display">YOUR CALM CORNER</p>
+        <p className="mh-kicker mh-display">{t("landing.hero.kicker")}</p>
         <h1 id="mh-title" className="mh-headline mh-display">
-          <span>A GENTLE PLACE</span>
-          <span>TO FEEL BETTER</span>
+          <span>{t("landing.hero.line1")}</span>
+          <span>{t("landing.hero.line2")}</span>
         </h1>
         <p className="mh-sub">
-          <span>Small, kind tools for feelings, routines and calm,</span>{" "}
-          <span>for you or for a child you care for.</span>{" "}
-          <span>Private, gentle, and never a diagnosis.</span>
+          <span>{t("landing.hero.sub1")}</span>{" "}
+          <span>{t("landing.hero.sub2")}</span>{" "}
+          <span>{t("landing.hero.sub3")}</span>
         </p>
         <div className="mh-buttons">
-          <Link to={ROUTES.SIGNUP} className="mh-pill mh-pill-white mh-start">Get started</Link>
+          <Link to={ROUTES.SIGNUP} className="mh-pill mh-pill-white mh-start">{t("common.getStarted")}</Link>
           <Link to={ROUTES.CHILD_PIN} className="mh-pill mh-pill-glass mh-child">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="8" cy="12" r="4" />
               <path d="M12 12h9M18 12v3M21 12v2" />
             </svg>
-            Child sign-in
+            {t("common.childSignIn")}
           </Link>
         </div>
       </div>
 
       <div className="mh-row">
         <div className="mh-row-head">
-          <h2 className="mh-row-title mh-display">EXPLORE SAFESPACE</h2>
+          <h2 className="mh-row-title mh-display">{t("landing.hero.explore")}</h2>
           <a className="mh-link" href="#features">
-            see everything <span className="mh-chev" aria-hidden="true">›</span>
+            {t("landing.hero.seeEverything")} <span className="mh-chev" aria-hidden="true">›</span>
           </a>
         </div>
         <ul className="mh-cards">
-          {EXPLORE_CARDS.map((c) => (
-            <li key={c.title} className="mh-card">
-              <a href={c.href} className="mh-card-link" aria-label={`${c.title}: ${c.text}`}>
-                <img src={c.image} alt={c.alt} loading="lazy" decoding="async" />
-                <span className="mh-card-label">
-                  <strong>{c.title}</strong>
-                  <span>{c.text}</span>
-                </span>
-              </a>
-            </li>
-          ))}
+          {EXPLORE_CARDS.map((c, i) => {
+            const k = `landing.cards.${CARD_KEYS[i]}`;
+            const title = t(`${k}.title`);
+            const text = t(`${k}.text`);
+            return (
+              <li key={c.title} className="mh-card">
+                <a href={c.href} className="mh-card-link" aria-label={`${title}: ${text}`}>
+                  <img src={c.image} alt={t(`${k}.alt`)} loading="lazy" decoding="async" />
+                  <span className="mh-card-label">
+                    <strong>{title}</strong>
+                    <span>{text}</span>
+                  </span>
+                </a>
+              </li>
+            );
+          })}
         </ul>
       </div>
       </div>

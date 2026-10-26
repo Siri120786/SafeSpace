@@ -4,6 +4,7 @@ import { useAuth } from "../features/auth";
 import { ChildPageShell, SharingChoice, useChildSpace } from "../features/child-space";
 import { ROUTES } from "../routes";
 import { ToolThemePicker, useAppTheme } from "../features/themes";
+import { LanguageSection } from "../components/ui/LanguageSwitch";
 
 // /child/settings: the 15+ sharing choice, low-sensory mode on this device and
 // (with the ADHD or autism module, unless a grown-up locked it) the theme.
@@ -16,6 +17,7 @@ export const ChildSettingsPage: React.FC = () => {
 
   return (
     <ChildPageShell title="Settings" backTo={ROUTES.CHILD_HOME}>
+      <LanguageSection className={box} />
       <section className={box}>
         {settings.canChangeSharing ? (
           <SharingChoice mode="settings" onAnswered={setSettings} />

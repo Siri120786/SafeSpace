@@ -6,6 +6,7 @@
 //   get          { child_session_token }
 //   set_sharing  { child_session_token, share: boolean }   (15 or over only)
 //   set_theme    { child_session_token, theme }            (unless a caregiver locked it)
+//   set_language { child_session_token, language }         ("en" | "hi" | "te")
 //
 // set_sharing is the ONLY way the "share with my caregivers" choice changes;
 // caregivers can't change it. No Deno or esm.sh imports here; index.ts wires
@@ -21,6 +22,7 @@ export interface ChildSettingsRow {
   birth_month: number;
   shares_with_caregiver: boolean | null;
   sharing_decided_at: string | null;
+  preferred_language?: string | null;
 }
 
 export interface ChildSettingsStore {
@@ -29,7 +31,12 @@ export interface ChildSettingsStore {
   setSharing(childId: string, share: boolean): Promise<void>;
   // Calls set_child_own_theme(); throws its errors (theme_locked, invalid_input).
   setTheme(childId: string, theme: string): Promise<void>;
+  // Calls set_child_language() (migration 20261031200000).
+  setLanguage(childId: string, language: string): Promise<void>;
 }
+
+// The app's languages, as in migration 20261031200000.
+export const CHILD_LANGUAGES = ["en", "hi", "te"] as const;
 
 // The seven themes, as in migration 20261028100000.
 export const CHILD_THEMES = ["space", "ocean", "dinosaurs", "trains", "calm", "animals", "nature"] as const;
@@ -50,6 +57,7 @@ function toSettings(row: ChildSettingsRow, now: Date) {
     sharing: childSharingStatus(ageYears, row.shares_with_caregiver),
     canChangeSharing: ageYears >= CAREGIVER_VISIBILITY_AGE,
     sharingDecidedAt: row.sharing_decided_at,
+    language: (CHILD_LANGUAGES as readonly unknown[]).includes(row.preferred_language) ? row.preferred_language : null,
   };
 }
 
@@ -62,13 +70,13 @@ export function createChildSettingsHandler(deps: ChildSettingsDeps) {
     try {
       const text = await req.text();
       if (text.length > MAX_BODY_BYTES) return json({ error: "payload_too_large" }, 413);
-      let body: { action?: unknown; child_session_token?: unknown; share?: unknown; theme?: unknown };
+      let body: { action?: unknown; child_session_token?: unknown; share?: unknown; theme?: unknown; language?: unknown };
       try {
         body = JSON.parse(text) ?? {};
       } catch {
         return json({ error: "invalid_request" }, 400);
       }
-      if (body.action !== "get" && body.action !== "set_sharing" && body.action !== "set_theme") {
+      if (body.action !== "get" && body.action !== "set_sharing" && body.action !== "set_theme" && body.action !== "set_language") {
         return json({ error: "invalid_action" }, 400);
       }
       if (typeof body.child_session_token !== "string" || !body.child_session_token) {
@@ -80,6 +88,9 @@ export function createChildSettingsHandler(deps: ChildSettingsDeps) {
       if (body.action === "set_theme" && !(CHILD_THEMES as readonly unknown[]).includes(body.theme)) {
         return json({ error: "invalid_input" }, 400);
       }
+      if (body.action === "set_language" && !(CHILD_LANGUAGES as readonly unknown[]).includes(body.language)) {
+        return json({ error: "invalid_input" }, 400);
+      }
 
       const childId = await deps.verifyChildToken(body.child_session_token);
       if (!childId) return json({ error: "invalid_session" }, 401);
@@ -88,6 +99,11 @@ export function createChildSettingsHandler(deps: ChildSettingsDeps) {
       if (!row) return json({ error: "not_found" }, 404);
 
       if (body.action === "get") return json({ settings: toSettings(row, now()) });
+
+      if (body.action === "set_language") {
+        await deps.store.setLanguage(childId, body.language as string);
+        return json({ language: body.language });
+      }
 
       if (body.action === "set_theme") {
         await deps.store.setTheme(childId, body.theme as string);

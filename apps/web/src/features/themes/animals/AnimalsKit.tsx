@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import type { ThemeFrameProps, ThemeHomeProps, ThemeTile, ThemeToolsHomeProps } from "../kitTypes";
 import { ANIMALS_CARD_CLIPS, ANIMALS_DANCE, ANIMALS_FLOWERS, ANIMALS_FOREST, type AnimalClip } from "./media";
 import { startBee, startRusty, type CritterScene } from "./critters";
+import { T } from "../../../i18n/T";
+import i18n from "../../../i18n";
 
 // The Animals theme for people with the ADHD or autism module. Home and
 // dashboard: Rusty the fox in an autumn forest says hello, with a little
@@ -55,7 +57,7 @@ const AnimalsBar: React.FC<BarProps> = ({ playing, onTogglePlay, backTo, backLab
     <div className="an-bar-actions">
       <button type="button" className="an-pill" aria-pressed={playing} onClick={onTogglePlay}>
         <span aria-hidden="true" className="an-pill-icon">{playing ? "❚❚" : "▶"}</span>
-        {playing ? "Keep it still" : "Play"}
+        {playing ? <T k="home.keepStill" /> : <T k="home.play" />}
       </button>
       {backTo && (
         <Link to={backTo} className="an-pill">
@@ -157,16 +159,16 @@ function useTyped(text: string, playing: boolean): string {
 }
 
 const Closing: React.FC<{ playing: boolean }> = ({ playing }) => (
-  <section className="an-closing" aria-label="A few kind words">
+  <section className="an-closing" aria-label={i18n.t("home.kindWords")}>
     <AnimalMedia clip={ANIMALS_DANCE} playing={playing} className="an-closing-media" />
     <div className="an-closing-veil" aria-hidden="true" />
     <div className="an-closing-text">
       <p className="an-eyebrow">One paw at a time</p>
       <p className="an-closing-lines">
-        <span className="an-closing-first">You're not alone.</span>
-        <span>Start small.</span>
-        <span>Rest when you need to.</span>
-        <span>Come back any time.</span>
+        <span className="an-closing-first"><T k="home.closing1" /></span>
+        <span><T k="home.closing2" /></span>
+        <span><T k="home.closing3" /></span>
+        <span><T k="home.closing4" /></span>
       </p>
     </div>
   </section>
@@ -198,7 +200,7 @@ const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined
     {extra}
     {onSignOut && (
       <button type="button" className={className} onClick={onSignOut}>
-        Sign out
+        <T k="home.signOut" />
       </button>
     )}
   </>
@@ -239,7 +241,7 @@ export const AnimalsHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, gree
         <div className="an-wrap">
           <div className="an-head">
             <h2 className="an-h2">
-              Your day<span className="an-dot">.</span>
+              <T k="home.yourDay" /><span className="an-dot">.</span>
             </h2>
             {picker}
           </div>

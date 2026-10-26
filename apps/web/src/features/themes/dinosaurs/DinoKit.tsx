@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ThemeFrameProps, ThemeHomeProps, ThemeTile, ThemeToolsHomeProps } from "../kitTypes";
 import { DINO_CARD_CLIPS, DINO_FOREST, DINO_FRIENDS, DINO_SUNSET, DINO_VALLEY, type DinoClip } from "./media";
+import { T } from "../../../i18n/T";
+import i18n from "../../../i18n";
 
 // Dino World, for people with the ADHD or autism module. Home and
 // dashboard: a sunny valley with a waterfall and a little bridge where Arlo,
@@ -71,7 +73,7 @@ const DinoBar: React.FC<BarProps> = ({ playing, onTogglePlay, backTo, backLabel,
     <span className="dn-bar-actions">
       <button type="button" className="dn-btn" aria-pressed={playing} onClick={onTogglePlay}>
         <span aria-hidden="true" className="dn-btn-icon">{playing ? "❚❚" : "▶"}</span>
-        {playing ? "Keep it still" : "Play"}
+        {playing ? <T k="home.keepStill" /> : <T k="home.play" />}
       </button>
       {backTo && (
         <Link to={backTo} className="dn-btn dn-btn--cream">
@@ -114,15 +116,15 @@ const DinoMedia: React.FC<{ clip: DinoClip; playing: boolean; className?: string
 
 // All asleep in the nest at sunset, after the evening turns golden.
 const Closing: React.FC<{ playing: boolean }> = ({ playing }) => (
-  <section className="dn-closing" aria-label="A few kind words">
+  <section className="dn-closing" aria-label={i18n.t("home.kindWords")}>
     <DinoMedia clip={DINO_SUNSET} playing={playing} className="dn-closing-media" />
     <div className="dn-closing-text">
       <p className="dn-eyebrow">Goodnight from the nest</p>
       <p className="dn-closing-lines">
-        <span className="dn-closing-first">You're not alone.</span>
-        <span>Start small.</span>
-        <span>Rest when you need to.</span>
-        <span>Come back any time.</span>
+        <span className="dn-closing-first"><T k="home.closing1" /></span>
+        <span><T k="home.closing2" /></span>
+        <span><T k="home.closing3" /></span>
+        <span><T k="home.closing4" /></span>
       </p>
     </div>
   </section>
@@ -164,7 +166,7 @@ const withSignOut = (extra: React.ReactNode, onSignOut: (() => void) | undefined
     {extra}
     {onSignOut && (
       <button type="button" className={className} onClick={onSignOut}>
-        Sign out
+        <T k="home.signOut" />
       </button>
     )}
   </>
@@ -202,7 +204,7 @@ export const DinoHome: React.FC<ThemeHomeProps> = ({ onSignOut, eyebrow, greetin
         <div className="dn-wrap">
           <div className="dn-head">
             <h2 id="dn-day-title" className="dn-h2">
-              Your day
+              <T k="home.yourDay" />
             </h2>
             {picker}
           </div>
