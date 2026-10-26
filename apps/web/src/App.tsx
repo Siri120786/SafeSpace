@@ -5,6 +5,7 @@ import { GamesRoutes } from "./features/games";
 import { ModulesRoutes } from "./features/wellness-modules";
 import { ROUTES } from "./routes";
 import { MiniPlayer, MusicPlayerProvider } from "./features/music";
+import { SafeSpaceGuideLabel } from "./features/guide/SafeSpaceGuideLabel";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
 import LoginPage from "./pages/LoginPage";
@@ -266,6 +267,7 @@ export default function App() {
             <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Routes>
           <MusicMiniPlayer />
+          <SafeSpaceGuideLabel />
           </MusicPlayerProvider>
         </AccessibilityProvider>
       </AuthProvider>
