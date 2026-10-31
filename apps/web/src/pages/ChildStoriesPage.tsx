@@ -2,7 +2,18 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { listMyStories } from "@safespace/api-client";
 import { ChildPageShell, useChildSpace } from "../features/child-space";
-import { STORY_LIBRARY, StoryPlayer, estimateStorySeconds, findLibraryStory, validateStory, type Story } from "../features/stories";
+import {
+  STORY_LIBRARY,
+  StoryPlayer,
+  VIDEO_STORIES,
+  VideoStoryCard,
+  VideoStoryPlayer,
+  estimateStorySeconds,
+  findLibraryStory,
+  findVideoStory,
+  validateStory,
+  type Story,
+} from "../features/stories";
 import { ROUTES } from "../routes";
 
 const storyPath = (id: string) => `${ROUTES.CHILD_STORIES}/${encodeURIComponent(id)}`;
@@ -62,6 +73,12 @@ export const ChildStoriesPage: React.FC = () => {
           {STORY_LIBRARY.map((s) => <StoryCard key={s.id} story={s} emoji="📖" />)}
         </ul>
       </section>
+      <section aria-labelledby="watch-stories" className="space-y-3">
+        <h2 id="watch-stories" className="font-display text-xl font-bold text-charcoal">Watch a story</h2>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {VIDEO_STORIES.map((s) => <VideoStoryCard key={s.id} story={s} to={storyPath(s.id)} />)}
+        </ul>
+      </section>
     </ChildPageShell>
   );
 };
@@ -72,7 +89,15 @@ export const ChildStoryPage: React.FC = () => {
   const navigate = useNavigate();
   const { lowSensory } = useChildSpace();
   const builtIn = findLibraryStory(storyId);
+  const video = findVideoStory(storyId);
   const { stories } = usePublishedStories();
+  if (video) {
+    return (
+      <ChildPageShell title={video.title} backTo={ROUTES.CHILD_STORIES}>
+        <VideoStoryPlayer story={video} onExit={() => navigate(ROUTES.CHILD_STORIES)} />
+      </ChildPageShell>
+    );
+  }
   const story = builtIn ?? stories?.find((s) => s.id === storyId) ?? null;
 
   if (!story) {

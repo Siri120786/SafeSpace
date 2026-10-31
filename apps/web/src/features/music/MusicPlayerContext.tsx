@@ -390,3 +390,9 @@ export function useMusicPlayer(): MusicPlayer {
   if (!v) throw new Error("useMusicPlayer must be used inside MusicPlayerProvider");
   return v;
 }
+
+// For screens that offer music only when a player is around (a page shown on
+// its own, as in the tests, has none).
+export function useOptionalMusicPlayer(): MusicPlayer | null {
+  return useContext(Ctx);
+}

@@ -1,5 +1,6 @@
 import React from "react";
 import { useReducedMotion } from "./useReducedMotion";
+import { MeadowPage } from "../landing/hero/MeadowPage";
 
 export interface LoadingStateProps {
   /** Reassuring message shown while loading. Defaults to "Taking a quiet moment to prepare..." */
@@ -77,9 +78,9 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 
   if (fullScreen) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-[#FAF7F2]">
-        {content}
-      </div>
+      <MeadowPage>
+        <div className="rounded-3xl bg-white/90 px-6 py-5 shadow-[0_8px_20px_rgba(20,60,100,0.18)]">{content}</div>
+      </MeadowPage>
     );
   }
 

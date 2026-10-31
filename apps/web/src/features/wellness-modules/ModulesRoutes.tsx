@@ -5,13 +5,21 @@ import { useLowSensory } from "../calm-tools";
 import { BrightDays, CalmSpace, CycleCare, ModulesHome, SafeHarbor } from "./components/ModuleScreens";
 import { FoodModule, PcosPcodHub, PhysicalExercise } from "./components/PcosScreens";
 import type { ModuleInfo } from "./lib/content";
+import { OceanBreathing, OceanGrounding, calmSpacePath } from "../conditions/anxiety/ocean/OceanCalmPages";
+// Calm Space's ocean look (loaded here, with the pages that use it).
+import "../conditions/anxiety/ocean/ocean.css";
+// The PCOS / PCOD pages' dusk hillside.
+import "../conditions/pcos-pcod/dusk/dusk.css";
+// Safe Harbor's rainy window.
+import "../conditions/ptsd/harbor/harbor.css";
+// Bright Days' night garden.
+import "../conditions/depression/door/door.css";
 
 interface ModulesRoutesProps {
   // Defaults are the adult routes (/modules, exit to /dashboard). The child's
   // space mounts these at /child/modules and exits to /child (role-flow 5b).
   basePath?: string;
   homePath?: string;
-  calmToolsPath?: string;
   onlyKeys?: readonly ModuleInfo["key"][];
   showStoryWorkflow?: boolean;
 }
@@ -20,7 +28,6 @@ interface ModulesRoutesProps {
 export const ModulesRoutes: React.FC<ModulesRoutesProps> = ({
   basePath = "/modules",
   homePath = "/dashboard",
-  calmToolsPath = "/calm-tools",
   onlyKeys,
   showStoryWorkflow,
 }) => {
@@ -28,13 +35,17 @@ export const ModulesRoutes: React.FC<ModulesRoutesProps> = ({
   const { session } = useAuth();
   const { lowSensory, preferenceError } = useLowSensory();
   const onExit = useCallback(() => navigate(homePath), [navigate, homePath]);
+  // Calm Space's own exercises go back to Calm Space.
+  const backToCalmSpace = useCallback(() => navigate(calmSpacePath(basePath)), [navigate, basePath]);
   const role = session?.kind === "auth_user" ? session.profile.role : null;
-  const common = { lowSensory, onExit, notice: preferenceError, paths: { base: basePath, calmTools: calmToolsPath } };
+  const common = { lowSensory, onExit, notice: preferenceError, paths: { base: basePath } };
 
   return (
     <Routes>
       <Route index element={<ModulesHome {...common} onlyKeys={onlyKeys} showStoryWorkflow={showStoryWorkflow} />} />
       <Route path="calm-space" element={<CalmSpace {...common} />} />
+      <Route path="calm-space/breathing" element={<OceanBreathing lowSensory={lowSensory} notice={preferenceError} onExit={backToCalmSpace} base={basePath} />} />
+      <Route path="calm-space/grounding" element={<OceanGrounding lowSensory={lowSensory} notice={preferenceError} onExit={backToCalmSpace} base={basePath} />} />
       <Route path="bright-days" element={<BrightDays {...common} />} />
       <Route path="safe-harbor" element={<SafeHarbor {...common} />} />
       <Route path="pcos-pcod" element={<PcosPcodHub {...common} role={role} />} />

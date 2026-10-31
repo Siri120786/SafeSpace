@@ -1,0 +1,667 @@
+/* The Trains theme (see TrainKit.tsx). Everything is scoped to .tr.
+   Every change of colour is a long soft fade, so there are no lines:
+     home:  the station's grass (#8ca462) -> the day, darkening through
+            evening green into night -> the quiet carriage (black);
+     tools: the platform's grass (#9ea35e) -> the stops, the same evening
+            -> the quiet carriage.
+   Friendly rounded Fredoka in railway red, green, yellow and blue with
+   cream. Still by default; clips move only while playing. */
+
+.tr {
+  --tr-red: #d6452f;
+  --tr-green: #2f6b3a;
+  --tr-yellow: #f2c230;
+  --tr-blue: #4f8fcf;
+  --tr-brown: #8a5a3b;
+  --tr-cream: #fbf4e4;
+  --tr-ink: #22302a;
+  --tr-grass: #8ca462;
+  --tr-meadow: #9ea35e;
+  --tr-night: #000;
+  position: relative;
+  min-height: 100vh;
+  color: var(--tr-ink);
+  background: var(--tr-cream);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  /* The bold theme picker, in this theme's colours. */
+  --sp-cream: #fff;
+  --sp-mint: var(--tr-yellow);
+}
+.tr h1,
+.tr h2,
+.tr h3,
+.tr .sp-pick {
+  font-family: "Fredoka", "Nunito", "Inter", sans-serif;
+}
+.tr .sp-themes {
+  --sp-cream: var(--tr-ink);
+  color: var(--tr-ink);
+  background: var(--tr-cream);
+  box-shadow: 0 20px 50px -20px rgba(20, 30, 20, 0.5);
+}
+.tr .sp-theme:hover:not(:disabled) {
+  background: #f3e9cf;
+}
+.tr .sp-theme[aria-pressed="true"] {
+  background: #fde7a3;
+}
+.tr :focus-visible {
+  outline: 3px solid var(--tr-yellow);
+  outline-offset: 3px;
+}
+.tr-wrap {
+  position: relative;
+  z-index: 3;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 56px);
+}
+.tr-eyebrow {
+  margin: 0 0 12px;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tr-red);
+}
+.tr-eyebrow--warm {
+  color: #ffc98a;
+}
+
+/* ---------------------------------------------------------------- bar */
+.tr-bar {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: clamp(14px, 2vw, 22px) clamp(16px, 4vw, 48px);
+}
+.tr-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px 6px 6px;
+  border-radius: 999px;
+  background: var(--tr-cream);
+  color: var(--tr-green);
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  box-shadow: 0 8px 22px -12px rgba(20, 30, 20, 0.5);
+}
+.tr-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--tr-red);
+  color: var(--tr-cream);
+}
+.tr-bar-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.tr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--tr-red);
+  color: #fff;
+  font: 600 15px/1 "Fredoka", "Nunito", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 8px 18px -10px rgba(120, 30, 20, 0.7);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.tr-btn:hover {
+  transform: translateY(-1px);
+  background: #c43a25;
+}
+.tr-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+.tr-btn--cream {
+  background: var(--tr-cream);
+  color: var(--tr-green);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.08), 0 8px 18px -12px rgba(20, 30, 20, 0.6);
+}
+.tr-btn--cream:hover {
+  background: #fff;
+}
+.tr-btn--big {
+  height: 52px;
+  padding: 0 28px;
+  margin-top: 24px;
+  font-size: 17px;
+}
+.tr-btn-icon {
+  font-size: 9px;
+}
+
+/* ---------------------------------------------------------------- media */
+.tr-media {
+  position: absolute;
+  inset: 0;
+}
+.tr-media img,
+.tr-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+.tr-media video {
+  animation: tr-fade 1.4s ease both;
+}
+@keyframes tr-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- heroes */
+.tr-hero {
+  position: relative;
+  height: max(100svh, 620px);
+  overflow: hidden;
+}
+.tr-hero--station {
+  background: var(--tr-grass);
+}
+.tr-hero--platform {
+  background: var(--tr-meadow);
+}
+.tr-station img,
+.tr-station video {
+  object-position: 62% 64%;
+}
+.tr-platform img,
+.tr-platform video {
+  object-position: 70% 60%;
+}
+.tr-hero-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* A soft light behind the words, and the grass flowing on below. */
+.tr-hero--station .tr-hero-shade {
+  background: linear-gradient(180deg, rgba(140, 164, 98, 0) 68%, var(--tr-grass) 96%, var(--tr-grass) 100%),
+    radial-gradient(ellipse 50% 44% at 18% 30%, rgba(251, 244, 228, 0.85), rgba(251, 244, 228, 0) 70%);
+}
+.tr-hero--platform .tr-hero-shade {
+  background: linear-gradient(180deg, rgba(158, 163, 94, 0) 68%, var(--tr-meadow) 96%, var(--tr-meadow) 100%),
+    radial-gradient(ellipse 48% 46% at 18% 34%, rgba(251, 244, 228, 0.85), rgba(251, 244, 228, 0) 70%);
+}
+/* The words sit in the open sky, above the engines. */
+.tr-hero-copy {
+  position: absolute;
+  z-index: 5;
+  left: clamp(18px, 5vw, 80px);
+  top: clamp(92px, 12vh, 120px);
+  max-width: min(600px, 88vw);
+}
+.tr-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(40px, 4.6vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--tr-green);
+}
+.tr-title span {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.46em;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--tr-red);
+}
+.tr-lead {
+  margin: 12px 0 0;
+  max-width: 44ch;
+  font-size: clamp(15px, 1.2vw, 17px);
+  font-weight: 500;
+  line-height: 1.5;
+  color: #34433a;
+}
+/* Today, on a little departure board. */
+.tr-board {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 8px 14px 10px;
+  border-radius: 12px;
+  background: #18261d;
+  border: 3px solid #3a2a1c;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 24px -14px rgba(0, 0, 0, 0.7);
+}
+.tr-board-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9fc7a8;
+}
+.tr-board-line {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 15px;
+  color: #ffcf4d;
+  text-shadow: 0 0 8px rgba(255, 207, 77, 0.45);
+}
+@media (max-width: 640px) {
+  .tr-hero-copy {
+    top: 100px;
+  }
+}
+
+/* ---------------------------------------------------------------- the day */
+/* Starts on the grass and darkens into night as evening falls. */
+.tr-day {
+  position: relative;
+  margin-top: -1px;
+  padding: clamp(40px, 6vw, 72px) 0 clamp(80px, 10vw, 140px);
+  background: linear-gradient(180deg, var(--tr-grass) 0, var(--tr-grass) 40px, #6c8a4c 30%, #34503a 62%, #101a15 88%, var(--tr-night) 100%);
+  color: #fff;
+}
+.tr-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+}
+.tr-h2 {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(36px, 4.8vw, 64px);
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 3px 18px rgba(10, 20, 10, 0.35);
+}
+/* A ticket-like panel with notched sides. */
+.tr-panel {
+  padding: clamp(16px, 3vw, 30px);
+  border-radius: 22px;
+  background: var(--tr-cream);
+  color: var(--tr-ink);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
+  -webkit-mask: radial-gradient(circle 14px at 0 50%, #0000 97%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 14px at 100% 50%, #0000 97%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 14px at 0 50%, #0000 97%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 14px at 100% 50%, #0000 97%, #000) right / 51% 100% no-repeat;
+}
+.tr-stack > * + * {
+  margin-top: 20px;
+}
+/* A short stretch of track between the day and the train. */
+.tr-rails {
+  height: 18px;
+  margin: clamp(30px, 4vw, 44px) 0 8px;
+  background: linear-gradient(rgba(220, 210, 190, 0.7), rgba(220, 210, 190, 0.7)) 0 3px / 100% 3px no-repeat,
+    linear-gradient(rgba(220, 210, 190, 0.7), rgba(220, 210, 190, 0.7)) 0 12px / 100% 3px no-repeat,
+    repeating-linear-gradient(90deg, rgba(138, 90, 59, 0.85) 0 10px, transparent 10px 34px);
+}
+
+/* Every page as a carriage, coupled into one long train. */
+.tr-train {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 26px 10px;
+}
+.tr-coach {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.tr-coach-body {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 148px;
+  height: 92px;
+  padding-bottom: 12px;
+  border-radius: 18px 18px 10px 10px;
+  background: linear-gradient(180deg, var(--paint) 0 74%, var(--trim) 74% 82%, var(--paint) 82%);
+  box-shadow: inset 0 6px 0 rgba(255, 255, 255, 0.18), inset 0 -6px 0 rgba(0, 0, 0, 0.14), 0 14px 22px -14px rgba(0, 0, 0, 0.8);
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+/* The roof. */
+.tr-coach-body::before {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: -7px;
+  height: 12px;
+  border-radius: 12px 12px 4px 4px;
+  background: var(--roof);
+}
+/* The coupling to the carriage in front. */
+.tr-coach-body::after {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 58%;
+  width: 16px;
+  height: 6px;
+  border-radius: 3px;
+  background: #3a2a1c;
+}
+.tr-coach:hover .tr-coach-body,
+.tr-coach:focus-visible .tr-coach-body {
+  transform: translateY(-4px);
+}
+.tr-coach-window {
+  display: grid;
+  place-items: center;
+  width: 62%;
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #fffdf6, #fbe9b8);
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.12);
+}
+.tr-coach-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+.tr-coach-wheels {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: -11px;
+  display: flex;
+  justify-content: space-between;
+}
+.tr-coach-wheels i {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f2e6c9 0 22%, #2b2b2b 24% 62%, #6b6b6b 64%);
+}
+.tr-coach-label {
+  margin-top: 10px;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+.tr-coach--0 {
+  --paint: var(--tr-red);
+  --trim: #f2c230;
+  --roof: #7a2418;
+}
+.tr-coach--1 {
+  --paint: var(--tr-green);
+  --trim: #f2c230;
+  --roof: #1b4223;
+}
+.tr-coach--2 {
+  --paint: var(--tr-yellow);
+  --trim: #d6452f;
+  --roof: #9a7212;
+}
+.tr-coach--3 {
+  --paint: var(--tr-blue);
+  --trim: #fbf4e4;
+  --roof: #2a5a8a;
+}
+
+/* ---------------------------------------------------------------- stops */
+/* Starts on the platform's grass and darkens into night like the home. */
+.tr-cards {
+  position: relative;
+  margin-top: -1px;
+  padding: clamp(48px, 7vw, 96px) 0 clamp(80px, 10vw, 140px);
+  background: linear-gradient(180deg, var(--tr-meadow) 0, var(--tr-meadow) 40px, #6f8a4a 30%, #34503a 62%, #101a15 88%, var(--tr-night) 100%);
+  color: #fff;
+}
+.tr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tr-stop {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 0 12px 18px;
+  border-radius: 22px;
+  background: var(--tr-cream);
+  color: var(--tr-ink);
+  text-decoration: none;
+  box-shadow: 0 26px 44px -26px rgba(0, 0, 0, 0.8);
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+.tr-stop:hover,
+.tr-stop:focus-visible {
+  transform: translateY(-4px);
+}
+/* The station name board on top. */
+.tr-sign {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 -12px;
+  padding: 12px 12px 10px;
+  border-radius: 22px 22px 6px 6px;
+  background: var(--board);
+  color: #fff;
+  border-bottom: 4px solid rgba(0, 0, 0, 0.18);
+}
+.tr-sign-name {
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.1;
+}
+.tr-sign-tag {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.tr-stop--0 {
+  --board: var(--tr-green);
+}
+.tr-stop--1 {
+  --board: var(--tr-red);
+}
+.tr-stop--2 {
+  --board: #c9921a;
+}
+.tr-stop--3 {
+  --board: #3f78b4;
+}
+.tr-stop-media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  margin-top: 6px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.tr-stop-friend {
+  padding: 0 4px;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--tr-red);
+}
+.tr-stop-blurb {
+  padding: 0 4px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #44524a;
+}
+
+/* ---------------------------------------------------------------- closing */
+/* The quiet carriage: black like the night above, its window fading in. */
+.tr-closing {
+  position: relative;
+  margin-top: -1px;
+  overflow: hidden;
+  background: var(--tr-night);
+}
+.tr-closing .tr-closing-media {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  aspect-ratio: 1400 / 1080;
+  max-height: 100vh;
+  min-height: 460px;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 16%);
+}
+.tr-closing-media img,
+.tr-closing-media video {
+  object-position: 50% 40%;
+}
+.tr-closing-text {
+  position: absolute;
+  z-index: 3;
+  right: clamp(20px, 6vw, 110px);
+  bottom: 10%;
+  text-align: right;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
+}
+.tr-closing-lines {
+  margin: 0;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 600;
+  font-size: clamp(26px, 3.2vw, 46px);
+  line-height: 1.12;
+}
+.tr-closing-lines span {
+  display: block;
+}
+.tr-closing-first {
+  margin-bottom: clamp(10px, 1.6vw, 24px);
+}
+@media (max-width: 640px) {
+  .tr-closing-text {
+    left: 20px;
+    right: 20px;
+    bottom: 24px;
+    text-align: left;
+  }
+}
+
+/* ---------------------------------------------------------------- one page */
+.tr-page {
+  background: var(--tr-cream);
+}
+.tr-page-light {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 460px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.55;
+  -webkit-mask-image: linear-gradient(#000 20%, transparent);
+  mask-image: linear-gradient(#000 20%, transparent);
+}
+.tr-page-light img,
+.tr-page-light video {
+  object-position: 50% 40%;
+}
+.tr-page-main {
+  padding-top: 110px;
+  padding-bottom: 72px;
+  max-width: 920px;
+}
+.tr-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.tr-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tr-h1 {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(38px, 5.4vw, 66px);
+  line-height: 1.02;
+  color: var(--tr-green);
+  text-shadow: 0 2px 16px rgba(251, 244, 228, 0.9);
+}
+.tr-sub {
+  margin: 10px 0 0;
+  max-width: 52ch;
+  font-size: clamp(15px, 1.3vw, 18px);
+  font-weight: 500;
+  line-height: 1.5;
+  color: #34433a;
+}
+.tr-page .tr-panel {
+  margin-top: 28px;
+  background: #fffaf0;
+  box-shadow: 0 0 0 1px #eadfc4, 0 24px 50px -30px rgba(20, 30, 20, 0.4);
+}
+
+/* Inside the panel, the calm look's greens become the railway's. */
+.tr-panel .bg-botanical-700,
+.tr-panel .bg-darkBtn,
+.tr-panel .bg-olive-500,
+.tr-panel .bg-deepGreen {
+  background-color: var(--tr-green);
+}
+.tr-panel .text-botanical-800,
+.tr-panel .text-botanical-700,
+.tr-panel .text-deepGreen {
+  color: #2a5a33;
+}
+.tr-panel .accent-botanical-700,
+.tr-panel .accent-deepGreen {
+  accent-color: var(--tr-red);
+}
+
+/* ---------------------------------------------------------------- calm */
+@media (prefers-reduced-motion: reduce) {
+  .tr *,
+  .tr *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}

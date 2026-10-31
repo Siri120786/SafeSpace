@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getChildDetail } from "@safespace/api-client";
+import { getChildDetail, getChildJournalInsights } from "@safespace/api-client";
 import type { CaregiverChildDetail, WellnessPeriodDays } from "@safespace/shared-types";
 import { Card } from "../components/ui/Card";
 import { MoodHistoryList } from "../features/mood";
@@ -17,6 +17,8 @@ import {
 } from "../features/caregiver";
 import { ROUTES } from "../routes";
 import { ToolsProgressCard } from "../features/conditions";
+import { ActivityTimeline } from "../features/caregiver/components/ActivityTimeline";
+import { JournalInsightsCard } from "../features/journaling/JournalInsightsCard";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const days = (d: number[]) => (d.length === 0 || d.length === 7 ? "Every day" : d.map((n) => DAY_NAMES[n]).join(", "));
@@ -55,7 +57,7 @@ export const CaregiverChildPage: React.FC = () => {
     );
   }
 
-  const { child, activity, summary } = detail;
+  const { child, activity } = detail;
   const note = aiChatsNote(child.name, detail.sharing);
   const periodButton = (p: WellnessPeriodDays) =>
     `px-3 py-1.5 rounded-xl text-xs font-medium ${period === p ? "bg-white text-deepGreen shadow-sm" : "text-textMuted"}`;
@@ -145,19 +147,19 @@ export const CaregiverChildPage: React.FC = () => {
             </div>
           </div>
 
-          {summary && (
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <Stat label="Days with a check-in" value={`${summary.mood.daysWithCheckin} / ${summary.periodDays}`} />
-              <Stat label="Routine steps done" value={`${summary.routines.completedSteps} / ${summary.routines.scheduledSteps}`} />
-              <Stat label="Journal entries" value={String(summary.journal.entries)} />
-            </div>
-          )}
+          <ActivityTimeline childId={child.id} period={period} />
 
           <Section title="Mood check-ins">
             <MoodHistoryList history={detail.recentMoods ?? []} status="ready" errorMessage={null} onRetry={() => {}} title="Latest check-ins" />
           </Section>
 
           <Section title="Journal">
+            <JournalInsightsCard
+              load={() => getChildJournalInsights(child.id)}
+              title={`${child.name}'s month in the journal`}
+              who={child.name}
+              reloadKey={child.id}
+            />
             {(detail.recentJournal ?? []).length === 0 ? (
               <p className="text-sm text-textMuted">No journal entries yet.</p>
             ) : (
@@ -206,13 +208,6 @@ const Section: React.FC<{ title: string; children: React.ReactNode; action?: { t
     </div>
     {children}
   </Card>
-);
-
-const Stat: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div className="rounded-2xl bg-white border border-olive-100 p-3">
-    <div className="font-display text-xl text-textHeading">{value}</div>
-    <div className="text-[11px] text-textMuted leading-tight mt-1">{label}</div>
-  </div>
 );
 
 export default CaregiverChildPage;

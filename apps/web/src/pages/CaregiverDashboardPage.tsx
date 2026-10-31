@@ -1,49 +1,44 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/Button";
-import { LeafCluster } from "../components/vectors/LeafFrame";
+import { useTranslation } from "react-i18next";
 import { RoleNotice, useAuth } from "../features/auth";
 import { AlertBanner, ChildrenPanel, LinkedUsersPanel } from "../features/caregiver";
+import { CalmHome } from "../features/themes/calm/CalmKit";
+import { useLowSensory } from "../features/calm-tools/hooks/useLowSensory";
 import { ROUTES } from "../routes";
 
-// The Caregiver home (routed with RoleRoute allow={["caregiver"]} in App.tsx).
-// Caregivers have no personal tools: only their children (docs/role-flow/CONTRACT.md).
+// The Caregiver home (routed with RoleRoute allow={["caregiver"]} in App.tsx),
+// in the meadow look (the landing page's boy and puppy). Caregivers have no
+// personal tools: only their children (docs/role-flow/CONTRACT.md).
 export const CaregiverDashboardPage: React.FC = () => {
-  const navigate = useNavigate();
+  const { t } = useTranslation();
   const { session, logout } = useAuth();
+  const { lowSensory } = useLowSensory();
   if (!session || session.kind !== "auth_user") return null;
-  const displayName = session.profile.displayName || "Caregiver";
+  const displayName = session.profile.displayName || t("home.caregiver.fallbackName");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream via-[#FAF7F2] to-paleLime/30 text-textHeading font-sans pb-16 relative overflow-x-hidden">
-      <LeafCluster position="top-right" size={180} className="fixed top-0 right-0 opacity-40 pointer-events-none" />
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-        <RoleNotice />
-        <AlertBanner alertsPath={ROUTES.CAREGIVER_ALERTS} />
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-medium text-textHeading">Hi, {displayName}</h1>
-            <p className="text-sm text-textMuted font-light mt-1">Your children's spaces and how their week is going.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.CAREGIVER_STORIES)}>
-              Stories
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.CAREGIVER_ALERTS)}>
-              Alerts
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.PROFILE)}>
-              Profile
-            </Button>
-            <Button variant="ghost" size="sm" onClick={logout} className="text-red-500">
-              Sign out
-            </Button>
-          </div>
-        </div>
-        <ChildrenPanel addChildPath={ROUTES.CAREGIVER_ADD_CHILD} joinPath={ROUTES.CAREGIVER_JOIN} />
-        <LinkedUsersPanel caregiverId={session.profile.id} />
-      </div>
-    </div>
+    <CalmHome
+      stillOnly={lowSensory}
+      eyebrow={t("home.caregiver.eyebrow")}
+      greeting={t("home.greeting", { name: displayName })}
+      line={t("home.caregiver.line")}
+      dayTitle={t("home.caregiver.dayTitle")}
+      onSignOut={logout}
+      tiles={[
+        { to: ROUTES.CAREGIVER_STORIES, label: t("tiles.stories"), emoji: "📖" },
+        { to: ROUTES.CAREGIVER_ALERTS, label: t("tiles.alerts"), emoji: "🔔" },
+        { to: ROUTES.CAREGIVER_ADD_CHILD, label: t("tiles.addChild"), emoji: "🧒" },
+        { to: ROUTES.CAREGIVER_JOIN, label: t("tiles.joinFamily"), emoji: "🤝" },
+        { to: ROUTES.CAREGIVER_NUTRITION, label: t("tiles.nutrition"), emoji: "🥕" },
+        { to: ROUTES.PROFILE, label: t("tiles.profile"), emoji: "👤" },
+      ]}
+      tilesLabel={t("home.caregiver.tilesLabel")}
+    >
+      <RoleNotice />
+      <AlertBanner alertsPath={ROUTES.CAREGIVER_ALERTS} />
+      <ChildrenPanel addChildPath={ROUTES.CAREGIVER_ADD_CHILD} joinPath={ROUTES.CAREGIVER_JOIN} />
+      <LinkedUsersPanel caregiverId={session.profile.id} />
+    </CalmHome>
   );
 };
 

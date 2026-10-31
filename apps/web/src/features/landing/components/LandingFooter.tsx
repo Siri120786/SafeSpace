@@ -1,47 +1,35 @@
 import React from "react";
-import { LeafCluster } from "../../../components/vectors/LeafFrame";
-import { Sparkle } from "../../../components/vectors/Sparkles";
+import { Link } from "react-router-dom";
+import { Sprout } from "../hero/MeadowHero";
+import { useTranslation } from "react-i18next";
+import "../hero/meadowSections.css";
 
+// The closing words and the footer, on the same sky as the sections above.
 export const LandingFooter: React.FC = () => {
+  const { t } = useTranslation();
   return (
-    <footer className="relative bg-gradient-to-b from-transparent via-paleLime/30 to-cream pt-20 pb-12 overflow-hidden border-t border-olive-100/60">
-      {/* Botanical Leaf Framing Clusters in Corners */}
-      <LeafCluster position="bottom-left" size={200} className="absolute bottom-0 left-0 opacity-80" />
-      <LeafCluster position="bottom-right" size={200} className="absolute bottom-0 right-0 opacity-80" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-        {/* Reassuring Closing Message */}
-        <div className="mb-12 max-w-2xl mx-auto">
-          <div className="inline-flex items-center justify-center p-3 rounded-full bg-white shadow-card mb-4">
-            <Sparkle size={24} color="#8DA568" />
-          </div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-medium text-textHeading tracking-tight">
-            "You're safe. Just breathe."
-          </h2>
-          <p className="text-sm md:text-base text-textMuted font-light mt-3">
-            SafeSpace is committed to dignified, accessible, non-diagnostic wellbeing support for everyone.
-          </p>
-        </div>
-
-        {/* Footer Navigation & Copyright */}
-        <div className="pt-8 border-t border-olive-200/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-textMuted font-light">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-mascotPink text-white flex items-center justify-center font-display font-bold text-xs">
-              S
-            </div>
-            <span className="font-medium text-textHeading">SafeSpace Platform</span>
-          </div>
-
-          <p>© {new Date().getFullYear()} SafeSpace. All rights reserved. Screen, educate, and support — never diagnose.</p>
-
-          <div className="flex items-center gap-4">
-            <a href="#privacy" className="hover:text-deepGreen transition-colors">Privacy Policy</a>
-            <a href="#terms" className="hover:text-deepGreen transition-colors">Terms of Service</a>
-            <a href="#accessibility" className="hover:text-deepGreen transition-colors">Accessibility</a>
-          </div>
-        </div>
+  <footer>
+    <div className="ms-section ms-close">
+      <p className="ms-quote ms-display">{t("landing.footer.quote1")}<br />{t("landing.footer.quote2")}</p>
+      <p className="ms-lead">{t("landing.footer.lead")}</p>
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <Link to="/signup" className="ms-pill ms-pill-white">{t("common.getStarted")}</Link>
+        <Link to="/login" className="ms-pill ms-pill-glass">{t("common.logIn")}</Link>
       </div>
-    </footer>
+    </div>
+    <div className="ms-footer">
+      <Link to="/" className="ms-footer-logo ms-display">
+        <Sprout />
+        SafeSpace
+      </Link>
+      <p className="m-0">© {new Date().getFullYear()} SafeSpace. {t("landing.footer.tagline")}</p>
+      <nav aria-label={t("landing.footer.navLabel")}>
+        <a href="#privacy">{t("landing.footer.privacy")}</a>
+        <a href="#terms">{t("landing.footer.terms")}</a>
+        <a href="#accessibility">{t("landing.footer.accessibility")}</a>
+      </nav>
+    </div>
+  </footer>
   );
 };
 

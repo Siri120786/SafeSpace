@@ -20,6 +20,9 @@ import {
   AI_PROMPT_MAX,
   AI_PROMPT_MIN,
   STORY_TEMPLATES,
+  VIDEO_STORIES,
+  VideoStoryCard,
+  VideoStoryPlayer,
   aiDraftErrorText,
   StoryEditor,
   StoryPlayer,
@@ -55,6 +58,8 @@ export const CaregiverStoriesPage: React.FC = () => {
   const kids = useMyChildren();
   const [stories, setStories] = useState<StorySummary[] | null>(null);
   const [error, setError] = useState(false);
+  const [watching, setWatching] = useState<string | null>(null);
+  const watched = VIDEO_STORIES.find((v) => v.id === watching) ?? null;
 
   useEffect(() => {
     listStories().then(setStories).catch(() => setError(true));
@@ -86,6 +91,20 @@ export const CaregiverStoriesPage: React.FC = () => {
             ))}
           </ul>
         )}
+      </Card>
+
+      <Card>
+        <h2 className="font-display text-xl font-medium text-textHeading">Video stories in the library</h2>
+        <p className="mt-1 text-sm text-textBody">Every child can watch these on their Stories page. Watch one here first if you like.</p>
+        {watched && (
+          <div className="mt-4">
+            <h3 className="mb-2 font-medium text-textHeading">{watched.title}</h3>
+            <VideoStoryPlayer key={watched.id} story={watched} onExit={() => setWatching(null)} />
+          </div>
+        )}
+        <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+          {VIDEO_STORIES.map((v) => <VideoStoryCard key={v.id} story={v} onOpen={() => setWatching(v.id)} />)}
+        </ul>
       </Card>
 
       <Card>

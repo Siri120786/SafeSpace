@@ -176,3 +176,49 @@ ok("only 7 or 30 days, a real date and a known timezone",
   await fails("authenticated", adultA, [adultA, null, null, 7, TZ]) &&
   await fails("authenticated", adultA, [adultA, null, today, 7, "Mars/Olympus"]));
 ok("anon can't execute the summary function", await fails("anon", "", [adultA, null, today, 7, TZ]));
+
+// ---------------------------------------------------------------------------
+// wellness_daily (migration 20261031100000): the same counts, one row per
+// local day. Its days must add up exactly to wellness_summary's totals.
+// ---------------------------------------------------------------------------
+const dailyRows = async (role: string, uid: string, owner: { profile?: string; child?: string }, days = 7, tz = TZ) => {
+  await db.exec(`set role ${role}; select set_config('app.uid', '${uid}', false);`);
+  try {
+    return (await db.query<{ s: any[] }>(`select public.wellness_daily($1::uuid, $2::uuid, $3::date, $4, $5) as s`,
+      [owner.profile ?? null, owner.child ?? null, today, days, tz])).rows[0].s;
+  } finally {
+    await db.exec(`reset role;`);
+  }
+};
+const sum = (d: any[], k: string) => d.reduce((n, x) => n + Number(x[k]), 0);
+const matches = (d: any[], s: any) =>
+  sum(d, "checkins") === s.mood.checkins && d.filter((x) => x.checkins > 0).length === s.mood.daysWithCheckin &&
+  sum(d, "stepsScheduled") === s.routines.scheduledSteps && sum(d, "stepsDone") === s.routines.completedSteps &&
+  sum(d, "journalEntries") === s.journal.entries;
+for (const days of [7, 30]) {
+  const d = await dailyRows("authenticated", adultA, { profile: adultA }, days);
+  ok(`daily (${days} days): one row per day, oldest first, ending today`,
+    d.length === days && d.at(-1).date === today && d[0].date < d.at(-1).date);
+  ok(`daily (${days} days): the days add up to the summary's totals`,
+    matches(d, await summary("authenticated", adultA, { profile: adultA }, days)));
+}
+const d7 = await dailyRows("authenticated", adultA, { profile: adultA });
+ok("daily: a day's mood is its latest check-in (local time)", d7.at(-1).mood === "happy" && d7.at(-1).checkins === 2);
+ok("daily: a day with nothing reads as empty", d7.some((x) => x.mood === null && x.checkins === 0 && x.journalEntries === 0));
+ok("daily: counts and moods only, never journal text", !JSON.stringify(d7).includes('"one"') && !JSON.stringify(d7).includes('"two"'));
+const empty = (d: any[]) => d.length === 7 && d.every((x) => x.mood === null && x.checkins === 0 && x.stepsScheduled === 0 && x.stepsDone === 0 && x.journalEntries === 0);
+ok("daily: another adult gets empty days, not A's", empty(await dailyRows("authenticated", adultB, { profile: adultA })));
+ok("daily: the caregiver's view of the child matches their summary (private notes excluded)",
+  matches(await dailyRows("authenticated", cg, { child }), cgView));
+ok("daily: another caregiver gets empty days for that child", empty(await dailyRows("authenticated", cgOther, { child })));
+const dailyFails = async (role: string, uid: string, args: unknown[]) => {
+  await db.exec(`set role ${role}; select set_config('app.uid', '${uid}', false);`);
+  try { await db.query(`select public.wellness_daily($1::uuid, $2::uuid, $3::date, $4, $5)`, args); return false; }
+  catch { return true; }
+  finally { await db.exec(`reset role;`); }
+};
+ok("daily: same validation (one owner, 7 or 30 days, known timezone)",
+  await dailyFails("authenticated", adultA, [null, null, today, 7, TZ]) &&
+  await dailyFails("authenticated", adultA, [adultA, null, today, 14, TZ]) &&
+  await dailyFails("authenticated", adultA, [adultA, null, today, 7, "Mars/Olympus"]));
+ok("daily: anon can't execute it", await dailyFails("anon", "", [adultA, null, today, 7, TZ]));

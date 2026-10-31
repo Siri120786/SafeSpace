@@ -17,7 +17,7 @@ const log = (event: string, detail?: string) =>
 const store: ChildSettingsStore = {
   async getChild(childId) {
     const { data, error } = await admin.from("children")
-      .select("birth_year, birth_month, shares_with_caregiver, sharing_decided_at")
+      .select("birth_year, birth_month, shares_with_caregiver, sharing_decided_at, preferred_language")
       .eq("id", childId).maybeSingle();
     if (error) throw error;
     return data;
@@ -25,6 +25,16 @@ const store: ChildSettingsStore = {
 
   async setSharing(childId, share) {
     const { error } = await admin.rpc("set_child_sharing", { p_child_id: childId, p_share: share });
+    if (error) throw error;
+  },
+
+  async setTheme(childId, theme) {
+    const { error } = await admin.rpc("set_child_own_theme", { p_child_id: childId, p_theme: theme });
+    if (error) throw error;
+  },
+
+  async setLanguage(childId, language) {
+    const { error } = await admin.rpc("set_child_language", { p_child_id: childId, p_language: language });
     if (error) throw error;
   },
 };

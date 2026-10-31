@@ -115,6 +115,14 @@ const store: FocusToolsStore = {
   async removeFavorite(childId, trackId) {
     must(await admin.from("music_favorites").delete().eq("child_id", childId).eq("track_id", trackId));
   },
+
+  async getCalmPlan(childId) {
+    const row = must(await admin.from("calm_plans").select("plan").eq("child_id", childId).maybeSingle());
+    return (row as { plan: unknown } | null)?.plan ?? null;
+  },
+  async saveCalmPlan(childId, plan) {
+    must(await admin.from("calm_plans").upsert({ child_id: childId, plan }, { onConflict: "child_id" }));
+  },
 };
 
 serve(createFocusToolsHandler({ store, verifyChildToken, log }));

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { homeFor, useAuth } from "../features/auth";
 import { JoinInviteForm } from "../features/caregiver";
 import type { ModuleKey, UserRole } from "@safespace/shared-types";
@@ -17,30 +18,35 @@ import { Card } from "../components/ui/Card";
 import { InputField } from "../components/ui/InputField";
 import { Button } from "../components/ui/Button";
 import { BrainMascot } from "../components/vectors/BrainMascot";
-import { LeafCluster } from "../components/vectors/LeafFrame";
+import { SceneBackdrop } from "../features/landing/hero/SceneBackdrop";
+import { forgetSupportAreas } from "../features/themes/useAppTheme";
+import { LanguageSwitch } from "../components/ui/LanguageSwitch";
 
-const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon: string }[] = [
-  { key: "anxiety", label: "Anxiety & Calm", desc: "Breathing, grounding & gentle reframing", icon: "🌱" },
-  { key: "adhd", label: "ADHD & Focus", desc: "Micro-tasking, structure & focus timers", icon: "⚡" },
-  { key: "autism", label: "Autism & Routine", desc: "Sensory ease, predictability & clarity", icon: "🧩" },
-  { key: "depression", label: "Depression & Hope", desc: "Low-energy steps & gentle encouragement", icon: "🌤️" },
-  { key: "ptsd", label: "PTSD & Safety", desc: "Grounding exercises & comforting routines", icon: "🛡️" },
-  { key: "pcos_pcod", label: "PCOS / PCOD Wellbeing", desc: "Hormonal balance, rest & self-care", icon: "🌸" },
+// Labels and descriptions: onboarding.areas.<key> in the locale files.
+const SUPPORT_AREA_OPTIONS: { key: ModuleKey; icon: string }[] = [
+  { key: "anxiety", icon: "🌱" },
+  { key: "adhd", icon: "⚡" },
+  { key: "autism", icon: "🧩" },
+  { key: "depression", icon: "🌤️" },
+  { key: "ptsd", icon: "🛡️" },
+  { key: "pcos_pcod", icon: "🌸" },
 ];
 
-const MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"];
+// Month names in the app's language (1 = January).
+const monthName = (month: number, lang: string) =>
+  new Date(2000, month - 1, 1).toLocaleDateString(lang, { month: "long" });
 
-function extractErrorMessage(err: unknown): string {
+function extractErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) return err.message;
   if (typeof err === "object" && err !== null) {
     const obj = err as { message?: string };
     if (obj.message) return obj.message;
   }
-  return "An unexpected error occurred during setup. Please try again.";
+  return fallback;
 }
 
 export const OnboardingPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { session, refreshSession } = useAuth();
   const navigate = useNavigate();
 
@@ -157,7 +163,7 @@ export const OnboardingPage: React.FC = () => {
 
     // Validation for Step 1
     if (currentStep === 1 && !displayName.trim()) {
-      setErrorMsg("Please enter your name to continue.");
+      setErrorMsg(t("onboarding.errorName"));
       return;
     }
 
@@ -166,6 +172,7 @@ export const OnboardingPage: React.FC = () => {
       if (currentStep === 1 && displayName.trim() && displayName.trim() !== session.profile.displayName) {
         await updateUserProfile(profileId, { displayName: displayName.trim() });
       } else if (currentStep === 2 && !isCaregiver) {
+        forgetSupportAreas();
         await saveSupportPreferences({ profileId, supportAreas: userSupportAreas }).catch(() => null);
       } else if (currentStep === 3 && !isCaregiver) {
         await saveAccessibilityPreferences({ profileId, ...accessibility }).catch(() => null);
@@ -176,11 +183,11 @@ export const OnboardingPage: React.FC = () => {
 
     if (isCaregiver && currentStep === 2) {
       if (!childName.trim()) {
-        setErrorMsg("Please enter your child's name.");
+        setErrorMsg(t("onboarding.errorChildName"));
         return;
       }
       if (!isValidChildBirth(childBirthYear, childBirthMonth) || !/^\d{4}$/.test(childPin)) {
-        setErrorMsg("Enter your child's birth month and year (age 4 to 17) and a 4-digit PIN.");
+        setErrorMsg(t("onboarding.errorChildDetails"));
         return;
       }
     }
@@ -221,7 +228,7 @@ export const OnboardingPage: React.FC = () => {
         // NEVER save child modules to caregiver's adult profile_support_preferences!
         if (!skipChild && childSetup === "add" && childName.trim()) {
           if (!isValidChildBirth(childBirthYear, childBirthMonth) || !/^\d{4}$/.test(childPin)) {
-            throw new Error("Enter your child's birth month and year (age 4 to 17) and a 4-digit PIN.");
+            throw new Error(t("onboarding.errorChildDetails"));
           }
           await addChild({
             name: childName.trim(),
@@ -233,6 +240,7 @@ export const OnboardingPage: React.FC = () => {
         }
       } else {
         // INDIVIDUAL USER FLOW: Save adult support & accessibility preferences
+        forgetSupportAreas();
         await saveSupportPreferences({
           profileId,
           supportAreas: userSupportAreas,
@@ -253,22 +261,24 @@ export const OnboardingPage: React.FC = () => {
       navigate(homeFor(isCaregiver ? "caregiver" : "individual"), { replace: true });
     } catch (err: unknown) {
       console.error("Failed to complete onboarding:", err);
-      setErrorMsg(extractErrorMessage(err));
+      setErrorMsg(extractErrorMessage(err, t("onboarding.errorSetup")));
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream via-[#FAF7F2] to-paleLime/40 flex flex-col justify-center items-center py-10 px-4 sm:px-6 font-sans relative overflow-hidden">
-      {/* Corner Plant Leaves */}
-      <LeafCluster position="bottom-left" size={180} className="absolute bottom-0 left-0 opacity-70 pointer-events-none" />
-      <LeafCluster position="top-right" size={180} className="absolute top-0 right-0 opacity-70 pointer-events-none" />
+    <div className="min-h-screen flex flex-col justify-center items-center py-10 px-4 sm:px-6 font-sans relative isolate">
+      {/* The landing page's meadow, softly blurred behind the steps */}
+      <SceneBackdrop />
 
       {/* Onboarding Container */}
       <div className="w-full max-w-lg relative z-10">
+        <div className="mb-3 flex justify-center">
+          <LanguageSwitch look="glass" />
+        </div>
         
         {/* Header Navigation Bar */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 rounded-full bg-white/85 backdrop-blur-xl border border-white/70 px-4 py-2.5 shadow-[0_8px_20px_rgba(20,60,100,0.18)]">
           {currentStep > 1 ? (
             <button
               type="button"
@@ -278,7 +288,7 @@ export const OnboardingPage: React.FC = () => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              <span>Back</span>
+              <span>{t("common.back")}</span>
             </button>
           ) : (
             <div className="w-12" />
@@ -305,7 +315,7 @@ export const OnboardingPage: React.FC = () => {
             onClick={() => handleCompleteOnboarding(true)}
             className="text-xs font-medium text-textMuted hover:text-textHeading transition-colors underline"
           >
-            Skip
+            {t("onboarding.skip")}
           </button>
         </div>
 
@@ -313,7 +323,7 @@ export const OnboardingPage: React.FC = () => {
         {errorMsg && (
           <div className="mb-4 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-center justify-between">
             <span>{errorMsg}</span>
-            <button onClick={() => setErrorMsg(null)} className="font-bold text-base ml-2">&times;</button>
+            <button onClick={() => setErrorMsg(null)} aria-label={t("common.close")} className="font-bold text-base ml-2">&times;</button>
           </div>
         )}
 
@@ -326,28 +336,28 @@ export const OnboardingPage: React.FC = () => {
             {currentStep === 1 && (
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div className="flex justify-center">
-                  <BrainMascot stance="waving" size={150} showBubble={true} bubbleText="Hi there!" />
+                  <BrainMascot stance="waving" size={150} showBubble={true} bubbleText={t("onboarding.user.bubble1")} />
                 </div>
                 <div>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading">
-                    What should we call you?
+                    {t("onboarding.user.nameTitle")}
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Enter your preferred name or nickname for SafeSpace.
+                    {t("onboarding.user.nameText")}
                   </p>
                 </div>
                 <div className="text-left">
                   <InputField
-                    label="Your Name"
+                    label={t("onboarding.user.nameLabel")}
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e.g. Alex"
+                    placeholder={t("onboarding.user.namePlaceholder")}
                     autoFocus
                   />
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={handleNext}>
-                  Continue
+                  {t("common.continue")}
                 </Button>
               </Card>
             )}
@@ -357,13 +367,13 @@ export const OnboardingPage: React.FC = () => {
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-                    Step 2 of 4
+                    {t("onboarding.step", { n: 2, total: 4 })}
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading mt-3">
-                    What would you like support with?
+                    {t("onboarding.user.areasTitle")}
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Choose the areas you'd like SafeSpace to support you with.
+                    {t("onboarding.user.areasText")}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left max-h-72 overflow-y-auto pr-1">
@@ -373,6 +383,7 @@ export const OnboardingPage: React.FC = () => {
                       <button
                         key={area.key}
                         type="button"
+                        aria-pressed={isSelected}
                         onClick={() => handleToggleUserSupportArea(area.key)}
                         className={`p-3.5 rounded-2xl border flex items-start gap-3 transition-all text-left ${
                           isSelected
@@ -382,9 +393,9 @@ export const OnboardingPage: React.FC = () => {
                       >
                         <span className="text-xl shrink-0">{area.icon}</span>
                         <div>
-                          <h4 className="text-xs sm:text-sm font-medium text-textHeading">{area.label}</h4>
+                          <h4 className="text-xs sm:text-sm font-medium text-textHeading">{t(`onboarding.areas.${area.key}.label`)}</h4>
                           <p className="text-[11px] text-textMuted font-light mt-0.5 leading-snug">
-                            {area.desc}
+                            {t(`onboarding.areas.${area.key}.desc`)}
                           </p>
                         </div>
                       </button>
@@ -392,7 +403,7 @@ export const OnboardingPage: React.FC = () => {
                   })}
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={handleNext}>
-                  Continue
+                  {t("common.continue")}
                 </Button>
               </Card>
             )}
@@ -402,28 +413,28 @@ export const OnboardingPage: React.FC = () => {
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-                    Step 3 of 4
+                    {t("onboarding.step", { n: 3, total: 4 })}
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading mt-3">
-                    Make SafeSpace comfortable for you
+                    {t("onboarding.user.comfortTitle")}
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Configure sensory and display accessibility options.
+                    {t("onboarding.user.comfortText")}
                   </p>
                 </div>
                 <div className="space-y-3 text-left">
-                  {[
-                    { key: "reducedSensoryStimulation", label: "Reduced Sensory Stimulation", desc: "Muted colors and simplified visuals" },
-                    { key: "largerText", label: "Larger Text", desc: "Increase font sizing across screens" },
-                    { key: "readAloud", label: "Read Aloud Support", desc: "Enable audio descriptions" },
-                    { key: "simplifiedPresentation", label: "Simplified Presentation", desc: "Clutter-free, direct layouts" },
-                  ].map((opt) => {
+                  {(["reducedSensoryStimulation", "largerText", "readAloud", "simplifiedPresentation"] as const).map((key) => ({
+                    key,
+                    label: t(`onboarding.access.${key}.label`),
+                    desc: t(`onboarding.access.${key}.desc`),
+                  })).map((opt) => {
                     const k = opt.key as keyof typeof accessibility;
                     const isChecked = accessibility[k];
                     return (
                       <button
                         key={opt.key}
                         type="button"
+                        aria-pressed={isChecked}
                         onClick={() => setAccessibility((prev) => ({ ...prev, [k]: !prev[k] }))}
                         className={`w-full p-3.5 rounded-2xl border flex items-center justify-between transition-all ${
                           isChecked ? "bg-olive-50 border-olive-500 font-semibold" : "bg-white border-olive-100"
@@ -441,7 +452,7 @@ export const OnboardingPage: React.FC = () => {
                   })}
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={handleNext}>
-                  Continue
+                  {t("common.continue")}
                 </Button>
               </Card>
             )}
@@ -450,22 +461,22 @@ export const OnboardingPage: React.FC = () => {
             {currentStep === 4 && (
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div className="flex justify-center">
-                  <BrainMascot stance="celebrating" size={150} showBubble={true} bubbleText="All set!" />
+                  <BrainMascot stance="celebrating" size={150} showBubble={true} bubbleText={t("onboarding.user.bubble4")} />
                 </div>
                 <div>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading">
-                    All set, {displayName || "friend"}! 🎉
+                    {t("onboarding.user.doneTitle", { name: displayName || t("onboarding.user.friend") })} 🎉
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Your personal SafeSpace is ready for you.
+                    {t("onboarding.user.doneText")}
                   </p>
                 </div>
                 <div className="bg-olive-50/60 p-4 rounded-2xl border border-olive-100 text-left space-y-2 text-xs text-textBody">
-                  <p><strong>Name:</strong> {displayName}</p>
-                  <p><strong>Support Areas:</strong> {userSupportAreas.length} selected</p>
+                  <p><strong>{t("onboarding.summary.name")}</strong> {displayName}</p>
+                  <p><strong>{t("onboarding.summary.areas")}</strong> {t("onboarding.summary.selected", { count: userSupportAreas.length })}</p>
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={() => handleCompleteOnboarding()} disabled={isSubmitting}>
-                  {isSubmitting ? "Setting up..." : "Enter SafeSpace"}
+                  {isSubmitting ? t("onboarding.user.settingUp") : t("onboarding.user.enter")}
                 </Button>
               </Card>
             )}
@@ -481,28 +492,28 @@ export const OnboardingPage: React.FC = () => {
             {currentStep === 1 && (
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div className="flex justify-center">
-                  <BrainMascot stance="happy" size={150} showBubble={true} bubbleText="Caregiver Portal" />
+                  <BrainMascot stance="happy" size={150} showBubble={true} bubbleText={t("onboarding.cg.bubble1")} />
                 </div>
                 <div>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading">
-                    Let's set up your SafeSpace
+                    {t("onboarding.cg.nameTitle")}
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    First, tell us your caregiver display name.
+                    {t("onboarding.cg.nameText")}
                   </p>
                 </div>
                 <div className="text-left">
                   <InputField
-                    label="Caregiver / Lead Name"
+                    label={t("onboarding.cg.nameLabel")}
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e.g. Alex Smith"
+                    placeholder={t("onboarding.cg.namePlaceholder")}
                     autoFocus
                   />
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={handleNext}>
-                  Continue
+                  {t("common.continue")}
                 </Button>
               </Card>
             )}
@@ -512,19 +523,19 @@ export const OnboardingPage: React.FC = () => {
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-                    Step 2 of 4
+                    {t("onboarding.step", { n: 2, total: 4 })}
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading mt-3">
-                    Who are you looking after?
+                    {t("onboarding.cg.whoTitle")}
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Add a child, or join a child another caregiver already added.
+                    {t("onboarding.cg.whoText")}
                   </p>
                 </div>
                 <div className="space-y-3 text-left">
                   {[
-                    { key: "add" as const, title: "Add your first child", text: "Their name, birth month and year, and a PIN.", icon: "🧒" },
-                    { key: "join" as const, title: "Join with an invite code", text: "Another caregiver gave you an 8-character code.", icon: "🔑" },
+                    { key: "add" as const, title: t("onboarding.cg.addTitle"), text: t("onboarding.cg.addText"), icon: "🧒" },
+                    { key: "join" as const, title: t("onboarding.cg.joinTitle"), text: t("onboarding.cg.joinText"), icon: "🔑" },
                   ].map((o) => (
                     <button
                       key={o.key}
@@ -546,7 +557,7 @@ export const OnboardingPage: React.FC = () => {
                   onClick={() => { setChildSetup("skipped"); updateStep(4); }}
                   className="text-xs font-medium text-textMuted hover:text-textHeading underline"
                 >
-                  Skip for now: I'll add a child later
+                  {t("onboarding.cg.skipChild")}
                 </button>
               </Card>
             )}
@@ -556,13 +567,13 @@ export const OnboardingPage: React.FC = () => {
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-                    Step 2 of 4
+                    {t("onboarding.step", { n: 2, total: 4 })}
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading mt-3">
-                    Join with an invite code
+                    {t("onboarding.cg.joinTitle")}
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Enter the code another caregiver gave you.
+                    {t("onboarding.cg.joinCodeText")}
                   </p>
                 </div>
                 <JoinInviteForm onJoined={() => { setChildSetup("joined"); updateStep(4); }} />
@@ -574,58 +585,58 @@ export const OnboardingPage: React.FC = () => {
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-                    Step 2 of 4
+                    {t("onboarding.step", { n: 2, total: 4 })}
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading mt-3">
-                    Who are you setting up SafeSpace for?
+                    {t("onboarding.cg.childTitle")}
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Enter child details to create their scoped SafeSpace profile.
+                    {t("onboarding.cg.childText")}
                   </p>
                 </div>
                 <div className="text-left space-y-4">
                   <InputField
-                    label="Child Name"
+                    label={t("onboarding.cg.childName")}
                     type="text"
                     value={childName}
                     onChange={(e) => setChildName(e.target.value)}
-                    placeholder="e.g. Leo"
+                    placeholder={t("onboarding.cg.childNamePlaceholder")}
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <label className="flex flex-col gap-1.5 text-sm font-medium text-textHeading">
-                      Birth month
+                      {t("onboarding.cg.birthMonth")}
                       <select
                         value={childBirthMonth}
                         onChange={(e) => setChildBirthMonth(e.target.value ? Number(e.target.value) : "")}
                         className="rounded-2xl border border-olive-200 bg-white px-4 py-3 text-sm font-normal"
                       >
-                        <option value="">Month</option>
-                        {MONTH_NAMES.map((m, i) => (
-                          <option key={m} value={i + 1}>{m}</option>
+                        <option value="">{t("onboarding.cg.month")}</option>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                          <option key={m} value={m}>{monthName(m, i18n.language)}</option>
                         ))}
                       </select>
                     </label>
                     <InputField
-                      label="Birth year"
+                      label={t("onboarding.cg.birthYear")}
                       type="number"
                       value={childBirthYear}
                       onChange={(e) => setChildBirthYear(e.target.value ? Number(e.target.value) : "")}
-                      placeholder="e.g. 2017"
+                      placeholder={t("onboarding.cg.birthYearPlaceholder")}
                     />
                   </div>
                   <InputField
-                    label="Child PIN"
+                    label={t("onboarding.cg.pin")}
                     type="password"
                     inputMode="numeric"
                     maxLength={4}
                     value={childPin}
                     onChange={(e) => setChildPin(e.target.value.replace(/\D/g, ""))}
-                    placeholder="4 digits"
-                    helperText="Your child signs in with your family code and this PIN."
+                    placeholder={t("onboarding.cg.pinPlaceholder")}
+                    helperText={t("onboarding.cg.pinHelp")}
                   />
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={handleNext}>
-                  Continue
+                  {t("common.continue")}
                 </Button>
               </Card>
             )}
@@ -635,13 +646,13 @@ export const OnboardingPage: React.FC = () => {
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-deepGreen bg-deepGreen-50 px-3 py-1 rounded-full">
-                    Step 3 of 4
+                    {t("onboarding.step", { n: 3, total: 4 })}
                   </span>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading mt-3">
-                    Choose support areas for {childName || "your child"}
+                    {t("onboarding.cg.areasTitle", { name: childName || t("onboarding.cg.yourChild") })}
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Which areas would you like SafeSpace to support for {childName || "your child"}?
+                    {t("onboarding.cg.areasText", { name: childName || t("onboarding.cg.yourChild") })}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left max-h-72 overflow-y-auto pr-1">
@@ -651,6 +662,7 @@ export const OnboardingPage: React.FC = () => {
                       <button
                         key={area.key}
                         type="button"
+                        aria-pressed={isSelected}
                         onClick={() => handleToggleChildModule(area.key)}
                         className={`p-3.5 rounded-2xl border flex items-start gap-3 transition-all text-left ${
                           isSelected
@@ -660,9 +672,9 @@ export const OnboardingPage: React.FC = () => {
                       >
                         <span className="text-xl shrink-0">{area.icon}</span>
                         <div>
-                          <h4 className="text-xs sm:text-sm font-medium text-textHeading">{area.label}</h4>
+                          <h4 className="text-xs sm:text-sm font-medium text-textHeading">{t(`onboarding.areas.${area.key}.label`)}</h4>
                           <p className="text-[11px] text-textMuted font-light mt-0.5 leading-snug">
-                            {area.desc}
+                            {t(`onboarding.areas.${area.key}.desc`)}
                           </p>
                         </div>
                       </button>
@@ -670,7 +682,7 @@ export const OnboardingPage: React.FC = () => {
                   })}
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={handleNext}>
-                  Continue
+                  {t("common.continue")}
                 </Button>
               </Card>
             )}
@@ -679,29 +691,34 @@ export const OnboardingPage: React.FC = () => {
             {currentStep === 4 && (
               <Card className="p-8 border border-white shadow-2xl text-center space-y-6">
                 <div className="flex justify-center">
-                  <BrainMascot stance="celebrating" size={150} showBubble={true} bubbleText="All ready!" />
+                  <BrainMascot stance="celebrating" size={150} showBubble={true} bubbleText={t("onboarding.cg.bubble4")} />
                 </div>
                 <div>
                   <h2 className="font-display text-2xl sm:text-3xl font-medium text-textHeading">
-                    Setup Complete, {displayName || "Caregiver"}! 🎉
+                    {t("onboarding.cg.doneTitle", { name: displayName || t("onboarding.cg.caregiver") })} 🎉
                   </h2>
                   <p className="text-xs sm:text-sm text-textMuted font-light mt-1">
-                    Your caregiver portal and child space configuration are ready.
+                    {t("onboarding.cg.doneText")}
                   </p>
                 </div>
                 <div className="bg-olive-50/60 p-4 rounded-2xl border border-olive-100 text-left space-y-2 text-xs text-textBody">
-                  <p><strong>Caregiver Lead:</strong> {displayName}</p>
-                  {childSetup === "joined" && <p><strong>Joined:</strong> you can now see the child you were invited to.</p>}
-                  {childSetup === "skipped" && <p>You can add a child or join one with an invite later, from your caregiver home.</p>}
+                  <p><strong>{t("onboarding.summary.caregiver")}</strong> {displayName}</p>
+                  {childSetup === "joined" && <p><strong>{t("onboarding.summary.joined")}</strong> {t("onboarding.summary.joinedText")}</p>}
+                  {childSetup === "skipped" && <p>{t("onboarding.summary.skippedText")}</p>}
                   {childSetup === "add" && childName && (
                     <>
-                      <p><strong>Child Profile:</strong> {childName}{childBirthMonth && childBirthYear ? ` (born ${MONTH_NAMES[(childBirthMonth as number) - 1]} ${childBirthYear})` : ""}</p>
-                      <p><strong>Child Support Modules:</strong> {childModules.length} selected</p>
+                      <p>
+                        <strong>{t("onboarding.summary.child")}</strong> {childName}
+                        {childBirthMonth && childBirthYear
+                          ? ` ${t("onboarding.summary.born", { month: monthName(childBirthMonth as number, i18n.language), year: childBirthYear })}`
+                          : ""}
+                      </p>
+                      <p><strong>{t("onboarding.summary.childAreas")}</strong> {t("onboarding.summary.selected", { count: childModules.length })}</p>
                     </>
                   )}
                 </div>
                 <Button variant="primary" fullWidth size="lg" onClick={() => handleCompleteOnboarding()} disabled={isSubmitting}>
-                  {isSubmitting ? "Finishing setup..." : "Go to your caregiver home"}
+                  {isSubmitting ? t("onboarding.cg.finishing") : t("onboarding.cg.goHome")}
                 </Button>
               </Card>
             )}

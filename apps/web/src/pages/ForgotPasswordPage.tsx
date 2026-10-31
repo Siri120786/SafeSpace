@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../features/auth";
 import { SafeSpaceCard } from "../components/ui/SafeSpaceCard";
 import { SafeSpaceInput } from "../components/ui/SafeSpaceInput";
 import { SafeSpaceButton } from "../components/ui/SafeSpaceButton";
 import { SafeSpaceBrandHeader } from "../components/ui/SafeSpaceBrandHeader";
+import { MeadowPage } from "../features/landing/hero/MeadowPage";
 
 export const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const { t } = useTranslation();
   const { resetPassword, loading, error, clearError } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,11 +26,11 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] p-4 sm:p-6">
+    <MeadowPage>
       <SafeSpaceCard maxW="md">
         <SafeSpaceBrandHeader
-          title="Reset Password"
-          subtitle="Enter your registered email address to receive reset instructions"
+          title={t("auth.forgot.title")}
+          subtitle={t("auth.forgot.subtitle")}
         />
 
         {error && (
@@ -38,12 +41,12 @@ export const ForgotPasswordPage: React.FC = () => {
 
         {submitted ? (
           <div className="p-5 bg-botanical-50 border border-botanical-200 rounded-2xl text-botanical-800 text-sm mb-6 text-center leading-relaxed">
-            If an account exists for <strong className="font-semibold">{email}</strong>, a password reset link has been sent to your inbox.
+            {t("auth.forgot.sentBefore")} <strong className="font-semibold">{email}</strong>{t("auth.forgot.sentAfter")}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <SafeSpaceInput
-              label="Email Address"
+              label={t("auth.email")}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -57,20 +60,20 @@ export const ForgotPasswordPage: React.FC = () => {
                 disabled={loading}
                 className="w-full py-3.5"
               >
-                {loading ? "Sending..." : "Send Reset Link"}
+                {loading ? t("auth.forgot.sending") : t("auth.forgot.send")}
               </SafeSpaceButton>
             </div>
           </form>
         )}
 
         <div className="mt-8 pt-6 border-t border-botanical-900/5 text-center text-sm text-charcoal/70">
-          Remember your password?{" "}
+          {t("auth.forgot.remember")}{" "}
           <Link to="/login" className="text-botanical-700 font-bold hover:underline">
-            Back to Sign In
+            {t("auth.forgot.backToSignIn")}
           </Link>
         </div>
       </SafeSpaceCard>
-    </div>
+    </MeadowPage>
   );
 };
 

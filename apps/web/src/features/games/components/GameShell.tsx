@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useGames } from "../GamesContext";
 import type { GameId } from "../lib/content";
 import { catalog } from "../lib/content";
+import { SceneBackdrop } from "../../landing/hero/SceneBackdrop";
 
 interface BuddyProps {
   message: string;
@@ -100,8 +101,9 @@ export const GameShell: React.FC<ShellProps> = ({ gameId, onExit, readText, chil
   return (
     <div
       data-low-sensory={calm ? "on" : "off"}
-      className={`min-h-screen px-4 py-5 sm:px-6 ${calm ? "bg-[#F4F1EA] [&_*]:!transition-none [&_*]:!animate-none" : "bg-gradient-to-b from-cream to-paleLime"}`}
+      className={`min-h-screen px-4 py-5 sm:px-6 relative isolate ${calm ? "[&_*]:!transition-none [&_*]:!animate-none" : ""}`}
     >
+      <SceneBackdrop soft />
       <div className="mx-auto w-full max-w-2xl space-y-4">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-2xl sm:text-3xl text-textHeading">

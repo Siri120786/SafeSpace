@@ -28,8 +28,6 @@ export {
   setChildModules,
   resetChildPin,
   getMyChildProfile,
-  submitJournalEntry,
-  generateStory,
 } from "./children";
 
 export {
@@ -79,8 +77,10 @@ export {
 } from "./journal";
 export type { ListJournalOptions } from "./journal";
 
-export { getWellnessSummary, getChildWellnessSummary } from "./wellness";
+export { getWellnessSummary, getChildWellnessSummary, getChildWellnessDaily } from "./wellness";
 export type { WellnessOptions } from "./wellness";
+export { getRecommendations } from "./recommendations";
+export { getChildJournalInsights, getJournalInsights } from "./journalInsights";
 
 export {
   listReminders,
@@ -96,7 +96,8 @@ export {
 } from "./reminders";
 export { getChildOverview } from "./overview";
 export { getChildDetail, listChildAiConversations, getChildAiMessages } from "./childDetail";
-export { getMyChildSettings, setMySharing } from "./childSettings";
+export { getMyChildSettings, setMySharing, setMyTheme } from "./childSettings";
+export { getMyLanguage, setMyLanguage } from "./language";
 export { listAlerts, markAlertReviewed, raiseHelpAlert } from "./alerts";
 export { childAgeYears, childSharingStatus, isValidChildBirth, activityVisibility } from "./childSharing";
 
@@ -153,6 +154,9 @@ export {
   setChildStarGoal,
   setChildToolSettings,
   DEFAULT_MUSIC_SETTINGS,
+  getCalmPlan,
+  saveCalmPlan,
+  getChildCalmPlan,
 } from "./focusTools";
 export type {
   FocusSessionRecordRow,
@@ -166,6 +170,7 @@ export type {
   ToolSettings,
   MusicSettings,
   ChildToolsOverview,
+  CalmPlanData,
 } from "./focusTools";
 
 export { getGameState, recordGameRound, saveGamePreferences, getChildGameSummary, listGameCreations, saveGameCreation, deleteGameCreation } from "./games";

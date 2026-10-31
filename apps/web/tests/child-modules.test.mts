@@ -27,7 +27,7 @@ const render = (el: React.ReactElement) => renderToStaticMarkup(React.createElem
 const child = {
   lowSensory: false,
   onExit: () => {},
-  paths: { base: "/child/modules", calmTools: "/child/calm-tools" },
+  paths: { base: "/child/modules" },
   showStoryWorkflow: false,
 };
 
@@ -46,11 +46,13 @@ test("no caregiver stories link for a child", () => {
 });
 
 test("calm tool links stay inside the child's space", () => {
-  for (const el of [CalmSpace, SafeHarbor]) {
-    const html = render(React.createElement(el, child));
-    assert.match(html, /href="\/child\/calm-tools\/(breathing|grounding)"/);
-    assert.doesNotMatch(html, /href="\/calm-tools\//);
-  }
+  // Calm Space has its own ocean exercises, inside the child's modules.
+  const calm = render(React.createElement(CalmSpace, child));
+  assert.match(calm, /href="\/child\/modules\/calm-space\/(breathing|grounding)"/);
+  assert.doesNotMatch(calm, /href="\/(calm-tools|modules)\//);
+  const harbor = render(React.createElement(SafeHarbor, child));
+  assert.match(harbor, /href="\/child\/modules\/calm-space\/(breathing|grounding)"/);
+  assert.doesNotMatch(harbor, /href="\/(calm-tools|modules)\//);
 });
 
 console.log(`${passed} child-modules checks`);

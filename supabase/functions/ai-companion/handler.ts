@@ -31,6 +31,7 @@ import {
   type HistoryMessage,
   type LanguageCode,
 } from "../_shared/aiCompanion.ts";
+import { escalateChildText, type RaiseSafetyAlert, type SafetyNotice } from "../_shared/safety.ts";
 
 export type Owner = { column: "profile_id" | "child_id"; id: string };
 
@@ -90,6 +91,9 @@ export interface AiCompanionDeps {
   // content, tokens or raw error objects.
   log(event: string, detail?: string): void;
   now?: () => number;
+  // Raises the caregiver alert for a child's crisis-screen match
+  // (raise_safety_alert). Children only; absent means no alert is raised.
+  raiseSafetyAlert?: RaiseSafetyAlert;
 }
 
 export const RATE_LIMIT_WINDOW_SECONDS = 60;
@@ -191,8 +195,13 @@ export function createAiCompanionHandler(deps: AiCompanionDeps) {
       // a complete or multilingual crisis detector.
       const isCrisis = screenForCrisis(content);
       let reply: string | null;
+      let childAlert: SafetyNotice | null = null;
       if (isCrisis) {
         reply = safetyMessage(lang);
+        // A child's caregivers get an in-app alert naming where, never what.
+        if (owner.column === "child_id" && deps.raiseSafetyAlert) {
+          childAlert = await escalateChildText(content, owner.id, "companion_flag", deps.raiseSafetyAlert, log);
+        }
       } else {
         // Taken BEFORE the model, so failed or blocked model calls still
         // count. Fails CLOSED: if the check can't complete, refuse.
@@ -234,6 +243,8 @@ export function createAiCompanionHandler(deps: AiCompanionDeps) {
         userMessage: toMessage(userMsg, lang),
         assistantMessage: toMessage(assistantMsg, lang),
         safetyResponse: isCrisis,
+        caregiverAlerted: childAlert?.caregiverAlerted === true,
+        safetyNotice: childAlert?.notice ?? null,
       });
     } catch (e) {
       // Name/code only: never content, tokens or raw error objects.

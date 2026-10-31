@@ -51,7 +51,7 @@ export const SessionPlayerModal: React.FC<SessionPlayerProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md font-sans select-none animate-fade-in">
-      <div className="relative w-full max-w-md bg-gradient-to-b from-cream via-[#FAF7F2] to-paleLime rounded-4xl p-6 sm:p-8 shadow-2xl border border-white overflow-hidden text-center text-textHeading">
+      <div className="relative w-full max-w-md bg-white/90 backdrop-blur-xl rounded-4xl p-6 sm:p-8 shadow-2xl border border-white overflow-hidden text-center text-textHeading">
         {/* Botanical Framing */}
         <LeafCluster position="bottom-left" size={160} className="absolute bottom-0 left-0 opacity-60" />
         <LeafCluster position="bottom-right" size={160} className="absolute bottom-0 right-0 opacity-60" />

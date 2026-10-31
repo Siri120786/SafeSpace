@@ -41,9 +41,12 @@ ok("someone new has nothing saved", empty.condition === null && empty.diet === n
 await saveCycleCareParts(me, { condition: "pcod" });
 await saveCycleCareParts(me, { diet: { plan: { breakfast: ["Oats"] } } });
 await saveCycleCareParts(me, { exercise: { log: [{ date: "2026-10-24", type: "walk", minutes: 20 }] } });
+await saveCycleCareParts(me, { tracker: { periods: [{ start: "2026-10-01", end: "2026-10-05" }], days: [], questions: ["Which tests do I need?"] } });
 const mine = await getCycleCareData(me);
 ok("parts save one at a time and the others stay",
   mine.condition === "pcod" && (mine.diet as { plan: { breakfast: string[] } }).plan.breakfast[0] === "Oats" && !!mine.exercise);
+ok("the tracker saves and reads back",
+  (mine.tracker as { questions: string[] }).questions[0] === "Which tests do I need?");
 ok("bad parts are refused",
   (await fails(saveCycleCareParts(me, { condition: "other" }))) !== "no_error" &&
   (await fails(saveCycleCareParts(me, { diet: [1, 2] }))) !== "no_error");

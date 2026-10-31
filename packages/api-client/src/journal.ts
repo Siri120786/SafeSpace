@@ -16,6 +16,7 @@ import {
 } from "@safespace/shared-types";
 import type {
   AppSession,
+  SafetyNotice,
   CreateJournalEntryInput,
   JournalEntry,
   JournalEntryType,
@@ -75,14 +76,15 @@ export async function createJournalEntry(session: AppSession, input: CreateJourn
       (input as { isPrivateNote?: unknown }).isPrivateNote !== false) throw new ContractError("invalid_input");
 
   if (session?.kind === "child") {
-    const data = await invokeEdge<{ entry: JournalEntry }>("journal", {
+    const data = await invokeEdge<{ entry: JournalEntry; safety?: SafetyNotice | null }>("journal", {
       action: "create",
       child_session_token: session.childSessionToken,
       content,
       entry_type: entryType,
       module_key: moduleKey,
     });
-    return data.entry;
+    // The server checks the entry; on crisis words it says what to show the child.
+    return { ...data.entry, safety: data.safety ?? null };
   }
 
   if (session?.kind === "auth_user") {

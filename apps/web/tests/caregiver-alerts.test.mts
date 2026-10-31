@@ -33,8 +33,17 @@ test("one help alert names the child and what they pressed", () => {
   assert.equal(alertBannerText([help("Leo")]), 'Leo pressed "I need help".');
 });
 
-test("one alert of another kind is a neutral notice", () => {
-  assert.equal(alertBannerText([{ childName: "Leo", source: "check_in" }]), "New alert for Leo.");
+test("one feelings-card alert is a neutral notice", () => {
+  assert.equal(alertBannerText([{ childName: "Leo", source: "feelings_card" }]), "New alert for Leo.");
+});
+
+test("one safety alert says where to look gently, never the child's words", () => {
+  for (const source of ["companion_flag", "journal_flag", "check_in"] as const) {
+    assert.equal(
+      alertBannerText([{ childName: "Leo", source }]),
+      "Something Leo wrote may mean they're struggling. Please check in gently.",
+    );
+  }
 });
 
 test("several alerts give the count and each child once", () => {

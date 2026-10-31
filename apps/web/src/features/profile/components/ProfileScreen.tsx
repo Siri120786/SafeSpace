@@ -14,6 +14,9 @@ import { InputField } from "../../../components/ui/InputField";
 import { Button } from "../../../components/ui/Button";
 import { BrainMascot } from "../../../components/vectors/BrainMascot";
 import { useAccessibility } from "../context/AccessibilityContext";
+import { forgetSupportAreas } from "../../themes/useAppTheme";
+import { MeadowNote, MeadowPage } from "../../landing/hero/MeadowPage";
+import { LanguageSection } from "../../../components/ui/LanguageSwitch";
 
 const SUPPORT_AREA_OPTIONS: { key: ModuleKey; label: string; desc: string; icon: string }[] = [
   { key: "anxiety", label: "Anxiety Support", desc: "Breathing, grounding & gentle reframing", icon: "🌱" },
@@ -131,7 +134,8 @@ export const ProfileScreen: React.FC = () => {
       await updateUserProfile(profileId, { displayName: displayName.trim() });
 
       // 2. Save Support Preferences
-      await saveSupportPreferences({
+      forgetSupportAreas();
+        await saveSupportPreferences({
         profileId,
         supportAreas,
       });
@@ -161,12 +165,9 @@ export const ProfileScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
-        <div className="text-deepGreen font-medium flex items-center gap-2">
-          <div className="w-5 h-5 border-2 border-deepGreen border-t-transparent rounded-full animate-spin" />
-          Loading your profile...
-        </div>
-      </div>
+      <MeadowPage>
+        <MeadowNote>Loading your profile...</MeadowNote>
+      </MeadowPage>
     );
   }
 
@@ -204,6 +205,8 @@ export const ProfileScreen: React.FC = () => {
           <button onClick={() => setSuccessMsg(null)} className="font-bold text-lg">&times;</button>
         </div>
       )}
+
+      <LanguageSection className="mb-6 rounded-3xl bg-white p-6 shadow-card space-y-3" />
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Basic Info Card */}

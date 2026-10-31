@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AuthProvider, RoleRoute, GuestRoute, roleOf, useAuth } from "./features/auth";
 import { AccessibilityProvider } from "./features/profile";
-import { CalmToolsRoutes } from "./features/calm-tools";
 import { GamesRoutes } from "./features/games";
 import { ModulesRoutes } from "./features/wellness-modules";
 import { ROUTES } from "./routes";
 import { MiniPlayer, MusicPlayerProvider } from "./features/music";
+import { SafeSpaceGuideLabel } from "./features/guide/SafeSpaceGuideLabel";
 
 import RoleChoicePage from "./pages/RoleChoicePage";
 import LoginPage from "./pages/LoginPage";
@@ -60,10 +60,18 @@ import {
   ChildRemindersPage,
   ChildRoutinesPage,
 } from "./pages/ChildToolPages";
+import { SceneBackdrop } from "./features/landing/hero/SceneBackdrop";
+import { LanguageProvider } from "./i18n/LanguageSync";
+import { CaregiverNutritionPage, ChildNutritionPage, IndividualNutritionPage } from "./pages/NutritionPages";
 
 function MoodCheckInPageWrapper() {
   const navigate = useNavigate();
-  return <MoodCheckInPage onBack={() => navigate(-1)} />;
+  return (
+    <div className="min-h-screen relative isolate">
+      <SceneBackdrop soft />
+      <MoodCheckInPage onBack={() => navigate(-1)} />
+    </div>
+  );
 }
 
 // Every child page shares one loaded profile, the 15+ sharing question and
@@ -74,6 +82,14 @@ function ChildSpaceLayout() {
       <Outlet />
     </ChildSpaceProvider>
   );
+}
+
+// Calm tools moved into Calm Space (the anxiety module's ocean): old links,
+// including /calm-tools/breathing and /calm-tools/grounding, land there.
+function ToCalmSpace({ base }: { base: string }) {
+  const rest = useParams()["*"];
+  const page = rest === "breathing" || rest === "grounding" ? `/${rest}` : "";
+  return <Navigate to={`${base}${page}`} replace />;
 }
 
 // The mini-player for whoever is signed in: children and Individuals have
@@ -92,6 +108,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <LanguageProvider>
         <AccessibilityProvider>
           <MusicPlayerProvider>
           <Routes>
@@ -120,11 +137,7 @@ export default function App() {
             />
             <Route
               path={`${ROUTES.CALM_TOOLS}/*`}
-              element={
-                <RoleRoute allow={["individual"]}>
-                  <CalmToolsRoutes basePath={ROUTES.CALM_TOOLS} homePath={ROUTES.DASHBOARD} />
-                </RoleRoute>
-              }
+              element={<RoleRoute allow={["individual"]}><ToCalmSpace base={ROUTES.CALM_SPACE} /></RoleRoute>}
             />
 
             <Route
@@ -145,6 +158,7 @@ export default function App() {
             <Route path={ROUTES.MUSIC} element={<RoleRoute allow={["individual"]}><IndividualMusicPage /></RoleRoute>} />
             <Route path={`${ROUTES.MUSIC}/credits`} element={<RoleRoute allow={["individual"]}><IndividualMusicCreditsPage /></RoleRoute>} />
             <Route path={`${ROUTES.MUSIC}/:playlistId`} element={<RoleRoute allow={["individual"]}><IndividualPlaylistPage /></RoleRoute>} />
+            <Route path={ROUTES.NUTRITION} element={<RoleRoute allow={["individual"]}><IndividualNutritionPage /></RoleRoute>} />
 
             {/* Caregiver */}
             <Route
@@ -199,6 +213,10 @@ export default function App() {
               path={ROUTES.CAREGIVER_STORY}
               element={<RoleRoute allow={["caregiver"]}><CaregiverStoryEditorPage /></RoleRoute>}
             />
+            <Route
+              path={ROUTES.CAREGIVER_NUTRITION}
+              element={<RoleRoute allow={["caregiver"]}><CaregiverNutritionPage /></RoleRoute>}
+            />
             <Route path="/caregiver/dashboard" element={<Navigate to={ROUTES.CAREGIVER_HOME} replace />} />
 
             {/* Child (family code + PIN) */}
@@ -217,7 +235,7 @@ export default function App() {
               <Route path="mood" element={<MoodCheckInPageWrapper />} />
               <Route
                 path="calm-tools/*"
-                element={<CalmToolsRoutes basePath={ROUTES.CHILD_CALM_TOOLS} homePath={ROUTES.CHILD_HOME} />}
+                element={<ToCalmSpace base={ROUTES.CHILD_CALM_SPACE} />}
               />
               <Route
                 path="games/*"
@@ -237,6 +255,7 @@ export default function App() {
               <Route path="music" element={<ChildMusicPage />} />
               <Route path="music/credits" element={<ChildMusicCreditsPage />} />
               <Route path="music/:playlistId" element={<ChildPlaylistPage />} />
+              <Route path="nutrition" element={<ChildNutritionPage />} />
             </Route>
 
             {/* Sprint 3 prototypes: wellness modules and story workflow (signed-in adults, as before) */}
@@ -250,8 +269,10 @@ export default function App() {
             <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Routes>
           <MusicMiniPlayer />
+          <SafeSpaceGuideLabel />
           </MusicPlayerProvider>
         </AccessibilityProvider>
+        </LanguageProvider>
       </AuthProvider>
     </BrowserRouter>
   );

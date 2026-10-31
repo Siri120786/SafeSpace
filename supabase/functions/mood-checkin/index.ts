@@ -11,15 +11,17 @@
 // Responses carry raw mood_checkins rows (snake_case), the same shape as a
 // direct table read, so each client keeps a single row mapper.
 //
-// No distress scoring or escalation happens here. Wiring mood check-ins into
-// emergency-escalation waits for the approved safety policy
-// (docs/SPRINT_2_FOUNDATION.md).
+// No distress scoring: a mood on its own never raises anything. Only a note
+// that trips the crisis screen does (_shared/safety.ts): the child sees the
+// safety message and their caregivers get an in-app alert naming the mood
+// check-in, never the words (raise_safety_alert).
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { json, preflight } from "../_shared/http.ts";
 import { childSessionVerifier, sessionVersionLookup } from "../_shared/childSession.ts";
 import { clampLimit, validateMoodCheckin } from "../_shared/moodCheckin.ts";
+import { escalateChildText } from "../_shared/safety.ts";
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 // Signature, expiry AND session version (a PIN reset ends sessions).
@@ -63,7 +65,12 @@ serve(async (req) => {
       console.error("mood-checkin create failed:", error);
       return json({ error: "create_failed" }, 500);
     }
-    return json({ checkin: data });
+    const safety = await escalateChildText(result.value.note, childId, "check_in", async (id, source) => {
+      const { data: alertId, error: alertError } = await admin.rpc("raise_safety_alert", { p_child_id: id, p_source: source });
+      if (alertError) throw alertError;
+      return alertId as string;
+    }, (event, detail) => console.error(`mood-checkin: ${event}${detail ? ` (${detail})` : ""}`));
+    return json({ checkin: data, safety });
   }
 
   return json({ error: "invalid_action" }, 400);

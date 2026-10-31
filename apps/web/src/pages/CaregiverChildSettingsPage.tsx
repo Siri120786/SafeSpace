@@ -155,6 +155,7 @@ const ModulesCard: React.FC<{ child: Child; onSaved: () => void }> = ({ child, o
 
 const AppearanceCard: React.FC<{ child: Child; onSaved: () => void }> = ({ child, onSaved }) => {
   const [theme, setTheme] = useState<ChildTheme | "">(child.theme ?? "");
+  const [locked, setLocked] = useState(child.themeLocked);
   const [lowSensory, setLowSensory] = useState(child.lowSensoryDefault);
   const { saving, run, note } = useSaver();
   return (
@@ -163,6 +164,13 @@ const AppearanceCard: React.FC<{ child: Child; onSaved: () => void }> = ({ child
         <option value="">No theme</option>
         {CHILD_THEMES.map((t) => <option key={t} value={t}>{THEME_LABELS[t]}</option>)}
       </SelectField>
+      <label className="flex items-start gap-3 text-sm text-textHeading">
+        <input type="checkbox" checked={locked} onChange={(e) => setLocked(e.target.checked)} className="mt-1 h-4 w-4 accent-deepGreen" />
+        <span>
+          Keep this theme
+          <span className="block text-xs text-textMuted">{child.name} can't change it themself while this is on.</span>
+        </span>
+      </label>
       <label className="flex items-start gap-3 text-sm text-textHeading">
         <input type="checkbox" checked={lowSensory} onChange={(e) => setLowSensory(e.target.checked)} className="mt-1 h-4 w-4 accent-deepGreen" />
         <span>
@@ -176,7 +184,7 @@ const AppearanceCard: React.FC<{ child: Child; onSaved: () => void }> = ({ child
           variant="olive"
           size="sm"
           disabled={saving}
-          onClick={async () => { if (await run(() => updateChild(child.id, { theme: theme || null, lowSensoryDefault: lowSensory }))) onSaved(); }}
+          onClick={async () => { if (await run(() => updateChild(child.id, { theme: theme || null, themeLocked: locked, lowSensoryDefault: lowSensory }))) onSaved(); }}
         >
           {saving ? "Saving..." : "Save look and feel"}
         </Button>

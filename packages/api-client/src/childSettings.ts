@@ -4,7 +4,7 @@
 // the sharing choice, and only at 15 or over (sharing_not_available_under_15).
 
 import { ContractError, invokeEdge } from "./edge";
-import type { AppSession, ChildSettings } from "@safespace/shared-types";
+import { CHILD_THEMES, type AppSession, type ChildSettings, type ChildTheme } from "@safespace/shared-types";
 
 function requireChild(session: AppSession) {
   if (session?.kind !== "child") throw new ContractError("unsupported_session");
@@ -18,6 +18,19 @@ export async function getMyChildSettings(session: AppSession): Promise<ChildSett
     child_session_token: s.childSessionToken,
   });
   return data.settings;
+}
+
+// The child's own theme for their space and tools. Refused with theme_locked
+// while a caregiver has locked it.
+export async function setMyTheme(session: AppSession, theme: ChildTheme): Promise<ChildTheme> {
+  const s = requireChild(session);
+  if (!(CHILD_THEMES as readonly string[]).includes(theme)) throw new ContractError("invalid_input");
+  const data = await invokeEdge<{ theme: ChildTheme }>("child-settings", {
+    action: "set_theme",
+    child_session_token: s.childSessionToken,
+    theme,
+  });
+  return data.theme;
 }
 
 // share: true = my caregivers can see my activity; false = they can't.

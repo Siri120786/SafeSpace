@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface RoleChoiceProps {
   mode: "login" | "signup";
@@ -9,38 +10,22 @@ interface RoleChoiceProps {
 // Individuals and caregivers continue to email sign-in or sign-up with their
 // role chosen; children always sign in with the family code and PIN.
 export const RoleChoice: React.FC<RoleChoiceProps> = ({ mode }) => {
+  const { t } = useTranslation();
   const base = mode === "login" ? "/login" : "/signup";
   const options = [
-    {
-      to: `${base}?as=individual`,
-      title: "Individual",
-      text: mode === "login" ? "Your own wellbeing tools." : "For your own wellbeing.",
-      icon: "🌱",
-    },
-    {
-      to: `${base}?as=caregiver`,
-      title: "Caregiver",
-      text: mode === "login" ? "Your children's progress and routines." : "To support a child (or several).",
-      icon: "🤝",
-    },
-    {
-      to: "/child/pin",
-      title: "Child",
-      text: mode === "login"
-        ? "Sign in with your family code and PIN."
-        : "Children don't sign up: a grown-up adds you, then you sign in with your family code and PIN.",
-      icon: "🧒",
-    },
-  ];
+    { key: "individual", to: `${base}?as=individual`, icon: "🌱" },
+    { key: "caregiver", to: `${base}?as=caregiver`, icon: "🤝" },
+    { key: "child", to: "/child/pin", icon: "🧒" },
+  ].map((o) => ({ ...o, title: t(`auth.role.${o.key}.title`), text: t(`auth.role.${o.key}.${mode}`) }));
 
   return (
     <div className="space-y-3">
       <p className="text-sm text-textMuted text-center">
-        {mode === "login" ? "Who's signing in?" : "Who is this account for?"}
+        {t(mode === "login" ? "auth.role.whoLogin" : "auth.role.whoSignup")}
       </p>
       {options.map((o) => (
         <Link
-          key={o.title}
+          key={o.key}
           to={o.to}
           className="flex items-center gap-4 rounded-2xl border border-olive-100 bg-white px-4 py-4 transition-colors hover:bg-olive-50 focus:outline-none focus:ring-2 focus:ring-olive-500"
         >

@@ -113,7 +113,7 @@ export class MusicEngine {
 
   private async playNow(track: Track, level: number, offsetSec: number): Promise<boolean> {
     const ctx = this.ensure();
-    const sound = track.source.kind === "file" ? this.songSound(this.fileUrl(track.source.path), offsetSec) : soundFor(track, offsetSec);
+    const sound = track.source.kind === "file" ? this.songSound(this.fileUrl(track.source.path), offsetSec, track.source.gain ?? 1) : soundFor(track, offsetSec);
     if (!ctx || !this.volume || !sound) return false;
     if (this.current && ctx.state === "running") {
       // A quick fade so changing tracks doesn't click.
@@ -136,7 +136,7 @@ export class MusicEngine {
   // A hosted song as a sound: an <audio> element feeding the bus. It needs
   // the file's CORS headers (Supabase Storage sends them), or the browser
   // would play silence through Web Audio.
-  private songSound(url: string, offsetSec: number): Sound {
+  private songSound(url: string, offsetSec: number, gain: number): Sound {
     return (ctx, bus) => {
       const el = new Audio();
       el.crossOrigin = "anonymous";
@@ -144,7 +144,10 @@ export class MusicEngine {
       el.src = url;
       if (offsetSec > 0) el.currentTime = offsetSec;
       const node = (ctx as AudioContext).createMediaElementSource(el);
-      node.connect(bus);
+      const lift = ctx.createGain();
+      lift.gain.value = Math.min(Math.max(gain, 0), 4);
+      node.connect(lift);
+      lift.connect(bus);
       this.media = el;
       this.mediaFailed = false;
       el.addEventListener("error", () => {
@@ -156,6 +159,7 @@ export class MusicEngine {
       return () => {
         el.pause();
         node.disconnect();
+        lift.disconnect();
         el.removeAttribute("src");
         el.load();
         if (this.media === el) this.media = null;

@@ -34,4 +34,10 @@ const store: ChildJournalStore = {
   },
 };
 
-serve(createJournalHandler({ store, verifyChildToken, log }));
+async function raiseSafetyAlert(childId: string, source: string): Promise<string> {
+  const { data, error } = await admin.rpc("raise_safety_alert", { p_child_id: childId, p_source: source });
+  if (error) throw error;
+  return data as string;
+}
+
+serve(createJournalHandler({ store, verifyChildToken, log, raiseSafetyAlert }));

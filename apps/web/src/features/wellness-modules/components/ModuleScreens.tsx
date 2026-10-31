@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { OceanCalmSpace } from "../../conditions/anxiety/ocean/OceanCalmPages";
 import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
@@ -23,7 +24,11 @@ import { useCondition } from "./useCondition";
 import { visitQuestionsFor } from "../lib/condition";
 import { MedicineReminders } from "./MedicineReminders";
 import type { AppSession } from "@safespace/shared-types";
-import { BodyKindness, DailyCheckIn, DoctorVisitPrep, MedicationNotes } from "./CycleCareExtras";
+import { BodyKindness, MedicationNotes } from "./CycleCareExtras";
+import { DoctorTopic, TrackerTopic } from "./PcosTopics";
+import { HarborPage } from "../../conditions/ptsd/harbor/HarborPage";
+import { BrightDaysRoom } from "../../conditions/depression/door/BrightDaysRoom";
+import { AdultsOnly, PcosShell } from "./PcosScreens";
 
 export interface ModuleScreenProps {
   lowSensory: boolean;
@@ -31,7 +36,7 @@ export interface ModuleScreenProps {
   notice?: string | null;
   // Where these screens are mounted. Defaults are the adult routes; the
   // child's space passes its own (role-flow 5b).
-  paths?: { base: string; calmTools: string };
+  paths?: { base: string };
   // Modules to list on the home screen (default: all).
   onlyKeys?: readonly ModuleInfo["key"][];
   // The caregiver story workflow link (default: shown).
@@ -39,7 +44,8 @@ export interface ModuleScreenProps {
 }
 
 const modulePath = (p: ModuleScreenProps, m: ModuleInfo) => (p.paths ? `${p.paths.base}${m.path.slice("/modules".length)}` : m.path);
-const calmPath = (p: Pick<ModuleScreenProps, "paths">, tool: "breathing" | "grounding") => `${p.paths?.calmTools ?? "/calm-tools"}/${tool}`;
+// The breathing and grounding exercises live in Calm Space (the ocean).
+const calmPath = (p: Pick<ModuleScreenProps, "paths">, tool: "breathing" | "grounding") => `${p.paths?.base ?? "/modules"}/calm-space/${tool}`;
 
 const linkClass = "block rounded-3xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:ring-offset-2";
 const fieldClass =
@@ -78,196 +84,38 @@ export const ModulesHome: React.FC<ModuleScreenProps> = (p) => (
   </CalmToolShell>
 );
 
+// Calm Space (anxiety): the ocean, with Aurelia's jellyfish (conditions/anxiety/ocean).
 export const CalmSpace: React.FC<ModuleScreenProps> = (p) => (
-  <CalmToolShell title="Calm Space" {...p}>
-    <div className="space-y-4">
-      <Card className="space-y-3">
-        <h2 className="font-display text-xl text-textHeading">Calming tools</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link to={calmPath(p, "breathing")} className="underline text-deepGreen">
-            Breathing exercise
-          </Link>
-          <Link to={calmPath(p, "grounding")} className="underline text-deepGreen">
-            5-4-3-2-1 grounding
-          </Link>
-        </div>
-      </Card>
-      <Card className="space-y-2">
-        <h2 className="font-display text-xl text-textHeading">Gentle tips</h2>
-        <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-          {ANXIETY_TIPS.map((t) => (
-            <li key={t}>{t}</li>
-          ))}
-        </ul>
-      </Card>
-      <Notes />
-    </div>
-  </CalmToolShell>
+  <OceanCalmSpace lowSensory={p.lowSensory} onExit={p.onExit} notice={p.notice} base={p.paths?.base ?? "/modules"} />
 );
 
-export const BrightDays: React.FC<ModuleScreenProps> = (p) => {
-  const [goals, setGoals] = useState<{ text: string; done: boolean }[]>([]);
-  const [goalText, setGoalText] = useState("");
-  const [gratitude, setGratitude] = useState<string[]>([]);
-  const [gratitudeText, setGratitudeText] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+/** Bright Days (depression) in its night garden: small steps let the light in. */
+export const BrightDays: React.FC<ModuleScreenProps> = ({ lowSensory, onExit, notice }) => (
+  <BrightDaysRoom lowSensory={lowSensory} onExit={onExit} notice={notice} />
+);
 
-  const addGoal = (text: string) => {
-    const t = text.trim();
-    if (!t) return setError("Please type a goal first.");
-    setError(null);
-    setGoals((g) => [...g, { text: t, done: false }]);
-    setGoalText("");
-  };
-  const toggle = (i: number) => {
-    const becameDone = !goals[i].done;
-    setGoals((g) => g.map((x, j) => (j === i ? { ...x, done: !x.done } : x)));
-    setMessage(becameDone ? ENCOURAGEMENTS[i % ENCOURAGEMENTS.length] : null);
-  };
-  const addGratitude = () => {
-    const t = gratitudeText.trim();
-    if (!t) return setError("Please write something first.");
-    setError(null);
-    setGratitude((g) => [...g, t]);
-    setGratitudeText("");
-  };
-
-  return (
-    <CalmToolShell title="Bright Days" {...p}>
-      <div className="space-y-4">
-        <Card className="space-y-3">
-          <h2 className="font-display text-xl text-textHeading">My small goals</h2>
-          <p className="text-sm text-textBody">Pick your own. Skip any you like. Ideas:</p>
-          <div className="flex flex-wrap gap-2">
-            {GOAL_IDEAS.map((g) => (
-              <Button key={g} size="sm" variant="outline" onClick={() => addGoal(g)}>
-                {g}
-              </Button>
-            ))}
-          </div>
-          <label htmlFor="goal-input" className="block text-sm text-textBody">
-            Or write your own
-          </label>
-          <input id="goal-input" className={fieldClass} value={goalText} onChange={(e) => setGoalText(e.target.value)} />
-          <Button size="sm" variant="primary" onClick={() => addGoal(goalText)}>
-            Add goal
-          </Button>
-          <ul className="space-y-2">
-            {goals.map((g, i) => (
-              <li key={`${g.text}-${i}`} className="flex items-center gap-3">
-                <input id={`goal-${i}`} type="checkbox" checked={g.done} onChange={() => toggle(i)} className="h-5 w-5" />
-                <label htmlFor={`goal-${i}`} className={`text-base ${g.done ? "line-through text-textMuted" : "text-textBody"}`}>
-                  {g.text}
-                </label>
-              </li>
-            ))}
-          </ul>
-          {message && (
-            <p role="status" className="text-base text-deepGreen">
-              {message}
-            </p>
-          )}
-        </Card>
-
-        <Card className="space-y-3">
-          <h2 className="font-display text-xl text-textHeading">Gratitude notes</h2>
-          <label htmlFor="gratitude-input" className="block text-sm text-textBody">
-            {GRATITUDE_PROMPT}
-          </label>
-          <input id="gratitude-input" className={fieldClass} value={gratitudeText} onChange={(e) => setGratitudeText(e.target.value)} />
-          <Button size="sm" variant="primary" onClick={addGratitude}>
-            Add note
-          </Button>
-          <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-            {gratitude.map((g, i) => (
-              <li key={`${g}-${i}`}>{g}</li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card className="space-y-2">
-          <h2 className="font-display text-xl text-textHeading">Hobby ideas (optional)</h2>
-          <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-            {HOBBY_IDEAS.map((h) => (
-              <li key={h}>{h}</li>
-            ))}
-          </ul>
-        </Card>
-
-        {error && (
-          <p role="alert" className="text-sm text-red-700">
-            {error}
-          </p>
-        )}
-        <Notes />
-      </div>
-    </CalmToolShell>
-  );
-};
-
-/** Safe Harbor always runs in low-sensory mode, whatever the other settings say. */
-export const SafeHarbor: React.FC<ModuleScreenProps> = ({ onExit, notice, paths }) => {
-  const [step, setStep] = useState(0);
-  const last = step === RELAXATION_STEPS.length - 1;
-  return (
-    <CalmToolShell title="Safe Harbor" onExit={onExit} lowSensory={true} notice={notice}>
-      <div className="space-y-4">
-        <p className="text-sm text-textBody">This is a quiet space. Nothing moves and there is no sound. You can leave at any time.</p>
-        <Card className="space-y-4">
-          <p className="text-sm text-textMuted">
-            Relaxation, step {step + 1} of {RELAXATION_STEPS.length}
-          </p>
-          <p role="status" aria-live="polite" className="text-lg leading-relaxed text-textBody">
-            {RELAXATION_STEPS[step]}
-          </p>
-          <div className="flex justify-between gap-3">
-            <Button variant="outline" disabled={step === 0} onClick={() => setStep(step - 1)}>
-              Back
-            </Button>
-            <Button variant="primary" disabled={last} onClick={() => setStep(step + 1)}>
-              Next
-            </Button>
-          </div>
-        </Card>
-        <Card className="space-y-2">
-          <Link to={calmPath({ paths }, "grounding")} className="underline text-deepGreen">
-            Try the grounding activity
-          </Link>
-        </Card>
-        <Card className="space-y-2">
-          <h2 className="font-display text-xl text-textHeading">Support from people</h2>
-          <p className="text-base text-textBody">{CARE_BRIDGING_TEXT}</p>
-        </Card>
-        <Notes extra="This is not treatment." />
-      </div>
-    </CalmToolShell>
-  );
-};
+/** Safe Harbor (PTSD) in its rainy-window room: still unless the person asks for rain. */
+export const SafeHarbor: React.FC<ModuleScreenProps> = ({ lowSensory, onExit, notice, paths }) => (
+  <HarborPage
+    lowSensory={lowSensory}
+    onExit={onExit}
+    notice={notice}
+    groundingPath={calmPath({ paths }, "grounding")}
+    forChild={!!paths?.base.startsWith("/child")}
+  />
+);
 
 export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; session?: AppSession }> = ({ role, session, ...p }) => {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [condition] = useCondition();
 
-  if (!canOpenCycleCare(role)) {
-    return (
-      <CalmToolShell title="Cycle Care" {...p}>
-        <Card>
-          <p role="status" className="text-base text-textBody">
-            Cycle Care is for adult accounts only for now.
-          </p>
-        </Card>
-      </CalmToolShell>
-    );
-  }
+  if (!canOpenCycleCare(role)) return <AdultsOnly title="Cycle Care" page="cycle-care" {...p} />;
 
   return (
-    <CalmToolShell title="Cycle Care" {...p}>
+    <PcosShell title="Cycle Care" page="cycle-care" lead="Check in with yourself, keep your medicine notes and get ready for your next doctor visit." {...p}>
       <div className="space-y-4">
-        <Link to={`${p.paths?.base ?? "/modules"}/pcos-pcod`} className="underline text-deepGreen text-sm">
-          Back to PCOS / PCOD
-        </Link>
-        <DailyCheckIn />
+        <TrackerTopic />
+        <DoctorTopic prompts={visitQuestionsFor(condition)} />
         <Card className="space-y-3">
           <h2 className="font-display text-xl text-textHeading">Today's self-care</h2>
           <ul className="space-y-2">
@@ -290,21 +138,9 @@ export const CycleCare: React.FC<ModuleScreenProps & { role: string | null; sess
         </Card>
         <MedicationNotes />
         <MedicineReminders session={session} />
-        <DoctorVisitPrep prompts={visitQuestionsFor(condition)} />
-        <Card className="space-y-2">
-          <h2 className="font-display text-xl text-textHeading">Sleep and stress</h2>
-          <ul className="list-disc pl-5 text-base text-textBody space-y-1">
-            {SLEEP_STRESS_IDEAS.map((m) => (
-              <li key={m}>{m}</li>
-            ))}
-          </ul>
-          <Link to={calmPath(p, "breathing")} className="underline text-deepGreen">
-            Open the breathing exercise
-          </Link>
-        </Card>
         <BodyKindness />
-        <Notes extra="There is no cycle tracking in this version. Always follow your own doctor's advice." />
+        <Notes extra="Always follow your own doctor's advice." />
       </div>
-    </CalmToolShell>
+    </PcosShell>
   );
 };

@@ -1,6 +1,6 @@
 // Cycle Care's saved parts, kept in the person's account (migration
-// 20261029300000): the chosen label, the diet plan, the health profile and
-// the movement log. One store per signed-in person holds the latest copy of
+// 20261029300000, 20261030100000): the chosen label, the diet plan, the
+// health profile, the movement log and the personal tracker. One store per signed-in person holds the latest copy of
 // each part for every screen, saves a change shortly after it's made, and
 // notices Cycle Care data left in this browser from before (under the old
 // shared keys), which the person can save to their account or delete.
@@ -9,11 +9,12 @@
 
 import { CONDITION_KEY, DIET_KEY, EXERCISE_KEY, PROFILE_KEY, type KeyValueStore } from "./deviceStore";
 
-export type CyclePart = "condition" | "diet" | "profile" | "exercise";
-export const CYCLE_PARTS: CyclePart[] = ["condition", "diet", "profile", "exercise"];
+export type CyclePart = "condition" | "diet" | "profile" | "exercise" | "tracker";
+export const CYCLE_PARTS: CyclePart[] = ["condition", "diet", "profile", "exercise", "tracker"];
 
 // Where each part used to be kept in the browser, shared by everyone on it.
-export const LEGACY_KEYS: Record<CyclePart, string> = {
+// The tracker is new and was never kept there.
+export const LEGACY_KEYS: Partial<Record<CyclePart, string>> = {
   condition: CONDITION_KEY,
   diet: DIET_KEY,
   profile: PROFILE_KEY,
@@ -32,7 +33,7 @@ export type LoadStatus = "loading" | "ready" | "failed";
 
 export const SAVE_DELAY_MS = 600;
 
-const empty = (): PartValues => ({ condition: null, diet: null, profile: null, exercise: null });
+const empty = (): PartValues => ({ condition: null, diet: null, profile: null, exercise: null, tracker: null });
 
 export class CycleCareStore {
   status: LoadStatus = "loading";
@@ -171,8 +172,10 @@ function readLegacy(storage: KeyValueStore | null): Partial<PartValues> | null {
   if (!storage) return null;
   const found: Partial<PartValues> = {};
   for (const p of CYCLE_PARTS) {
+    const key = LEGACY_KEYS[p];
+    if (!key) continue;
     try {
-      const raw = storage.getItem(LEGACY_KEYS[p]);
+      const raw = storage.getItem(key);
       if (raw === null) continue;
       found[p] = JSON.parse(raw);
     } catch {
@@ -184,8 +187,10 @@ function readLegacy(storage: KeyValueStore | null): Partial<PartValues> | null {
 
 function hasAnyLegacy(storage: KeyValueStore): boolean {
   return CYCLE_PARTS.some((p) => {
+    const key = LEGACY_KEYS[p];
+    if (!key) return false;
     try {
-      return storage.getItem(LEGACY_KEYS[p]) !== null;
+      return storage.getItem(key) !== null;
     } catch {
       return false;
     }
@@ -195,8 +200,10 @@ function hasAnyLegacy(storage: KeyValueStore): boolean {
 function clearLegacy(storage: KeyValueStore | null) {
   if (!storage) return;
   for (const p of CYCLE_PARTS) {
+    const key = LEGACY_KEYS[p];
+    if (!key) continue;
     try {
-      storage.removeItem(LEGACY_KEYS[p]);
+      storage.removeItem(key);
     } catch {
       // Storage unavailable: nothing to clear.
     }

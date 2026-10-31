@@ -23,7 +23,7 @@ export const SafeSpaceCard: React.FC<SafeSpaceCardProps> = ({
 
   return (
     <div
-      className={`w-full ${maxWClasses[maxW]} bg-white rounded-[32px] border border-botanical-900/10 shadow-sm p-6 sm:p-8 ${className}`}
+      className={`w-full ${maxWClasses[maxW]} bg-white/85 backdrop-blur-xl rounded-[32px] border border-white/70 shadow-2xl p-6 sm:p-8 ${className}`}
     >
       {children}
     </div>

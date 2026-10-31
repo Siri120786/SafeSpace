@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Button } from "../../../components/ui/Button";
 import { isExitKey } from "../lib/lowSensory";
+import { SceneBackdrop } from "../../landing/hero/SceneBackdrop";
 
 interface CalmToolShellProps {
   title: string;
@@ -23,10 +24,9 @@ export const CalmToolShell: React.FC<CalmToolShellProps> = ({ title, onExit, low
   return (
     <div
       data-low-sensory={lowSensory ? "true" : "false"}
-      className={`min-h-screen font-sans px-4 py-6 sm:px-6 ${
-        lowSensory ? "bg-[#F4F1EA]" : "bg-gradient-to-b from-cream to-paleLime"
-      }`}
+      className="min-h-screen font-sans px-4 py-6 sm:px-6 relative isolate"
     >
+      <SceneBackdrop soft />
       <div className="mx-auto w-full max-w-xl">
         <header className="flex items-center justify-between gap-3 mb-6">
           <h1 className="font-display text-2xl font-medium text-textHeading">{title}</h1>

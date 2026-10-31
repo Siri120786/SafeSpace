@@ -52,6 +52,7 @@ export interface Child {
   ageYears: number;               // calculated from birth month/year
   sharing: ChildSharingStatus;    // docs/role-flow/CONTRACT.md section 5
   theme: ChildTheme | null;
+  themeLocked: boolean;           // a caregiver locked the theme; the child can't change it
   lowSensoryDefault: boolean;
   assignedModules: ModuleKey[];
   myRole?: ChildCaregiverRole;    // caregiver views only: the caller's role
@@ -80,6 +81,8 @@ export interface JournalEntry {
   isPrivateNote: boolean;      // child 'partial' tier only: hidden from the caregiver
   createdAt: string;
   updatedAt: string;
+  // Only on a child's create response, when the entry tripped the crisis screen.
+  safety?: SafetyNotice | null;
 }
 
 export interface CreateJournalEntryInput {
@@ -250,6 +253,8 @@ export interface MoodCheckin {
   note: string | null;        // optional, max 500 chars
   isPrivateNote: boolean;     // child 'partial' privacy tier only
   createdAt: string;
+  // Only on a child's create response, when the note tripped the crisis screen.
+  safety?: SafetyNotice | null;
 }
 
 export interface CreateMoodCheckinInput {
@@ -295,6 +300,10 @@ export interface AiCompanionSendResult {
   // true when the message matched the crisis screen: the reply is a fixed
   // safety message, not model output, and the UI should keep it prominent.
   safetyResponse: boolean;
+  // A child's caregivers were alerted (safetyResponse only), and the gentle
+  // note to show the child about it.
+  caregiverAlerted: boolean;
+  safetyNotice: string | null;
 }
 
 // ----------------------------------------------------------------------------
@@ -373,6 +382,65 @@ export interface WellnessSummary {
   };
 }
 
+// Rule-based "try this next" suggestions for an Individual's or a child's
+// home (the recommendations Edge Function). Keys mirror RECOMMENDATION_KEYS in
+// supabase/functions/_shared/recommendations.ts; each app maps them to its
+// own routes. Reasons are gentle and non-diagnostic.
+export type RecommendationKey =
+  | "mood_check_in"
+  | "calm_space"
+  | "routines"
+  | "journal"
+  | "music"
+  | "games"
+  | "companion"
+  | "stories";
+
+export interface Recommendation {
+  key: RecommendationKey;
+  reason: string;
+}
+
+// Rule-based journal insights for the last 30 days (the journal-analysis
+// Edge Function). Counts and everyday themes only: no scores, mood labels or
+// anything diagnostic. safetyMessage is set only for the writer, when a recent
+// entry tripped the crisis screen; then themes is empty.
+export interface JournalTheme {
+  key: string;
+  label: string;
+  emoji: string;
+  entries: number;
+}
+
+// One local day of the journal timeline (counts only).
+export interface JournalDay {
+  date: string;
+  entries: number;
+  gratitude: number;
+}
+
+export interface JournalInsights {
+  periodDays: number;
+  timeline: JournalDay[];  // last 30 local days, oldest first, ending today
+  entries: number;
+  daysWritten: number;
+  gratitudeEntries: number;
+  gratitudeStreakDays: number;
+  themes: JournalTheme[];
+  safetyMessage: string | null;
+}
+
+// One local day of wellness_daily (the activity timeline). Counts and that
+// day's latest mood only; never text.
+export interface WellnessDay {
+  date: string;              // local "YYYY-MM-DD"
+  mood: MoodValue | null;    // that day's latest check-in
+  checkins: number;
+  stepsScheduled: number;
+  stepsDone: number;
+  journalEntries: number;
+}
+
 // Caregiver dashboard card for one child. When the young person has chosen not
 // to share (activity.visible === false), summary and dueRemindersToday are null.
 export interface ChildOverview {
@@ -441,7 +509,12 @@ export interface ChildSettings {
   sharing: ChildSharingStatus;
   canChangeSharing: boolean;      // true only at 15 or over
   sharingDecidedAt: string | null;
+  language?: AppLanguage | null;  // null: not chosen yet (follow the device)
 }
+
+// The app's languages (migration 20261031200000): English, Hindi, Telugu.
+export const APP_LANGUAGES = ["en", "hi", "te"] as const;
+export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
 // Caregiver's detail page for one child. Each activity list is null when the
 // young person has chosen not to share (activity.visible === false).
@@ -503,7 +576,19 @@ export const HELP_ALERT_REPEAT_WINDOW_SECONDS = 120;
 
 // An alert as caregivers see it (an emergency_events row). Always visible to
 // every caregiver of the child, whatever the sharing choice.
-export type AlertSource = "aac_tap" | "check_in" | "journal_flag" | "feelings_card";
+// companion_flag, journal_flag and check_in are safety alerts: a child's AI
+// Companion message, journal entry or mood check-in note tripped the crisis
+// screen (migration 20261031000000). They name where, never the child's words.
+export type AlertSource = "aac_tap" | "check_in" | "journal_flag" | "feelings_card" | "companion_flag";
+
+// What a child sees after writing something that tripped the crisis screen:
+// the fixed safety message and, when their caregivers were alerted, a gentle
+// note saying so. Only on a child's own save responses.
+export interface SafetyNotice {
+  message: string;
+  caregiverAlerted: boolean;
+  notice: string | null;
+}
 
 export interface CaregiverAlert {
   id: string;

@@ -12,7 +12,8 @@
 // tasks.list, tasks.create, tasks.update, tasks.delete, habits.list,
 // habits.add, habits.archive, habits.set, stars.get, stars.award,
 // stars.claim, emotions.list, emotions.add, settings.get, favorites.list,
-// favorites.add, favorites.remove.
+// favorites.add, favorites.remove, calmPlan.get, calmPlan.save (Safe Harbor's
+// calm plan, migration 20261030200000).
 // Request rules: _shared/focusTools.ts.
 //
 // No Deno or esm.sh imports; index.ts wires the real dependencies and
@@ -28,6 +29,7 @@ import {
   parseFocusToolsRequest,
   type TaskStep,
 } from "../_shared/focusTools.ts";
+import { EMPTY_CALM_PLAN, parseCalmPlan, type CalmPlan } from "../_shared/calmPlan.ts";
 
 // Raw rows (snake_case), as PostgREST returns them.
 export interface SessionRow { id: string; ended_at: string; duration_seconds: number; mode: string; phase: string | null; completed: boolean; activity_label: string | null }
@@ -71,6 +73,9 @@ export interface FocusToolsStore {
   // Idempotent: hearting a hearted track or un-hearting one that isn't is fine.
   addFavorite(childId: string, trackId: string): Promise<void>;
   removeFavorite(childId: string, trackId: string): Promise<void>;
+  // null when the child hasn't saved one yet.
+  getCalmPlan(childId: string): Promise<unknown | null>;
+  saveCalmPlan(childId: string, plan: CalmPlan): Promise<void>;
 }
 
 export interface FocusToolsDeps {
@@ -187,6 +192,12 @@ export function createFocusToolsHandler(deps: FocusToolsDeps) {
           case "favorites.remove":
             await store.removeFavorite(childId, r.trackId);
             return json({ trackId: r.trackId, favorite: false });
+
+          case "calmPlan.get":
+            return json({ plan: parseCalmPlan(await store.getCalmPlan(childId)) ?? EMPTY_CALM_PLAN });
+          case "calmPlan.save":
+            await store.saveCalmPlan(childId, r.plan);
+            return json({ plan: r.plan });
         }
       } catch (e) {
         const known = dbErrorCode(e);

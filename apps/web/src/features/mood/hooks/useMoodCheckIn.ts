@@ -11,6 +11,7 @@ import {
   prepareMoodCheckInPayload,
   getFriendlyErrorMessage,
 } from "../utils/moodLogic";
+import type { SafetyNotice } from "@safespace/shared-types";
 
 export type MoodCheckInStatus = "idle" | "saving" | "saved" | "error";
 export type MoodHistoryStatus = "loading" | "ready" | "error";
@@ -29,6 +30,9 @@ export interface UseMoodCheckInReturn {
   historyErrorMessage: string | null;
   saveCheckIn: () => Promise<MoodCheckin | null>;
   retrySave: () => Promise<MoodCheckin | null>;
+  // Set after a child's note tripped the crisis screen: what to show them.
+  safety: SafetyNotice | null;
+  clearSafety: () => void;
   refreshHistory: () => Promise<void>;
   resetForm: () => void;
 }
@@ -39,6 +43,7 @@ export function useMoodCheckIn(session: AppSession): UseMoodCheckInReturn {
   const [note, setNote] = useState<string>("");
 
   const [status, setStatus] = useState<MoodCheckInStatus>("idle");
+  const [safety, setSafety] = useState<SafetyNotice | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [history, setHistory] = useState<MoodCheckin[]>([]);
@@ -88,6 +93,8 @@ export function useMoodCheckIn(session: AppSession): UseMoodCheckInReturn {
 
     try {
       const created = await createMoodCheckin(session, validation.payload);
+      // A child's note with crisis words: the server says what to show them.
+      setSafety(created.safety ?? null);
       setStatus("saved");
       setErrorMessage(null);
 
@@ -127,6 +134,8 @@ export function useMoodCheckIn(session: AppSession): UseMoodCheckInReturn {
     historyErrorMessage,
     saveCheckIn,
     retrySave,
+    safety,
+    clearSafety: () => setSafety(null),
     refreshHistory: loadHistory,
     resetForm,
   };

@@ -1,0 +1,459 @@
+{
+  "language": {
+    "label": "Language",
+    "title": "Language",
+    "help": "SafeSpace's words, menus and buttons. What you write stays as you wrote it."
+  },
+  "common": {
+    "logIn": "Log in",
+    "getStarted": "Get started",
+    "childSignIn": "Child sign-in",
+    "back": "Back",
+    "continue": "Continue",
+    "close": "Close",
+    "done": "Done"
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "tools": "Tools",
+      "families": "Families",
+      "promise": "Promise"
+    },
+    "hero": {
+      "kicker": "YOUR CALM CORNER",
+      "line1": "A GENTLE PLACE",
+      "line2": "TO FEEL BETTER",
+      "sub1": "Small, kind tools for feelings, routines and calm,",
+      "sub2": "for you or for a child you care for.",
+      "sub3": "Private, gentle, and never a diagnosis.",
+      "explore": "EXPLORE SAFESPACE",
+      "seeEverything": "see everything"
+    },
+    "cards": {
+      "feel": {
+        "title": "Feel & reflect",
+        "text": "Mood check-ins, a private journal and feelings cards.",
+        "alt": "A boy and his dog on a hill path among sheep, above the sea"
+      },
+      "routines": {
+        "title": "Routines & reminders",
+        "text": "Your day, one small step at a time.",
+        "alt": "A vegetable garden with tomato stakes beside a cottage"
+      },
+      "calm": {
+        "title": "Calm & play",
+        "text": "Breathing, music, stories and games.",
+        "alt": "A girl in a straw hat flying a kite on a breezy hill"
+      }
+    },
+    "features": {
+      "kicker": "WHAT'S INSIDE",
+      "line1": "MADE FOR EVERY",
+      "line2": "MOMENT OF YOUR DAY",
+      "lead": "Gentle tools to help you pause, reflect and find your balance again, whenever you need them.",
+      "feelings": {
+        "title": "Understand your feelings",
+        "text": "Check in with how you feel, without judgement. Notice patterns over time and reflect at your own pace."
+      },
+      "habits": {
+        "title": "Build small habits",
+        "text": "Routines in small, clear steps, gentle reminders, and a little celebration for every win."
+      },
+      "calm": {
+        "title": "Find your calm",
+        "text": "Breathing, grounding, calm sounds and sing-along rhymes for whenever things feel like a lot."
+      }
+    },
+    "showcase": {
+      "kicker": "A PEEK INSIDE",
+      "line1": "WITH YOU ON YOUR PHONE",
+      "line2": "AND YOUR LAPTOP",
+      "lead": "Your calm corner goes wherever you do, and picks up right where you left it.",
+      "hi": "Hi, {{name}}",
+      "howFeeling": "How are you feeling today?",
+      "writePrompt": "Write what's on your mind...",
+      "moodToday": "Your mood today",
+      "reminder": "A small reminder",
+      "rest": "Rest is productive too.",
+      "pause": "5 min guided pause",
+      "breathe": "Breathe & reset",
+      "breatheMeta": "5 min • Breathing",
+      "start": "Start",
+      "nowPlaying": "Now playing",
+      "deepCalm": "Deep Calm",
+      "fiveMin": "5 min",
+      "breathing": "Breathing",
+      "safe": "You're safe. Just breathe."
+    },
+    "entry": {
+      "kicker": "COME ON IN",
+      "line1": "HOW WOULD YOU",
+      "line2": "LIKE TO ENTER?",
+      "lead": "Choose your way in. Each one opens a space made for you.",
+      "adultTag": "Individuals & caregivers",
+      "adultTitle": "I'm an adult",
+      "adultText": "Sign in for your own wellbeing, or to support a child you care for.",
+      "childTag": "Family code & PIN",
+      "childTitle": "I'm a child",
+      "childText": "Use your family code and your secret PIN to open your own space.",
+      "childButton": "Enter my space"
+    },
+    "promise": {
+      "kicker": "OUR PROMISE",
+      "line1": "YOUR SPACE,",
+      "line2": "YOUR CHOICES",
+      "lead": "SafeSpace supports wellbeing, reflection and everyday coping. It never diagnoses.",
+      "stigma": {
+        "title": "Support without stigma",
+        "text": "Tools for routines, focus, senses and feelings that fit your rhythm, not a label."
+      },
+      "privacy": {
+        "title": "Privacy with dignity",
+        "text": "Young people's privacy grows with their age, and safety alerts always reach a grown-up when it matters."
+      },
+      "caregivers": {
+        "title": "Caregivers, alongside",
+        "text": "Caregivers get calm tools and a clear view of what helps, without watching every move."
+      }
+    },
+    "footer": {
+      "quote1": "YOU'RE SAFE.",
+      "quote2": "JUST BREATHE.",
+      "lead": "Kind, accessible support for everyday wellbeing. Never a diagnosis.",
+      "tagline": "Support, never a diagnosis.",
+      "navLabel": "Footer",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "accessibility": "Accessibility"
+    }
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "chooseAgain": "Choose again",
+    "errorNetwork": "We couldn't reach SafeSpace just now. Check your connection and try again.",
+    "role": {
+      "whoLogin": "Who's coming in today?",
+      "whoSignup": "Who is this account for?",
+      "individual": {
+        "title": "Just me",
+        "login": "Your own space: moods, routines, calm tools and more.",
+        "signup": "An account for your own wellbeing."
+      },
+      "caregiver": {
+        "title": "A caregiver",
+        "login": "Help a child with routines, reminders, stories and gentle check-ins.",
+        "signup": "To support a child, or several."
+      },
+      "child": {
+        "title": "A child",
+        "login": "Use your family code and your secret PIN.",
+        "signup": "Children don't sign up: a grown-up adds you, then you sign in with your family code and PIN."
+      }
+    },
+    "login": {
+      "title": "Welcome back",
+      "subtitle": {
+        "none": "Your calm space is right where you left it.",
+        "individual": "Sign in to your own calm space.",
+        "caregiver": "Sign in to support your child."
+      },
+      "errorMismatch": "That email and password don't match. Please try again.",
+      "errorConfirm": "Please confirm your email first. Check your inbox for the link.",
+      "errorOther": "Something went wrong signing in. Please try again.",
+      "signedInAsCaregiver": "You're signed in as a caregiver.",
+      "signedInAsIndividual": "You're signed in as an individual.",
+      "forgot": "Forgot password?",
+      "signingIn": "Signing in...",
+      "notCaregiver": "Not a caregiver?",
+      "notForYourself": "Not signing in for yourself?",
+      "newHere": "New to SafeSpace?",
+      "createAccount": "Create an account"
+    },
+    "signup": {
+      "heading": {
+        "none": {
+          "title": "Make your SafeSpace",
+          "text": "Your own private, gentle space. It only takes a minute."
+        },
+        "individual": {
+          "title": "Make your own space",
+          "text": "Just for you: moods, routines, calm tools and more."
+        },
+        "caregiver": {
+          "title": "Set up as a caregiver",
+          "text": "Then add your child and make their space together."
+        }
+      },
+      "errorExists": "That email already has an account. Try logging in instead.",
+      "errorPassword": "Please choose a password of at least 6 characters.",
+      "errorEmail": "Please check the email address.",
+      "errorOther": "Something went wrong creating your space. Please try again.",
+      "errorTerms": "Please agree to the Terms of Service and Privacy Policy to continue.",
+      "accountFor": "This account is for:",
+      "forCaregiver": "a caregiver",
+      "forMe": "just me",
+      "change": "Change",
+      "name": "Your name or nickname",
+      "namePlaceholder": "e.g. Emma",
+      "passwordPlaceholder": "At least 6 characters",
+      "terms": "I agree to the SafeSpace <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
+      "creating": "Creating your space...",
+      "create": "Create my space",
+      "haveAccount": "Already have an account?"
+    },
+    "forgot": {
+      "title": "Reset Password",
+      "subtitle": "Enter your registered email address to receive reset instructions",
+      "sentBefore": "If an account exists for",
+      "sentAfter": ", a password reset link has been sent to your inbox.",
+      "sending": "Sending...",
+      "send": "Send Reset Link",
+      "remember": "Remember your password?",
+      "backToSignIn": "Back to Sign In"
+    },
+    "reset": {
+      "title": "Set New Password",
+      "subtitle": "Enter your new secure password below",
+      "done": "Password updated successfully! Redirecting to sign in...",
+      "newPassword": "New Password",
+      "updating": "Updating...",
+      "update": "Update Password"
+    },
+    "pin": {
+      "codeTitle": "Family Code Required",
+      "codeSubtitle": "Ask a grown-up for your family code. You only need to enter it once on this device.",
+      "codePlaceholder": "e.g. A1B2C3",
+      "title": "Hi! Enter your PIN",
+      "subtitle": "Ask a grown-up if you forget your code",
+      "familyCode": "Family code",
+      "deleteDigit": "Delete the last digit"
+    }
+  },
+  "onboarding": {
+    "step": "Step {{n}} of {{total}}",
+    "skip": "Skip",
+    "errorName": "Please enter your name to continue.",
+    "errorChildName": "Please enter your child's name.",
+    "errorChildDetails": "Enter your child's birth month and year (age 4 to 17) and a 4-digit PIN.",
+    "errorSetup": "An unexpected error occurred during setup. Please try again.",
+    "areas": {
+      "anxiety": { "label": "Anxiety & Calm", "desc": "Breathing, grounding & gentle reframing" },
+      "adhd": { "label": "ADHD & Focus", "desc": "Micro-tasking, structure & focus timers" },
+      "autism": { "label": "Autism & Routine", "desc": "Sensory ease, predictability & clarity" },
+      "depression": { "label": "Depression & Hope", "desc": "Low-energy steps & gentle encouragement" },
+      "ptsd": { "label": "PTSD & Safety", "desc": "Grounding exercises & comforting routines" },
+      "pcos_pcod": { "label": "PCOS / PCOD Wellbeing", "desc": "Hormonal balance, rest & self-care" }
+    },
+    "access": {
+      "reducedSensoryStimulation": { "label": "Reduced Sensory Stimulation", "desc": "Muted colors and simplified visuals" },
+      "largerText": { "label": "Larger Text", "desc": "Increase font sizing across screens" },
+      "readAloud": { "label": "Read Aloud Support", "desc": "Enable audio descriptions" },
+      "simplifiedPresentation": { "label": "Simplified Presentation", "desc": "Clutter-free, direct layouts" }
+    },
+    "user": {
+      "bubble1": "Hi there!",
+      "nameTitle": "What should we call you?",
+      "nameText": "Enter your preferred name or nickname for SafeSpace.",
+      "nameLabel": "Your Name",
+      "namePlaceholder": "e.g. Alex",
+      "areasTitle": "What would you like support with?",
+      "areasText": "Choose the areas you'd like SafeSpace to support you with.",
+      "comfortTitle": "Make SafeSpace comfortable for you",
+      "comfortText": "Configure sensory and display accessibility options.",
+      "bubble4": "All set!",
+      "doneTitle": "All set, {{name}}!",
+      "friend": "friend",
+      "doneText": "Your personal SafeSpace is ready for you.",
+      "settingUp": "Setting up...",
+      "enter": "Enter SafeSpace"
+    },
+    "cg": {
+      "bubble1": "Caregiver Portal",
+      "nameTitle": "Let's set up your SafeSpace",
+      "nameText": "First, tell us your caregiver display name.",
+      "nameLabel": "Caregiver / Lead Name",
+      "namePlaceholder": "e.g. Alex Smith",
+      "whoTitle": "Who are you looking after?",
+      "whoText": "Add a child, or join a child another caregiver already added.",
+      "addTitle": "Add your first child",
+      "addText": "Their name, birth month and year, and a PIN.",
+      "joinTitle": "Join with an invite code",
+      "joinText": "Another caregiver gave you an 8-character code.",
+      "joinCodeText": "Enter the code another caregiver gave you.",
+      "skipChild": "Skip for now: I'll add a child later",
+      "childTitle": "Who are you setting up SafeSpace for?",
+      "childText": "Enter child details to create their scoped SafeSpace profile.",
+      "childName": "Child Name",
+      "childNamePlaceholder": "e.g. Leo",
+      "birthMonth": "Birth month",
+      "month": "Month",
+      "birthYear": "Birth year",
+      "birthYearPlaceholder": "e.g. 2017",
+      "pin": "Child PIN",
+      "pinPlaceholder": "4 digits",
+      "pinHelp": "Your child signs in with your family code and this PIN.",
+      "areasTitle": "Choose support areas for {{name}}",
+      "areasText": "Which areas would you like SafeSpace to support for {{name}}?",
+      "yourChild": "your child",
+      "bubble4": "All ready!",
+      "doneTitle": "Setup Complete, {{name}}!",
+      "caregiver": "Caregiver",
+      "doneText": "Your caregiver portal and child space configuration are ready.",
+      "finishing": "Finishing setup...",
+      "goHome": "Go to your caregiver home"
+    },
+    "summary": {
+      "name": "Name:",
+      "areas": "Support Areas:",
+      "selected_one": "{{count}} selected",
+      "selected_other": "{{count}} selected",
+      "caregiver": "Caregiver Lead:",
+      "joined": "Joined:",
+      "joinedText": "you can now see the child you were invited to.",
+      "skippedText": "You can add a child or join one with an invite later, from your caregiver home.",
+      "child": "Child Profile:",
+      "born": "(born {{month}} {{year}})",
+      "childAreas": "Child Support Modules:"
+    }
+  },
+  "tiles": {
+    "moodCheckIn": "Mood check-in",
+    "routines": "Routines",
+    "journal": "Journal",
+    "reminders": "Reminders",
+    "calmSpace": "Calm Space",
+    "gamesCorner": "Games Corner",
+    "games": "Games",
+    "music": "Music",
+    "modules": "Wellness modules",
+    "companion": "AI Companion",
+    "nutrition": "NutritionGuide",
+    "talkBoard": "Talk board",
+    "stories": "Stories",
+    "howIFeel": "How I feel",
+    "myRoutines": "My routines",
+    "myJournal": "My journal",
+    "mySpaces": "My spaces",
+    "settings": "Settings",
+    "allMyTools": "All my tools",
+    "moreTools": "More tools",
+    "focusFeelings": "Focus & feelings",
+    "profile": "Profile",
+    "alerts": "Alerts",
+    "addChild": "Add a child",
+    "joinFamily": "Join a family",
+    "tool": {
+      "focus": "Focus Zone",
+      "schedule": "Schedule",
+      "feelings": "Feelings",
+      "countdown": "Countdown"
+    }
+  },
+  "home": {
+    "greeting": "Hi, {{name}}",
+    "loading": "Loading your safe space...",
+    "tryNext": "Try this next",
+    "play": "Play",
+    "playSpace": "Play space",
+    "keepStill": "Keep it still",
+    "signOut": "Sign out",
+    "yourDay": "Your day",
+    "kindWords": "A few kind words",
+    "closing1": "You're not alone.",
+    "closing2": "Start small.",
+    "closing3": "Rest when you need to.",
+    "closing4": "Come back any time.",
+    "closingLine": "You're not alone. Start small, rest when you need to, and come back any time.",
+    "calm": {
+      "goodnight": "Goodnight, little steps",
+      "goodMorning": "Good morning"
+    },
+    "individual": {
+      "eyebrow": "Your space",
+      "line": "Welcome back. Take your time, breathe, and explore.",
+      "status": "Glad you're here. One small step at a time.",
+      "tilesLabel": "Your tools",
+      "areasTitle": "Your Selected Support Areas",
+      "areasText": "Personalized focus areas configured during onboarding.",
+      "noAreas": "No support areas selected yet.",
+      "moodTitle": "Daily Mood Check-in",
+      "moodText": "How are you feeling right now?",
+      "checkIn": "Check in",
+      "breathingTag": "Guided Breathing",
+      "restQuote": "\"Rest is productive too.\"",
+      "restText": "Taking 5 minutes to reset clears mental clutter and restores calm.",
+      "deepCalm": "Deep Calm",
+      "startSession": "Start a quick session",
+      "resetsTitle": "Guided Calming Resets",
+      "exercises_one": "{{count}} exercise",
+      "exercises_other": "{{count}} exercises",
+      "openCalm": "Open Calm Space",
+      "openModules": "Open modules",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min",
+      "sessions": {
+        "breatheReset": "Breathe & reset",
+        "eveningWindDown": "Evening wind-down",
+        "bodyReset": "Body reset"
+      },
+      "categories": {
+        "breathing": "Breathing",
+        "relaxation": "Relaxation",
+        "mindfulness": "Mindfulness"
+      }
+    },
+    "child": {
+      "eyebrow": "My space",
+      "greeting": "Hi {{name}}!",
+      "line": "Here's your day. One little step at a time.",
+      "tilesLabel": "My tools",
+      "statusEmpty": "Nothing planned today. Pick anything you like!",
+      "statusDone": "All done for today. Well done!",
+      "statusLeft_one": "{{count}} step left today. You've got this!",
+      "statusLeft_other": "{{count}} steps left today. You've got this!",
+      "errorLoad": "Some things didn't load. Try again in a minute.",
+      "errorSave": "That didn't save. Try again.",
+      "now": "Now",
+      "next": "Next",
+      "inMinutes_one": "In {{count}} minute",
+      "inMinutes_other": "In {{count}} minutes",
+      "readAloud": "Read \"{{title}}\" aloud",
+      "readNow": "Read now aloud",
+      "readNext": "Read next aloud",
+      "speakStep": "{{label}}: {{step}}.",
+      "speakStepAt": "{{label}}: {{step}} at {{time}}.",
+      "loading": "Loading today…",
+      "nothingTitle": "Nothing planned for today",
+      "nothingText": "Pick something below whenever you like.",
+      "allDone": "All done for today!",
+      "nowAndNext": "Now and next",
+      "nothingNow": "Nothing right now",
+      "lastOne": "That's the last one",
+      "today": "Today",
+      "didIt": "I did it!"
+    },
+    "caregiver": {
+      "eyebrow": "Caregiver",
+      "fallbackName": "Caregiver",
+      "line": "Your children's spaces and how their week is going.",
+      "dayTitle": "Your children",
+      "tilesLabel": "Caregiver pages"
+    },
+    "today": {
+      "error": "Today's plan couldn't load right now.",
+      "noRoutines": "Nothing planned today. Set one up?",
+      "allDone": "All done for today",
+      "now": "Now:",
+      "stepsLeft_one": "{{count}} step left today",
+      "stepsLeft_other": "{{count}} steps left today",
+      "nothingDue": "Nothing due yet",
+      "stepsLater_one": "{{count}} step later today",
+      "stepsLater_other": "{{count}} steps later today",
+      "noReminders": "Nothing due right now",
+      "remindersDue_one": "<b>{{count}}</b> due now",
+      "remindersDue_other": "<b>{{count}}</b> due now"
+    }
+  }
+}
